@@ -1,0 +1,18 @@
+# Build
+build/
+
+# ESP-IDF
+sdkconfig
+sdkconfig.old
+
+# VSCode
+.vscode/
+
+# ESP-IDF managed components
+managed_components/
+
+# Components externos (opcional pero recomendado)
+components/
+
+# Logs
+*.log
