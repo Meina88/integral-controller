@@ -7,6 +7,8 @@ idf_component_register(
         "bsp/display.c"        
         "bsp/backlight.c"
         "ui/screens/screen_home.c"
+        "drivers/io/CH422G.c"
+        "drivers/io/DEV_Config.c"
 
     INCLUDE_DIRS
         "."
@@ -16,6 +18,7 @@ idf_component_register(
         "logic"
         "services"
         "utils"
+        "drivers/io"
 )
 
 idf_component_get_property(lvgl_lib lvgl__lvgl COMPONENT_LIB)
