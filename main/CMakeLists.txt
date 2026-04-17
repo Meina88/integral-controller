@@ -4,6 +4,10 @@ idf_component_register(
         "lvgl_port.c"
         "waveshare_rgb_lcd_port.c"
         "ui/ui_manager.c"
+        "bsp/display.c"        
+        "bsp/backlight.c"
+        "ui/screens/screen_home.c"
+
     INCLUDE_DIRS
         "."
         "ui"

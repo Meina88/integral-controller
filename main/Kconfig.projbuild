@@ -114,4 +114,12 @@ menu "Example Configuration"
             help
                 Height of LVGL buffer. The width of the buffer is the same as that of the LCD.
     endmenu
+
+    menu "Example Configuration"
+
+    config EXAMPLE_LCD_TOUCH_CONTROLLER_GT911
+        bool "Enable GT911 Touch Controller"
+        default y
+
+endmenu
 endmenu
