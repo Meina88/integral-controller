@@ -9,6 +9,7 @@ idf_component_register(
         "ui/screens/screen_home.c"
         "drivers/io/CH422G.c"
         "drivers/io/DEV_Config.c"
+        "drivers/relay.c"
 
     INCLUDE_DIRS
         "."
