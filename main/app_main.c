@@ -11,20 +11,33 @@
 #include <stdio.h>
 
 #include "drivers/relay.h"
-#include "drivers/rtc/rtc.h"   
+#include "drivers/rtc/rtc.h"
+#include "storage/sdcard/sdcard.h"
 
+// =========================
+// MAIN
+// =========================
 void app_main(void)
 {
+    // =========================
+    // DISPLAY (🔥 CREA I2C)
+    // =========================
     display_init();
     backlight_on();
 
     // =========================
-    // IO EXPANDER
+    // SD DESPUÉS (usa ese I2C)
     // =========================
-    if (DEV_Module_Init() != 0) {
-        printf("Error: DEV_Module_Init fallo\n");
-    } else {
-        printf("CH422G inicializado OK\n");
+    printf("Inicializando SD...\n");
+
+    if (sdcard_init() == ESP_OK)
+    {
+        printf("SD montada correctamente\n");
+        // sdcard_test(); // opcional
+    }
+    else
+    {
+        printf("Error montando SD\n");
     }
 
     // =========================
@@ -35,12 +48,11 @@ void app_main(void)
     // =========================
     // RTC
     // =========================
-    rtc_hw_init();  // 🔥 NUEVO
-
+    rtc_hw_init();
     printf("RTC inicializado\n");
 
     // =========================
-    // UI
+    // UI (LVGL)
     // =========================
     if (lvgl_port_lock(-1))
     {

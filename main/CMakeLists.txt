@@ -12,6 +12,7 @@ idf_component_register(
         "drivers/relay.c"
         "drivers/rtc/rtc.c"
         "drivers/rtc/rtc_pcf85063a.c"
+        "storage/sdcard/sdcard.c"
 
     INCLUDE_DIRS
         "."
@@ -22,6 +23,7 @@ idf_component_register(
         "services"
         "utils"
         "drivers/io"
+        "storage/sdcard"
 )
 
 idf_component_get_property(lvgl_lib lvgl__lvgl COMPONENT_LIB)
