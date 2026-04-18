@@ -2,95 +2,137 @@
 #include <stdio.h>
 #include "drivers/relay.h"
 #include "CH422G.h"
+#include "drivers/rtc/rtc.h"
 
-static bool relay_state = false;
+static bool running = false;
 
-// 🔥 forward declaration
-static void sensor_timer_cb(lv_timer_t *t);
+static int pulse_count = 0;
+static int total_count = 0;
 
-// 🔥 callback botón
-static void relay_btn_event_cb(lv_event_t *e)
+static bool last_sensor_state = false;
+
+static lv_obj_t *label_counter;
+static lv_obj_t *label_total;
+static lv_obj_t *btn_label;
+
+// 🔥 CONTROL RELAY
+static bool relay_active = false;
+static uint32_t relay_start_time = 0;
+
+// =========================
+// BOTÓN START/STOP
+// =========================
+static void start_stop_cb(lv_event_t *e)
 {
-    printf("TOUCH DETECTED\n");
+    running = !running;
 
-    lv_obj_t *btn = lv_event_get_target(e);
+    char time_str[16];
+    rtc_get_time_string(time_str);
 
-    relay_set(!relay_get());
-    relay_state = relay_get();
+    if (running)
+    {
+        printf("START presionado a las %s\n", time_str);
 
-    lv_obj_t *label = lv_obj_get_child(btn, 0);
-    lv_label_set_text(label, relay_state ? "RELAY ON" : "RELAY OFF");
+        lv_label_set_text(btn_label, "STOP");
+        lv_obj_set_style_bg_color(lv_event_get_target(e),
+            lv_palette_main(LV_PALETTE_RED), 0);
+    }
+    else
+    {
+        printf("STOP presionado a las %s\n", time_str);
 
-    lv_obj_set_style_bg_color(btn,
-                              relay_state ? lv_palette_main(LV_PALETTE_GREEN)
-                                          : lv_palette_main(LV_PALETTE_RED),
-                              0);
+        lv_label_set_text(btn_label, "START");
+        lv_obj_set_style_bg_color(lv_event_get_target(e),
+            lv_palette_main(LV_PALETTE_GREEN), 0);
+    }
 }
 
+// =========================
+// TIMER PRINCIPAL
+// =========================
+static void process_timer_cb(lv_timer_t *t)
+{
+    uint8_t di = CH422G_io_input(0x01); // DI0
+    bool current_state = !di;
+
+    // =========================
+    // DETECCIÓN DE FLANCO
+    // =========================
+    if (running && current_state && !last_sensor_state)
+    {
+        pulse_count++;
+
+        lv_label_set_text_fmt(label_counter, "COUNT: %d", pulse_count);
+
+        // =========================
+        // ACTIVAR RELAY CADA 5
+        // =========================
+        if (pulse_count % 5 == 0)
+        {
+            total_count++;
+
+            lv_label_set_text_fmt(label_total, "RELAY: %d", total_count);
+
+            relay_set(true);
+            relay_active = true;
+            relay_start_time = lv_tick_get();
+        }
+    }
+
+    last_sensor_state = current_state;
+
+    // =========================
+    // APAGAR RELAY (1000 ms)
+    // =========================
+    if (relay_active)
+    {
+        if (lv_tick_get() - relay_start_time >= 1000)
+        {
+            relay_set(false);
+            relay_active = false;
+        }
+    }
+}
+
+// =========================
+// UI
+// =========================
 void screen_home_create(void)
 {
     lv_obj_t *scr = lv_scr_act();
 
-    lv_obj_t *title = lv_label_create(scr);
-    lv_label_set_text(title, "Integral Controller");
-    lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 10);
-
-    lv_obj_t *led = lv_led_create(scr);
-    lv_obj_set_size(led, 30, 30);
-    lv_obj_align(led, LV_ALIGN_CENTER, 0, -40);
-
-    // 🔥 estado inicial
-    lv_led_off(led);
-    lv_obj_set_style_bg_color(led, lv_palette_main(LV_PALETTE_GREY), 0);
-    lv_led_off(led);
-
-    lv_obj_t *sensor_label = lv_label_create(scr);
-    lv_label_set_text(sensor_label, "Sensor PNP");
-    lv_obj_align_to(sensor_label, led, LV_ALIGN_OUT_BOTTOM_MID, 0, 10);
-
+    // =========================
+    // BOTÓN START/STOP
+    // =========================
     lv_obj_t *btn = lv_btn_create(scr);
-    lv_obj_set_size(btn, 150, 60);
-    lv_obj_align(btn, LV_ALIGN_CENTER, 0, 60);
+    lv_obj_set_size(btn, 150, 70);
+    lv_obj_align(btn, LV_ALIGN_TOP_MID, 0, 40);
 
-    lv_obj_t *label = lv_label_create(btn);
-    lv_label_set_text(label, "RELAY OFF");
-    lv_obj_center(label);
+    btn_label = lv_label_create(btn);
+    lv_label_set_text(btn_label, "START");
+    lv_obj_center(btn_label);
 
-    lv_obj_add_event_cb(btn, relay_btn_event_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_set_style_bg_color(btn,
+        lv_palette_main(LV_PALETTE_GREEN), 0);
 
-    // 🔥 sensor controla LED
-    lv_timer_create(sensor_timer_cb, 100, led);
-}
+    lv_obj_add_event_cb(btn, start_stop_cb, LV_EVENT_CLICKED, NULL);
 
-static void sensor_timer_cb(lv_timer_t *t)
-{
-    lv_obj_t *led = (lv_obj_t *)t->user_data;
+    // =========================
+    // CONTADOR 1
+    // =========================
+    label_counter = lv_label_create(scr);
+    lv_label_set_text(label_counter, "COUNT: 0");
+    lv_obj_align(label_counter, LV_ALIGN_CENTER, 0, -20);
 
-    static bool last_state = false;
+    // =========================
+    // CONTADOR 2
+    // =========================
+    label_total = lv_label_create(scr);
+    lv_label_set_text(label_total, "RELAY: 0");
+    lv_obj_align(label_total, LV_ALIGN_CENTER, 0, 40);
 
-    uint8_t di = CH422G_io_input(0x01); // DI0
-     bool current_state = !di;
-
-    // 🔥 actualizar LED
-    if (current_state)
-    {
-        lv_led_on(led);
-        lv_obj_set_style_bg_color(led, lv_palette_main(LV_PALETTE_GREEN), 0);
-    }
-    else
-    {
-        lv_led_off(led);
-        lv_obj_set_style_bg_color(led, lv_palette_main(LV_PALETTE_GREY), 0);
-    }
-
-    // 🔥 imprimir solo si cambia
-    if (current_state != last_state)
-    {
-        if (current_state)
-            printf("SENSOR DETECTADO\n");
-        else
-            printf("SENSOR LIBRE\n");
-
-        last_state = current_state;
-    }
+    // =========================
+    // TIMER PRINCIPAL
+    // =========================
+    lv_timer_create(process_timer_cb, 50, NULL);
 }
