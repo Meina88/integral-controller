@@ -1,5 +1,5 @@
-#ifndef _SDCARD_H_
-#define _SDCARD_H_
+#ifndef SDCARD_H
+#define SDCARD_H
 
 #include "esp_err.h"
 

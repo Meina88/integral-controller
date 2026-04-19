@@ -7,35 +7,46 @@
 
 #include "driver/spi_common.h"
 #include "driver/sdspi_host.h"
-#include "driver/i2c.h"
-
-#include "DEV_Config.h"
-#include "CH422G.h"
+#include "driver/gpio.h"
 
 #define TAG "SDCARD"
 #define MOUNT_POINT "/sdcard"
 
-// SPI según hardware real
+// SPI (igual que antes)
 #define PIN_NUM_MISO 13
 #define PIN_NUM_MOSI 11
 #define PIN_NUM_CLK  12
 
+// 🔥 NUEVO CS REAL
+#define PIN_NUM_CS   15
+
 static sdmmc_card_t *card;
 
-// =========================
-// INIT SD
-// =========================
 esp_err_t sdcard_init(void)
 {
     esp_err_t ret;
 
-    ESP_LOGI(TAG, "Inicializando SD...");
+    ESP_LOGI(TAG, "Inicializando SD (SPI + GPIO CS)...");
+
+    // =========================
+    // CONFIGURAR CS COMO OUTPUT
+    // =========================
+    gpio_config_t io_conf = {
+        .pin_bit_mask = (1ULL << PIN_NUM_CS),
+        .mode = GPIO_MODE_OUTPUT,
+        .pull_up_en = GPIO_PULLUP_ENABLE,
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .intr_type = GPIO_INTR_DISABLE
+    };
+    gpio_config(&io_conf);
+
+    gpio_set_level(PIN_NUM_CS, 1); // CS idle HIGH
 
     // =========================
     // SPI HOST
     // =========================
     sdmmc_host_t host = SDSPI_HOST_DEFAULT();
-    host.max_freq_khz = 5000;
+    host.max_freq_khz = 10000; // podés subir luego a 20MHz
 
     spi_bus_config_t bus_cfg = {
         .mosi_io_num = PIN_NUM_MOSI,
@@ -53,24 +64,10 @@ esp_err_t sdcard_init(void)
     }
 
     // =========================
-    // CH422G → configurar IO
-    // =========================
-
-    uint8_t mode = CH422G_Mode_IO_OE;
-    i2c_master_write_to_device(I2C_MASTER_NUM, CH422G_Mode, &mode, 1, pdMS_TO_TICKS(1000));
-
-    uint8_t state = 0x1E;
-    state &= ~CH422G_IO_4;   // CS LOW
-
-    i2c_master_write_to_device(I2C_MASTER_NUM, CH422G_IO_OUT, &state, 1, pdMS_TO_TICKS(1000));
-
-    vTaskDelay(pdMS_TO_TICKS(20));
-
-    // =========================
-    // MOUNT
+    // CONFIG SD (AHORA CON CS REAL)
     // =========================
     sdspi_device_config_t slot_config = SDSPI_DEVICE_CONFIG_DEFAULT();
-    slot_config.gpio_cs = -1;
+    slot_config.gpio_cs = PIN_NUM_CS;   // 🔥 CLAVE
     slot_config.host_id = host.slot;
 
     esp_vfs_fat_sdmmc_mount_config_t mount_config = {
