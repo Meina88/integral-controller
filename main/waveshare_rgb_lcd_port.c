@@ -197,7 +197,7 @@ esp_err_t wavesahre_rgb_lcd_bl_on()
     i2c_master_write_to_device(I2C_MASTER_NUM, 0x24, &write_buf, 1, I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS);
 
     // Pull the backlight pin high to light the screen backlight
-    write_buf = 0x1E;
+    write_buf = 0x1E | (1 << 3);
     i2c_master_write_to_device(I2C_MASTER_NUM, 0x38, &write_buf, 1, I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS);
     return ESP_OK;
 }
@@ -210,7 +210,7 @@ esp_err_t wavesahre_rgb_lcd_bl_off()
     i2c_master_write_to_device(I2C_MASTER_NUM, 0x24, &write_buf, 1, I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS);
 
     // Turn off the screen backlight by pulling the backlight pin low
-    write_buf = 0x1A;
+    write_buf = 0x1A | (1 << 3);
     i2c_master_write_to_device(I2C_MASTER_NUM, 0x38, &write_buf, 1, I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS);
     return ESP_OK;
 }
