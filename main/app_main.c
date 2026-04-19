@@ -14,6 +14,11 @@
 #include "drivers/rtc/rtc.h"
 #include "storage/sdcard/sdcard.h"
 
+#include "wifi_manager.h"
+#include "http_server.h"
+
+#include "nvs_flash.h"
+
 // =========================
 // MAIN
 // =========================
@@ -26,7 +31,7 @@ void app_main(void)
     backlight_on();
 
     // =========================
-    // SD DESPUÉS (usa ese I2C)
+    // SD
     // =========================
     printf("Inicializando SD...\n");
 
@@ -39,7 +44,7 @@ void app_main(void)
     {
         printf("Error montando SD\n");
     }
-    
+
     // =========================
     // RELAY
     // =========================
@@ -59,6 +64,18 @@ void app_main(void)
         ui_init();
         lvgl_port_unlock();
     }
+
+    // =========================
+    // WIFI + HTTP
+    // =========================
+    nvs_flash_init();  // 🔥 obligatorio
+
+    wifi_init_sta();
+
+    // Esperar IP (mejorable luego)
+    vTaskDelay(pdMS_TO_TICKS(5000));
+
+    start_http_server();
 
     // =========================
     // LOOP PRINCIPAL
