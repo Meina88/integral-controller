@@ -33,13 +33,13 @@ void app_main(void)
     if (sdcard_init() == ESP_OK)
     {
         printf("SD montada correctamente\n");
-        // sdcard_test(); // opcional
+        sdcard_test();
     }
     else
     {
         printf("Error montando SD\n");
     }
-
+    
     // =========================
     // RELAY
     // =========================

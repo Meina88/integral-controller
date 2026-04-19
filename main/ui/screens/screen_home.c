@@ -3,7 +3,7 @@
 #include <dirent.h>
 #include <string.h>
 #include <stdlib.h>
-
+#include "sdcard.h"
 #include "drivers/relay.h"
 #include "CH422G.h"
 #include "drivers/rtc/rtc.h"
@@ -158,6 +158,14 @@ void screen_home_create(void)
     lv_obj_set_size(global_txt_area, 400, 120);
     lv_obj_align(global_txt_area, LV_ALIGN_BOTTOM_RIGHT, 0, -10);
     lv_textarea_set_text(global_txt_area, "Selecciona archivo...");
+
+    if (!sdcard_is_ready())
+    {
+        printf("SD no disponible\n");
+
+        lv_list_add_text(list, "SD NO DETECTADA");
+        return;
+    }
 
     printf("Abriendo /sdcard...\n");
 
