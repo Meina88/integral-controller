@@ -15,7 +15,7 @@ idf_component_register(
         # DRIVERS
         "drivers/io/CH422G.c"
         "drivers/io/DEV_Config.c"
-        "drivers/relay.c"
+        "drivers/digital_outputs.c"
         "drivers/rtc/rtc.c"
         "drivers/rtc/rtc_pcf85063a.c"
 

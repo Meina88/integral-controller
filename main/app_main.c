@@ -10,7 +10,7 @@
 #include "freertos/task.h"
 #include <stdio.h>
 
-#include "drivers/relay.h"
+#include "digital_outputs.h"
 #include "drivers/rtc/rtc.h"
 #include "storage/sdcard/sdcard.h"
 
@@ -19,19 +19,27 @@
 
 #include "nvs_flash.h"
 
-// =========================
-// MAIN
-// =========================
 void app_main(void)
 {
     // =========================
-    // DISPLAY (🔥 CREA I2C)
+    // NVS (primero)
+    // =========================
+    nvs_flash_init();
+
+    // =========================
+    // DISPLAY
     // =========================
     display_init();
     backlight_on();
 
     // =========================
-    // SD
+    // DRIVERS
+    // =========================
+    digital_outputs_init();   // 🔥 CAMBIO CLAVE
+    rtc_hw_init();
+
+    // =========================
+    // STORAGE
     // =========================
     printf("Inicializando SD...\n");
 
@@ -46,18 +54,7 @@ void app_main(void)
     }
 
     // =========================
-    // RELAY
-    // =========================
-    relay_init();
-
-    // =========================
-    // RTC
-    // =========================
-    rtc_hw_init();
-    printf("RTC inicializado\n");
-
-    // =========================
-    // UI (LVGL)
+    // UI
     // =========================
     if (lvgl_port_lock(-1))
     {
@@ -66,19 +63,16 @@ void app_main(void)
     }
 
     // =========================
-    // WIFI + HTTP
+    // COMMS
     // =========================
-    nvs_flash_init();  // 🔥 obligatorio
-
     wifi_init_sta();
 
-    // Esperar IP (mejorable luego)
     vTaskDelay(pdMS_TO_TICKS(5000));
 
     start_http_server();
 
     // =========================
-    // LOOP PRINCIPAL
+    // LOOP
     // =========================
     while (1)
     {

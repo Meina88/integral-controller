@@ -4,9 +4,15 @@
 #include <string.h>
 #include <stdlib.h>
 #include "sdcard.h"
-#include "drivers/relay.h"
+#include "digital_outputs.h"
 #include "CH422G.h"
 #include "drivers/rtc/rtc.h"
+
+static bool relay_2_pending = false;
+static bool relay_2_active = false;
+
+static uint32_t relay_2_delay_start = 0;
+static uint32_t relay_2_on_time = 0;
 
 static bool running = false;
 
@@ -19,10 +25,10 @@ static lv_obj_t *label_counter;
 static lv_obj_t *label_total;
 static lv_obj_t *btn_label;
 
-// 🔥 NUEVO: textarea global
+// textarea global
 static lv_obj_t *global_txt_area;
 
-// 🔥 CONTROL RELAY
+// control relay
 static bool relay_active = false;
 static uint32_t relay_start_time = 0;
 
@@ -79,6 +85,17 @@ static void start_stop_cb(lv_event_t *e)
         lv_label_set_text(btn_label, "START");
         lv_obj_set_style_bg_color(lv_event_get_target(e),
                                   lv_palette_main(LV_PALETTE_GREEN), 0);
+
+        // =========================
+        // SEGURIDAD: APAGAR TODO
+        // =========================
+        relay_1_off();
+        relay_2_off();
+
+        // reset estados internos
+        relay_active = false;
+        relay_2_pending = false;
+        relay_2_active = false;
     }
 }
 
@@ -87,9 +104,14 @@ static void start_stop_cb(lv_event_t *e)
 //////////////////////////////////////////////////////////
 static void process_timer_cb(lv_timer_t *t)
 {
+    (void)t;
+
     uint8_t di = CH422G_io_input(0x01);
     bool current_state = !di;
 
+    // =========================
+    // DETECCIÓN DE PULSOS
+    // =========================
     if (running && current_state && !last_sensor_state)
     {
         pulse_count++;
@@ -100,7 +122,7 @@ static void process_timer_cb(lv_timer_t *t)
             total_count++;
             lv_label_set_text_fmt(label_total, "RELAY: %d", total_count);
 
-            relay_set(true);
+            relay_1_on();
             relay_active = true;
             relay_start_time = lv_tick_get();
         }
@@ -108,16 +130,42 @@ static void process_timer_cb(lv_timer_t *t)
 
     last_sensor_state = current_state;
 
-    if (relay_active)
+    uint32_t now = lv_tick_get();
+
+    // =========================
+    // RELAY 1 CONTROL
+    // =========================
+    if (relay_active && (now - relay_start_time >= 1000))
     {
-        if (lv_tick_get() - relay_start_time >= 1000)
-        {
-            relay_set(false);
-            relay_active = false;
-        }
+        relay_1_off();
+
+        relay_2_pending = true;
+        relay_2_delay_start = now;
+
+        relay_active = false;
+    }
+
+    // =========================
+    // RELAY 2 DELAY
+    // =========================
+    if (relay_2_pending && (now - relay_2_delay_start >= 500))
+    {
+        relay_2_on();
+        relay_2_on_time = now;
+
+        relay_2_pending = false;
+        relay_2_active = true;
+    }
+
+    // =========================
+    // RELAY 2 DURACIÓN
+    // =========================
+    if (relay_2_active && (now - relay_2_on_time >= 1000))
+    {
+        relay_2_off();
+        relay_2_active = false;
     }
 }
-
 //////////////////////////////////////////////////////////
 // UI
 //////////////////////////////////////////////////////////
@@ -148,12 +196,12 @@ void screen_home_create(void)
     lv_label_set_text(label_total, "RELAY: 0");
     lv_obj_align(label_total, LV_ALIGN_CENTER, 0, 40);
 
-    // 🔥 LISTA ARCHIVOS
+    // LISTA ARCHIVOS
     lv_obj_t *list = lv_list_create(scr);
     lv_obj_set_size(list, 400, 200);
     lv_obj_align(list, LV_ALIGN_BOTTOM_LEFT, 0, -10);
 
-    // 🔥 TEXTAREA
+    // TEXTAREA
     global_txt_area = lv_textarea_create(scr);
     lv_obj_set_size(global_txt_area, 400, 120);
     lv_obj_align(global_txt_area, LV_ALIGN_BOTTOM_RIGHT, 0, -10);
@@ -162,7 +210,6 @@ void screen_home_create(void)
     if (!sdcard_is_ready())
     {
         printf("SD no disponible\n");
-
         lv_list_add_text(list, "SD NO DETECTADA");
         return;
     }
@@ -190,10 +237,10 @@ void screen_home_create(void)
 
             printf("Archivo: %s\n", entry->d_name);
 
-            lv_obj_t *btn = lv_list_add_btn(list, NULL, entry->d_name);
+            lv_obj_t *btn_file = lv_list_add_btn(list, NULL, entry->d_name);
 
             char *name_copy = strdup(entry->d_name);
-            lv_obj_add_event_cb(btn, file_click_cb, LV_EVENT_CLICKED, name_copy);
+            lv_obj_add_event_cb(btn_file, file_click_cb, LV_EVENT_CLICKED, name_copy);
         }
 
         if (!found)
