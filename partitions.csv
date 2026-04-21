@@ -1,0 +1,6 @@
+# Name,   Type, SubType, Offset,  Size
+nvs,      data, nvs,     0x9000,  0x8000
+otadata,  data, ota,     0x11000, 0x2000
+app0,     app,  ota_0,   0x20000, 6M
+app1,     app,  ota_1,           , 6M
+spiffs,   data, spiffs,         , 2M
