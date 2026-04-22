@@ -4,8 +4,10 @@ idf_component_register(
 
         # UI
         "ui/ui_manager.c"
-        "ui/screens/screen_home.c"
-        "ui/port/lvgl_port.c"
+        "ui/screens/screen_home.c"        
+
+        # PORT
+        "port/lvgl_port.c"
 
         # BSP
         "bsp/display.c"
@@ -22,7 +24,7 @@ idf_component_register(
         # STORAGE
             "storage/sdcard/sdcard.c"
 
-        # 🔥 COMMS (AGREGADO)
+        # COMMS
         "comms/wifi/wifi_manager.c"
         "comms/http/http_server.c"
 
@@ -32,17 +34,17 @@ idf_component_register(
         "bsp"
         "drivers"
         "drivers/io"
-        "storage/sdcard"
-        "ui/port"
+        "storage/sdcard"        
         "bsp/display_rgb"
-
-        # 🔥 COMMS (AGREGADO)
+        
         "comms/wifi"
         "comms/http"
 
         "logic"
         "services"
         "utils"
+
+        "port"
 
     REQUIRES
         esp_wifi
