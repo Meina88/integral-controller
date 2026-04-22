@@ -58,7 +58,7 @@ void app_main(void)
     // =========================
     if (lvgl_port_lock(-1))
     {
-        ui_init();
+        ui_start();
         lvgl_port_unlock();
     }
 

@@ -1,10 +1,26 @@
 idf_component_register(
     SRCS
-        "app_main.c"           
+        "app_main.c"
 
-        # UI
+        # UI CORE
         "ui/ui_manager.c"
-        "ui/screens/screen_home.c"        
+        "ui/ui_events.c"
+
+        # SQUARELINE UI
+        "ui/squareline/ui.c"
+        "ui/squareline/ui_helpers.c"
+        "ui/squareline/components/ui_comp_hook.c"
+
+        # SQUARELINE SCREENS
+        "ui/squareline/screens/ui_Screen_1_Print.c"
+
+        # SQUARELINE ASSETS
+        "ui/squareline/fonts/ui_font_Small_Font.c"
+
+        "ui/squareline/images/ui_img_3d_printer_bg_png.c"
+        "ui/squareline/images/ui_img_btn_print_down_png.c"
+        "ui/squareline/images/ui_img_btn_print_top_off_png.c"
+        "ui/squareline/images/ui_img_icn_stop_png.c"
 
         # PORT
         "port/lvgl_port.c"
@@ -26,7 +42,7 @@ idf_component_register(
 
         # STORAGE
         "storage/sdcard/sdcard.c"
-        "storage/sdcard/sd_files.c"  
+        "storage/sdcard/sd_files.c"
 
         # COMMS
         "comms/wifi/wifi_manager.c"
@@ -35,19 +51,26 @@ idf_component_register(
     INCLUDE_DIRS
         "."
         "ui"
+        "ui/squareline"
+        "ui/squareline/components"
+        "ui/squareline/screens"
+        "ui/squareline/fonts"
+        "ui/squareline/images"
+        "ui/squareline/.."
         "bsp"
+        "bsp/display_rgb"
+
         "drivers"
         "drivers/io"
-        "storage/sdcard"        
-        "bsp/display_rgb"
-        
+
+        "storage/sdcard"
+
         "comms/wifi"
         "comms/http"
 
-        "logic"         
+        "logic"
         "services"
         "utils"
-
         "port"
 
     REQUIRES

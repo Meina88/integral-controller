@@ -1,9 +1,10 @@
-#include "ui_manager.h"
-#include "lvgl.h"
-#include "ui/screens/screen_home.h"
+#include "ui_events.h"
+#include "ui.h"   // importante
 
-void ui_init(void)
+void ui_start(void)
 {
-    lv_obj_clean(lv_scr_act());
-    screen_home_create();
+    ui_init();
+
+    // 🔥 enganchar evento al botón
+    lv_obj_add_event_cb(ui_BTN_Cancel_Top, btn_toggle_relay_cb, LV_EVENT_CLICKED, NULL);
 }

@@ -123,7 +123,7 @@ esp_err_t waveshare_esp32_s3_rgb_lcd_init(void)
                 .pclk_active_neg = 1,
             },
         },
-        .data_width = EXAMPLE_RGB_DATA_WIDTH,
+        .data_width = EXAMPLE_RGB_DATA_WIDTH,       
         .bits_per_pixel = EXAMPLE_RGB_BIT_PER_PIXEL,
         .num_fbs = 2,
         .bounce_buffer_size_px = EXAMPLE_RGB_BOUNCE_BUFFER_SIZE,
