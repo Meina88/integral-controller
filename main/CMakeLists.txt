@@ -1,16 +1,16 @@
 idf_component_register(
     SRCS
-        "app_main.c"
-        "lvgl_port.c"
-        "waveshare_rgb_lcd_port.c"
+        "app_main.c"           
 
         # UI
         "ui/ui_manager.c"
         "ui/screens/screen_home.c"
+        "ui/port/lvgl_port.c"
 
         # BSP
         "bsp/display.c"
         "bsp/backlight.c"
+        "bsp/display_rgb/waveshare_rgb_lcd_port.c"
 
         # DRIVERS
         "drivers/io/CH422G.c"
@@ -20,7 +20,7 @@ idf_component_register(
         "drivers/rtc/rtc_pcf85063a.c"
 
         # STORAGE
-        "storage/sdcard/sdcard.c"
+            "storage/sdcard/sdcard.c"
 
         # 🔥 COMMS (AGREGADO)
         "comms/wifi/wifi_manager.c"
@@ -33,6 +33,8 @@ idf_component_register(
         "drivers"
         "drivers/io"
         "storage/sdcard"
+        "ui/port"
+        "bsp/display_rgb"
 
         # 🔥 COMMS (AGREGADO)
         "comms/wifi"

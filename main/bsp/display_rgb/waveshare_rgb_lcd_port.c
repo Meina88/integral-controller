@@ -174,15 +174,18 @@ esp_err_t waveshare_esp32_s3_rgb_lcd_init(void)
     ESP_LOGI(TAG, "Reset touch controller");
     waveshare_esp32_s3_touch_reset();
 
-    esp_lcd_panel_io_handle_t tp_io_handle = NULL;
-    const esp_lcd_panel_io_i2c_config_t tp_io_config =
-        ESP_LCD_TOUCH_IO_I2C_GT911_CONFIG();
+esp_lcd_panel_io_handle_t tp_io_handle = NULL;
+esp_lcd_panel_io_i2c_config_t tp_io_config =
+    ESP_LCD_TOUCH_IO_I2C_GT911_CONFIG();
 
-    ESP_LOGI(TAG, "Initialize I2C panel IO");
-    ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c(
-        (esp_lcd_i2c_bus_handle_t)I2C_MASTER_NUM,
-        &tp_io_config,
-        &tp_io_handle));
+/* En ESP-IDF 5.5 + driver legacy i2c_lcd, este campo debe ir en 0 */
+tp_io_config.scl_speed_hz = 0;
+
+ESP_LOGI(TAG, "Initialize I2C panel IO");
+ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c(
+    (esp_lcd_i2c_bus_handle_t)I2C_MASTER_NUM,
+    &tp_io_config,
+    &tp_io_handle));
 
     ESP_LOGI(TAG, "Initialize touch controller GT911");
     const esp_lcd_touch_config_t tp_cfg = {
