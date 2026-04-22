@@ -225,7 +225,7 @@ ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c(
 }
 
 /******************************* Turn on the screen backlight **************************************/
-esp_err_t wavesahre_rgb_lcd_bl_on(void)
+esp_err_t waveshare_rgb_lcd_bl_on(void)
 {
     uint8_t write_buf = 0x01;
     ESP_ERROR_CHECK(i2c_master_write_to_device(
@@ -241,7 +241,7 @@ esp_err_t wavesahre_rgb_lcd_bl_on(void)
 }
 
 /******************************* Turn off the screen backlight **************************************/
-esp_err_t wavesahre_rgb_lcd_bl_off(void)
+esp_err_t waveshare_rgb_lcd_bl_off(void)
 {
     uint8_t write_buf = 0x01;
     ESP_ERROR_CHECK(i2c_master_write_to_device(

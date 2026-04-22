@@ -3,10 +3,10 @@
 
 void backlight_on(void)
 {
-    wavesahre_rgb_lcd_bl_on();
+    waveshare_rgb_lcd_bl_on();
 }
 
 void backlight_off(void)
 {
-    wavesahre_rgb_lcd_bl_off();
+    waveshare_rgb_lcd_bl_off();
 }
