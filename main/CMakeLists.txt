@@ -2,25 +2,9 @@ idf_component_register(
     SRCS
         "app_main.c"
 
-        # UI CORE
+        # UI (TU CAPA)
         "ui/ui_manager.c"
         "ui/ui_events.c"
-
-        # SQUARELINE UI
-        "ui/squareline/ui.c"
-        "ui/squareline/ui_helpers.c"
-        "ui/squareline/components/ui_comp_hook.c"
-
-        # SQUARELINE SCREENS
-        "ui/squareline/screens/ui_Screen_1_Print.c"
-
-        # SQUARELINE ASSETS
-        "ui/squareline/fonts/ui_font_Small_Font.c"
-
-        "ui/squareline/images/ui_img_3d_printer_bg_png.c"
-        "ui/squareline/images/ui_img_btn_print_down_png.c"
-        "ui/squareline/images/ui_img_btn_print_top_off_png.c"
-        "ui/squareline/images/ui_img_icn_stop_png.c"
 
         # PORT
         "port/lvgl_port.c"
@@ -47,27 +31,26 @@ idf_component_register(
         # COMMS
         "comms/wifi/wifi_manager.c"
         "comms/http/http_server.c"
-
     INCLUDE_DIRS
         "."
-        "ui"
-        "ui/squareline"
-        "ui/squareline/components"
-        "ui/squareline/screens"
-        "ui/squareline/fonts"
-        "ui/squareline/images"
-        "ui/squareline/.."
+
+        # BSP
         "bsp"
         "bsp/display_rgb"
 
+        # DRIVERS
         "drivers"
         "drivers/io"
+        "drivers/rtc"
 
+        # STORAGE
         "storage/sdcard"
 
+        # COMMS
         "comms/wifi"
         "comms/http"
 
+        # CORE
         "logic"
         "services"
         "utils"
@@ -83,7 +66,9 @@ idf_component_register(
         fatfs
         vfs
         esp_timer
+        lvgl
 )
 
+# Opcional: silenciar warnings de LVGL
 idf_component_get_property(lvgl_lib lvgl__lvgl COMPONENT_LIB)
 target_compile_options(${lvgl_lib} PRIVATE -Wno-format)

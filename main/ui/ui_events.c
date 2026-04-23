@@ -1,18 +1,12 @@
-#include "ui_events.h"
 #include "drivers/digital_outputs.h"
+#include "lvgl.h"
 
-static bool relay_state = false;
-
-void btn_toggle_relay_cb(lv_event_t * e)
+void relay_press_event(lv_event_t *event)
 {
-    relay_state = !relay_state;
+    relay_2_on();
+}
 
-    if (relay_state)
-    {
-        relay_1_on();
-    }
-    else
-    {
-        relay_1_off();
-    }
+void relay_release_event(lv_event_t *event)
+{
+    relay_2_off();
 }

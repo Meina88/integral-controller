@@ -16,7 +16,13 @@ bool extrusion_is_running(void);
 void extrusion_process_tick(void);
 
 // =========================
-// DATOS
+// DATOS EXISTENTES
 // =========================
 int extrusion_get_pulse_count(void);
 int extrusion_get_total_count(void);
+
+// =========================
+// NUEVOS DATOS
+// =========================
+float extrusion_get_total_mm(void);
+float extrusion_get_speed_m_min(void);

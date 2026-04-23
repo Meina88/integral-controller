@@ -18,13 +18,19 @@
 #include "http_server.h"
 
 #include "nvs_flash.h"
+#include "logic/extrusion.h"
 
 void app_main(void)
 {
     // =========================
-    // NVS (primero)
+    // NVS (SIEMPRE PRIMERO)
     // =========================
-    nvs_flash_init();
+    ESP_ERROR_CHECK(nvs_flash_init());
+
+    // =========================
+    // LOW LEVEL HW
+    // =========================
+    DEV_Module_Init();     // 🔥 IMPORTANTE (CH422G depende de esto)   
 
     // =========================
     // DISPLAY
@@ -35,7 +41,7 @@ void app_main(void)
     // =========================
     // DRIVERS
     // =========================
-    digital_outputs_init();   // 🔥 CAMBIO CLAVE
+    digital_outputs_init();
     rtc_hw_init();
 
     // =========================
@@ -54,28 +60,42 @@ void app_main(void)
     }
 
     // =========================
-    // UI
+    // UI (LVGL)
     // =========================
     if (lvgl_port_lock(-1))
     {
-        ui_start();
+        ui_start();   // GUI_load()
         lvgl_port_unlock();
     }
+    extrusion_start();
 
     // =========================
     // COMMS
     // =========================
     wifi_init_sta();
 
-    vTaskDelay(pdMS_TO_TICKS(5000));
+    vTaskDelay(pdMS_TO_TICKS(2000));
 
     start_http_server();
 
     // =========================
     // LOOP
     // =========================
-    while (1)
+while (1)
+{
+    // DEBUG
+    printf("loop\n");
+
+    // lógica de extrusión
+    extrusion_process_tick();
+
+    // actualizar UI
+    if (lvgl_port_lock(-1))
     {
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        ui_update();
+        lvgl_port_unlock();
     }
+
+    vTaskDelay(pdMS_TO_TICKS(50)); // 20 Hz
+}
 }
