@@ -2,45 +2,64 @@ idf_component_register(
     SRCS
         "app_main.c"
 
-        # UI (TU CAPA)
+        # =========================
+        # UI
+        # =========================
         "ui/ui_manager.c"
         "ui/ui_events.c"
 
-        # 🔥 SCREENS
+        # SCREENS
         "ui/screens/screen_extruir.c"
         "ui/screens/screen_setup.c"
         "ui/screens/screen_config.c"
+        "ui/screens/screen_historicos.c"
+        "ui/components/numpad.c"
 
+        # =========================
         # PORT
+        # =========================
         "port/lvgl_port.c"
 
+        # =========================
         # BSP
+        # =========================
         "bsp/display.c"
         "bsp/backlight.c"
         "bsp/display_rgb/waveshare_rgb_lcd_port.c"
 
+        # =========================
         # DRIVERS
+        # =========================
         "drivers/io/CH422G.c"
         "drivers/io/DEV_Config.c"
         "drivers/digital_outputs.c"
         "drivers/rtc/rtc.c"
         "drivers/rtc/rtc_pcf85063a.c"
 
+        # =========================
         # LOGIC
+        # =========================
         "logic/extrusion.c"
+        "logic/profile.c"           # 🔥 NUEVO
 
+        # =========================
         # STORAGE
+        # =========================
+        "storage/nvs/storage_nvs.c" # 🔥 NUEVO
         "storage/sdcard/sdcard.c"
         "storage/sdcard/sd_files.c"
 
+        # =========================
         # COMMS
+        # =========================
         "comms/wifi/wifi_manager.c"
         "comms/http/http_server.c"
 
     INCLUDE_DIRS
         "."
         "ui"
-        "ui/screens"   # 🔥 IMPORTANTE
+        "ui/screens"
+        "ui/components"
 
         # BSP
         "bsp"
@@ -52,6 +71,7 @@ idf_component_register(
         "drivers/rtc"
 
         # STORAGE
+        "storage/nvs"        # 🔥 NUEVO
         "storage/sdcard"
 
         # COMMS
@@ -75,8 +95,11 @@ idf_component_register(
         vfs
         esp_timer
         lvgl
+        cjson
 )
 
-# Opcional: silenciar warnings de LVGL
+# =========================
+# LVGL WARNINGS
+# =========================
 idf_component_get_property(lvgl_lib lvgl__lvgl COMPONENT_LIB)
 target_compile_options(${lvgl_lib} PRIVATE -Wno-format)

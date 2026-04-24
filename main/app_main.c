@@ -18,6 +18,7 @@
 #include "http_server.h"
 
 #include "nvs_flash.h"
+#include "storage/nvs/storage_nvs.h"   // 🔥 NUEVO
 #include "logic/extrusion.h"
 
 // 🔥 DECLARACIÓN
@@ -26,9 +27,24 @@ void rtc_set_manual_time(void);
 void app_main(void)
 {
     // =========================
-    // NVS (SIEMPRE PRIMERO)
+    // NVS BASE (ESP-IDF)
     // =========================
     ESP_ERROR_CHECK(nvs_flash_init());
+
+    // =========================
+    // STORAGE NVS (PERFILES)
+    // =========================
+    ESP_ERROR_CHECK(storage_nvs_init());
+
+    if (!storage_nvs_profiles_exist())
+    {
+        printf("Cargando perfiles por defecto en NVS...\n");
+        ESP_ERROR_CHECK(storage_nvs_load_defaults());
+    }
+    else
+    {
+        printf("Perfiles encontrados en NVS\n");
+    }
 
     // =========================
     // LOW LEVEL HW
@@ -47,12 +63,10 @@ void app_main(void)
     digital_outputs_init();
     rtc_hw_init();
 
-    // 🔥 SETEO MANUAL (SOLO UNA VEZ)
-    // rtc_set_manual_time();
-    // ⚠️ después de probar → COMENTAR ESTA LÍNEA
+    // rtc_set_manual_time(); // usar solo para test
 
     // =========================
-    // STORAGE
+    // STORAGE SD (OPCIONAL)
     // =========================
     printf("Inicializando SD...\n");
 
@@ -63,7 +77,7 @@ void app_main(void)
     }
     else
     {
-        printf("Error montando SD\n");
+        printf("Error montando SD (no afecta perfiles)\n");
     }
 
     // =========================
@@ -75,6 +89,9 @@ void app_main(void)
         lvgl_port_unlock();
     }
 
+    // =========================
+    // LOGIC
+    // =========================
     extrusion_start();
 
     // =========================
@@ -94,7 +111,7 @@ void app_main(void)
         // DEBUG
         printf("loop\n");
 
-        // 🔥 VERIFICACIÓN RTC
+        // RTC
         char dt[32];
         rtc_get_datetime_string(dt);
         printf("RTC: %s\n", dt);
@@ -102,7 +119,7 @@ void app_main(void)
         // lógica de extrusión
         extrusion_process_tick();
 
-        // actualizar UI
+        // UI
         if (lvgl_port_lock(-1))
         {
             ui_update();

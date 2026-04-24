@@ -90,9 +90,6 @@ static void lvgl_task(void *arg)
     }
 }
 
-/* =========================
-   INIT
-   ========================= */
 esp_err_t lvgl_port_init(esp_lcd_panel_handle_t lcd, esp_lcd_touch_handle_t tp)
 {
     lv_init();
@@ -106,11 +103,18 @@ esp_err_t lvgl_port_init(esp_lcd_panel_handle_t lcd, esp_lcd_touch_handle_t tp)
     lv_display_set_user_data(disp, lcd);
     lv_display_set_flush_cb(disp, flush_cb);
 
-    /* BUFFER */
+    /* BUFFER (🔥 PSRAM explícito + chequeo) */
     uint32_t buf_size = LVGL_PORT_H_RES * LVGL_PORT_BUFFER_HEIGHT;
 
-    void *buf = heap_caps_malloc(buf_size * sizeof(lv_color_t), LVGL_PORT_BUFFER_MALLOC_CAPS);
-    assert(buf);
+    void *buf = heap_caps_malloc(
+        buf_size * sizeof(lv_color_t),
+        MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT
+    );
+
+    if (!buf) {
+        ESP_LOGE(TAG, "No hay memoria para LVGL buffer");
+        return ESP_FAIL;
+    }
 
     lv_display_set_buffers(
         disp,
@@ -132,13 +136,13 @@ esp_err_t lvgl_port_init(esp_lcd_panel_handle_t lcd, esp_lcd_touch_handle_t tp)
     lvgl_mux = xSemaphoreCreateRecursiveMutex();
     assert(lvgl_mux);
 
-    /* TASK */
+    /* TASK (🔥 STACK GRANDE) */
     BaseType_t core_id = (LVGL_PORT_TASK_CORE < 0) ? tskNO_AFFINITY : LVGL_PORT_TASK_CORE;
 
     xTaskCreatePinnedToCore(
         lvgl_task,
         "lvgl",
-        LVGL_PORT_TASK_STACK_SIZE,
+        8192,   // 🔥 antes: LVGL_PORT_TASK_STACK_SIZE → ahora fijo y seguro
         NULL,
         LVGL_PORT_TASK_PRIORITY,
         &lvgl_task_handle,

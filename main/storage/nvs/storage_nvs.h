@@ -1,0 +1,14 @@
+#pragma once
+
+#include "esp_err.h"
+#include <stdbool.h>
+#include <stddef.h>
+
+esp_err_t storage_nvs_init(void);
+
+esp_err_t storage_nvs_save_profiles(const char *json);
+esp_err_t storage_nvs_load_profiles(char *buffer, size_t max_len);
+
+bool storage_nvs_profiles_exist(void);
+
+esp_err_t storage_nvs_load_defaults(void);

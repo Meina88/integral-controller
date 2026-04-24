@@ -45,7 +45,7 @@ static void file_click_event(lv_event_t *e)
     lv_obj_t *btn = lv_event_get_target(e);
     const char *filename = lv_list_get_btn_text(list_files, btn);
 
-    char buffer[512];
+    static char buffer[512];
 
     int len = sd_read_last_chunk(filename, buffer, sizeof(buffer));
 
@@ -63,7 +63,7 @@ static void load_files(void)
 {
     lv_obj_clean(list_files);
 
-    char files[20][64];
+    static char files[20][64];
     int count = sd_list_files(files, 20);
 
     for (int i = 0; i < count; i++)
