@@ -20,6 +20,9 @@
 #include "nvs_flash.h"
 #include "logic/extrusion.h"
 
+// 🔥 DECLARACIÓN
+void rtc_set_manual_time(void);
+
 void app_main(void)
 {
     // =========================
@@ -30,7 +33,7 @@ void app_main(void)
     // =========================
     // LOW LEVEL HW
     // =========================
-    DEV_Module_Init();     // 🔥 IMPORTANTE (CH422G depende de esto)   
+    DEV_Module_Init();
 
     // =========================
     // DISPLAY
@@ -43,6 +46,10 @@ void app_main(void)
     // =========================
     digital_outputs_init();
     rtc_hw_init();
+
+    // 🔥 SETEO MANUAL (SOLO UNA VEZ)
+    // rtc_set_manual_time();
+    // ⚠️ después de probar → COMENTAR ESTA LÍNEA
 
     // =========================
     // STORAGE
@@ -64,9 +71,10 @@ void app_main(void)
     // =========================
     if (lvgl_port_lock(-1))
     {
-        ui_start();   // GUI_load()
+        ui_start();
         lvgl_port_unlock();
     }
+
     extrusion_start();
 
     // =========================
@@ -81,21 +89,26 @@ void app_main(void)
     // =========================
     // LOOP
     // =========================
-while (1)
-{
-    // DEBUG
-    printf("loop\n");
-
-    // lógica de extrusión
-    extrusion_process_tick();
-
-    // actualizar UI
-    if (lvgl_port_lock(-1))
+    while (1)
     {
-        ui_update();
-        lvgl_port_unlock();
-    }
+        // DEBUG
+        printf("loop\n");
 
-    vTaskDelay(pdMS_TO_TICKS(50)); // 20 Hz
-}
+        // 🔥 VERIFICACIÓN RTC
+        char dt[32];
+        rtc_get_datetime_string(dt);
+        printf("RTC: %s\n", dt);
+
+        // lógica de extrusión
+        extrusion_process_tick();
+
+        // actualizar UI
+        if (lvgl_port_lock(-1))
+        {
+            ui_update();
+            lvgl_port_unlock();
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(50));
+    }
 }

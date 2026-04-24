@@ -36,7 +36,7 @@ int sd_list_files(char files[][64], int max_files)
 }
 
 // =========================
-// LEER ARCHIVO
+// LEER ARCHIVO COMPLETO (usar con cuidado)
 // =========================
 int sd_read_file(const char *filename, char *buffer, int max_len)
 {
@@ -46,6 +46,36 @@ int sd_read_file(const char *filename, char *buffer, int max_len)
     FILE *f = fopen(path, "r");
     if (!f)
         return -1;
+
+    size_t read_bytes = fread(buffer, 1, max_len - 1, f);
+    buffer[read_bytes] = '\0';
+
+    fclose(f);
+    return read_bytes;
+}
+
+// =========================
+// 🔥 LEER ÚLTIMA PARTE DEL ARCHIVO (RECOMENDADO)
+// =========================
+int sd_read_last_chunk(const char *filename, char *buffer, int max_len)
+{
+    char path[128];
+    snprintf(path, sizeof(path), "/sdcard/%s", filename);
+
+    FILE *f = fopen(path, "r");
+    if (!f)
+        return -1;
+
+    // ir al final
+    fseek(f, 0, SEEK_END);
+    long size = ftell(f);
+
+    // calcular desde dónde leer
+    long start = size - max_len;
+    if (start < 0)
+        start = 0;
+
+    fseek(f, start, SEEK_SET);
 
     size_t read_bytes = fread(buffer, 1, max_len - 1, f);
     buffer[read_bytes] = '\0';
