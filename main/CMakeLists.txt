@@ -6,6 +6,11 @@ idf_component_register(
         "ui/ui_manager.c"
         "ui/ui_events.c"
 
+        # 🔥 SCREENS
+        "ui/screens/screen_extruir.c"
+        "ui/screens/screen_setup.c"
+        "ui/screens/screen_config.c"
+
         # PORT
         "port/lvgl_port.c"
 
@@ -31,8 +36,11 @@ idf_component_register(
         # COMMS
         "comms/wifi/wifi_manager.c"
         "comms/http/http_server.c"
+
     INCLUDE_DIRS
         "."
+        "ui"
+        "ui/screens"   # 🔥 IMPORTANTE
 
         # BSP
         "bsp"
