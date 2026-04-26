@@ -83,3 +83,43 @@ int sd_read_last_chunk(const char *filename, char *buffer, int max_len)
     fclose(f);
     return read_bytes;
 }
+
+int sd_list_files_in_dir(const char *dir_path, char files[][64], int max_files)
+{
+    if (!sdcard_is_ready())
+        return -1;
+
+    DIR *dir = opendir(dir_path);
+    if (!dir)
+        return -1;
+
+    struct dirent *entry;
+    int count = 0;
+
+    while ((entry = readdir(dir)) != NULL && count < max_files)
+    {
+        if (strcmp(entry->d_name, ".") == 0 ||
+            strcmp(entry->d_name, "..") == 0)
+            continue;
+
+        strncpy(files[count], entry->d_name, 63);
+        files[count][63] = '\0';
+        count++;
+    }
+
+    closedir(dir);
+    return count;
+}
+
+int sd_read_file_path(const char *path, char *buffer, int max_len)
+{
+    FILE *f = fopen(path, "r");
+    if (!f)
+        return -1;
+
+    size_t read_bytes = fread(buffer, 1, max_len - 1, f);
+    buffer[read_bytes] = '\0';
+
+    fclose(f);
+    return read_bytes;
+}
