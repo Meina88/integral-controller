@@ -15,8 +15,8 @@
 // SPI
 #define PIN_NUM_MISO 13
 #define PIN_NUM_MOSI 11
-#define PIN_NUM_CLK  12
-#define PIN_NUM_CS   15
+#define PIN_NUM_CLK 12
+#define PIN_NUM_CS 15
 
 static sdmmc_card_t *card;
 static bool sd_ok = false;
@@ -38,8 +38,7 @@ esp_err_t sdcard_init(void)
         .mode = GPIO_MODE_OUTPUT,
         .pull_up_en = GPIO_PULLUP_ENABLE,
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
-        .intr_type = GPIO_INTR_DISABLE
-    };
+        .intr_type = GPIO_INTR_DISABLE};
     gpio_config(&io_conf);
 
     gpio_set_level(PIN_NUM_CS, 1); // idle HIGH
@@ -76,8 +75,7 @@ esp_err_t sdcard_init(void)
     esp_vfs_fat_sdmmc_mount_config_t mount_config = {
         .format_if_mount_failed = false,
         .max_files = 5,
-        .allocation_unit_size = 16 * 1024
-    };
+        .allocation_unit_size = 16 * 1024};
 
     ret = esp_vfs_fat_sdspi_mount(MOUNT_POINT, &host, &slot_config, &mount_config, &card);
     if (ret != ESP_OK)
@@ -89,6 +87,9 @@ esp_err_t sdcard_init(void)
 
     ESP_LOGI(TAG, "SD montada OK");
     sdmmc_card_print_info(stdout, card);
+
+    // 🔥 crear estructura de carpetas
+    sdcard_create_dirs();
 
     sd_ok = true;
     return ESP_OK;
@@ -151,4 +152,13 @@ void sdcard_test(void)
     }
 
     fclose(f);
+}
+
+#include <sys/stat.h>
+
+void sdcard_create_dirs(void)
+{
+    mkdir("/sdcard/logs", 0775);
+    mkdir("/sdcard/profiles", 0775);
+    mkdir("/sdcard/summary", 0775);
 }

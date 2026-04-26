@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define PROFILE_DIR "/sdcard"
+#define PROFILE_DIR "/sdcard/profiles"
 #define PROFILE_JSON_SIZE 1024
 
 static void remove_json_extension(char *name)

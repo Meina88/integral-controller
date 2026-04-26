@@ -10,5 +10,6 @@
 esp_err_t sdcard_init(void);
 void sdcard_test(void);
 bool sdcard_is_ready(void);
+void sdcard_create_dirs(void);
 
 #endif

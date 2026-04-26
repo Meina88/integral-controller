@@ -40,12 +40,14 @@ idf_component_register(
         # LOGIC
         # =========================
         "logic/extrusion.c"
-        "logic/profile.c"           # 🔥 NUEVO
+        "logic/profile.c" 
+        "logic/active_profile.c"   
+        "logic/production.c"             
 
         # =========================
         # STORAGE
         # =========================
-        "storage/nvs/storage_nvs.c" # 🔥 NUEVO
+        "storage/nvs/storage_nvs.c"
         "storage/sdcard/sdcard.c"
         "storage/sdcard/sd_files.c"
 

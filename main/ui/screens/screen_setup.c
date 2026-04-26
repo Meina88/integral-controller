@@ -7,6 +7,9 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "logic/active_profile.h"
+#include "ui/ui_manager.h"
+
 // =========================
 // OBJETOS
 // =========================
@@ -65,6 +68,12 @@ static void result_btn_cb(lv_event_t *e)
 
         snprintf(buf, sizeof(buf), "Longitud: %.2f", p.cut_length);
         lv_label_set_text(label_length, buf);
+
+        // 🔥 SETEAR PERFIL ACTIVO
+        active_profile_set(code);
+
+        // 🔥 ACTUALIZAR UI
+        ui_set_active_profile(code);
     }
 
     // 🚫 NO free acá → lo maneja LV_EVENT_DELETE
