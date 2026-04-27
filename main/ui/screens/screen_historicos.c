@@ -48,19 +48,25 @@ static void load_file(const char *filename)
         return;
     }
 
-    static char buffer[1024];
-    buffer[0] = '\0';
+    static char buffer[2048];
 
-    char line[128];
+    // Ir al final
+    fseek(f, 0, SEEK_END);
+    long size = ftell(f);
 
-    while (fgets(line, sizeof(line), f))
-    {
-        strncat(buffer, line, sizeof(buffer) - strlen(buffer) - 1);
-    }
+    long start = size - (long)(sizeof(buffer) - 1);
+    if (start < 0)
+        start = 0;
+
+    fseek(f, start, SEEK_SET);
+
+    size_t read_bytes = fread(buffer, 1, sizeof(buffer) - 1, f);
+    buffer[read_bytes] = '\0';
 
     fclose(f);
 
     lv_textarea_set_text(text_area, buffer);
+    lv_textarea_set_cursor_pos(text_area, LV_TEXTAREA_CURSOR_LAST);
 }
 
 // =========================
