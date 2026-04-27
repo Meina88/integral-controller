@@ -97,34 +97,14 @@ void recording_stop(void)
 {
     recording = false;
 
+    relay_1_off();
+    relay_2_off();
+
+    relay_active = false;
+    relay_2_pending = false;
+    relay_2_active = false;
+
     rtc_get_datetime_string(end_time_str);
-
-    float avg_speed = 0.0f;
-    if (speed_samples > 0)
-        avg_speed = speed_sum / speed_samples;
-
-    FILE *f = fopen("/sdcard/production.log", "a");
-
-    if (f)
-    {
-        printf("LOG OK\n");
-
-        fprintf(f,
-            "{\"start\":\"%s\",\"end\":\"%s\",\"cuts\":%d,\"meters\":%.2f,\"avg_speed\":%.2f}\n",
-            start_time_str,
-            end_time_str,
-            total_count,
-            total_mm / 1000.0f,
-            avg_speed
-        );
-
-        fflush(f);   // 🔥 asegura escritura inmediata
-        fclose(f);
-    }
-    else
-    {
-        printf("ERROR fopen production.log\n");
-    }
 }
 
 // =========================
@@ -169,7 +149,7 @@ void extrusion_process_tick(void)
     // =========================
     // DETECCIÓN DE PULSOS
     // =========================
-    if (running && current_state && !last_sensor_state)
+    if (running && recording && current_state && !last_sensor_state)
     {
         pulse_count++;
 

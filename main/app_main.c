@@ -63,7 +63,7 @@ void app_main(void)
     digital_outputs_init();
     rtc_hw_init();
 
-    // rtc_set_manual_time(); // usar solo para test
+    //rtc_set_manual_time(); // para volver a configurar la hora: descomentar esta función, flashear con la nueva hora de rtc.c. volver a comentar y volver a flashear. 
 
     // =========================
     // STORAGE SD (OPCIONAL)

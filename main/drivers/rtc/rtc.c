@@ -10,9 +10,6 @@ static datetime_t rtc_time;
 void rtc_hw_init(void)
 {
     PCF85063A_Init();
-
-    // ⚠️ NO setear tiempo acá (pisaría la hora en cada arranque)
-    // rtc_set_default_time();
 }
 
 // =========================
@@ -20,12 +17,12 @@ void rtc_hw_init(void)
 // =========================
 void rtc_set_default_time(void)
 {
-    rtc_time.year  = 2024;
+    rtc_time.year  = 2026;
     rtc_time.month = 1;
     rtc_time.day   = 1;
     rtc_time.dotw  = 1;
 
-    rtc_time.hour = 12;
+    rtc_time.hour = 00;
     rtc_time.min  = 0;
     rtc_time.sec  = 0;
 
@@ -70,12 +67,12 @@ void rtc_set_manual_time(void)
 
     t.year  = 2026;
     t.month = 4;
-    t.day   = 24;
-    t.dotw  = 5;   // jueves
+    t.day   = 26;
+    t.dotw  = 7;   // domingo
 
-    t.hour = 14;
-    t.min  = 00;
-    t.sec  = 0;
+    t.hour = 20;
+    t.min  = 36;
+    t.sec  = 20;
 
     PCF85063A_Set_All(t);
 }
