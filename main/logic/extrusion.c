@@ -51,6 +51,14 @@ static uint32_t relay_2_on_time = 0;
 
 static float last_cut_mm = 0.0f;
 
+float extrusion_get_avg_speed(void)
+{
+    if (speed_samples == 0)
+        return 0.0f;
+
+    return speed_sum / speed_samples;
+}
+
 // =========================
 // CONTROL
 // =========================

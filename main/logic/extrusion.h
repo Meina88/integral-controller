@@ -26,9 +26,11 @@ int extrusion_get_total_count(void);
 // =========================
 float extrusion_get_total_mm(void);
 float extrusion_get_speed_m_min(void);
+float extrusion_get_avg_speed(void);
 
 // =========================
 // GRABACIÓN
 // =========================
 void recording_start(void);
 void recording_stop(void);
+

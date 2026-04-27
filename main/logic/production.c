@@ -30,7 +30,7 @@ void production_stop(void)
 
     // 🔥 LEER DATOS ANTES DE APAGAR
     float meters = extrusion_get_total_mm() / 1000.0f;
-    float speed = extrusion_get_speed_m_min();
+    float speed = extrusion_get_avg_speed();
 
     char time_str[32];
     rtc_get_time_string(time_str);
