@@ -104,6 +104,52 @@ int profile_search(const char *filter, char results[][32], int max)
     return found;
 }
 
+bool profile_exists(const char *code)
+{
+    char path[128];
+    snprintf(path, sizeof(path), "%s/%s.json", PROFILE_DIR, code);
+
+    FILE *f = fopen(path, "r");
+    if (f)
+    {
+        fclose(f);
+        return true;
+    }
+    return false;
+}
+
+bool profile_duplicate(const char *source_code, const char *new_code)
+{
+    profile_t p;
+
+    if (!profile_get_by_code(source_code, &p))
+        return false;
+
+    // cambiar código
+    strncpy(p.code, new_code, sizeof(p.code) - 1);
+    p.code[sizeof(p.code) - 1] = '\0';
+
+    return profile_update(&p);
+}
+
+bool profile_delete(const char *code)
+{
+    char path[128];
+
+    snprintf(path, sizeof(path), "%s/%s.json", PROFILE_DIR, code);
+
+    printf("Intentando borrar perfil: %s\n", path);
+
+    if (remove(path) == 0)
+    {
+        printf("Perfil eliminado OK: %s\n", path);
+        return true;
+    }
+
+    printf("ERROR: no se pudo eliminar: %s\n", path);
+    return false;
+}
+
 bool profile_update(const profile_t *p)
 {
     char path[128];

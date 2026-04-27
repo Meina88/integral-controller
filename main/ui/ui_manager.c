@@ -5,6 +5,7 @@
 #include "screens/screen_historicos.h"
 #include <string.h>
 #include <stdio.h>
+#include "logic/production.h"
 
 static lv_obj_t *content;
 static lv_obj_t *main_area;
@@ -57,7 +58,16 @@ static void switch_tab(int tab)
 // EVENTOS BOTONES
 // =========================
 static void tab_extruir_cb(lv_event_t *e) { switch_tab(0); }
-static void tab_setup_cb(lv_event_t *e) { switch_tab(1); }
+static void tab_setup_cb(lv_event_t *e)
+{
+    if (production_is_running())
+    {
+        printf("SETUP BLOQUEADO: producción en curso\n");
+        return;
+    }
+
+    switch_tab(1);
+}
 static void tab_config_cb(lv_event_t *e) { switch_tab(2); }
 static void tab_historicos_cb(lv_event_t *e) { switch_tab(3); }
 
