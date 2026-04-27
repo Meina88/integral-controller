@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "logic/active_profile.h"
 
 #define PROFILE_DIR "/sdcard/profiles"
 #define PROFILE_JSON_SIZE 1024
@@ -132,21 +133,27 @@ bool profile_duplicate(const char *source_code, const char *new_code)
     return profile_update(&p);
 }
 
+#include "logic/active_profile.h"
+
 bool profile_delete(const char *code)
 {
+    const char *active = active_profile_get();
+
+    if (active && strcmp(active, code) == 0)
+    {
+        printf("ERROR: no se puede eliminar perfil activo\n");
+        return false;
+    }
+
     char path[128];
-
     snprintf(path, sizeof(path), "%s/%s.json", PROFILE_DIR, code);
-
-    printf("Intentando borrar perfil: %s\n", path);
 
     if (remove(path) == 0)
     {
-        printf("Perfil eliminado OK: %s\n", path);
+        printf("Perfil eliminado OK\n");
         return true;
     }
 
-    printf("ERROR: no se pudo eliminar: %s\n", path);
     return false;
 }
 

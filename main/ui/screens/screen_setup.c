@@ -73,6 +73,35 @@ static void ta_duplicate_click_cb(lv_event_t *e)
     // abrir numpad pasando el textarea
     numpad_open(ta, NULL);
 }
+
+static void show_error_modal(const char *msg)
+{
+    lv_obj_t *overlay = lv_obj_create(lv_layer_top());
+    lv_obj_set_size(overlay, LV_PCT(100), LV_PCT(100));
+    lv_obj_set_style_bg_opa(overlay, LV_OPA_50, 0);
+
+    lv_obj_t *modal = lv_obj_create(overlay);
+    lv_obj_set_size(modal, 260, LV_SIZE_CONTENT);
+    lv_obj_center(modal);
+
+    lv_obj_set_flex_flow(modal, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_style_pad_all(modal, 10, 0);
+    lv_obj_set_style_pad_gap(modal, 10, 0);
+
+    // 🔴 mensaje
+    lv_obj_t *label = lv_label_create(modal);
+    lv_label_set_text(label, msg);
+
+    // botón OK
+    lv_obj_t *btn = lv_btn_create(modal);
+    lv_obj_set_width(btn, LV_PCT(100));
+    lv_obj_add_event_cb(btn, action_cancel_cb, LV_EVENT_CLICKED, NULL);
+
+    lv_obj_t *lbl = lv_label_create(btn);
+    lv_label_set_text(lbl, "OK");
+    lv_obj_center(lbl);
+}
+
 // =========================
 // FREE USER DATA
 // =========================
@@ -101,27 +130,36 @@ static void delete_confirm_cb(lv_event_t *e)
 {
     const char *code = (const char *)lv_event_get_user_data(e);
 
-    // 🔥 seguridad: no borrar perfil activo
-    const char *active = active_profile_get();
-    if (active && strcmp(code, active) == 0)
-    {
-        printf("ERROR: no podés borrar el perfil activo\n");
-        return;
-    }
-
-    if (profile_delete(code))
-    {
-        printf("Perfil eliminado OK\n");
-    }
-
-    // cerrar modal
     lv_obj_t *btn = lv_event_get_target(e);
     lv_obj_t *modal = lv_obj_get_parent(btn);
     lv_obj_t *overlay = lv_obj_get_parent(modal);
 
-    lv_obj_del(overlay);
+    const char *active = active_profile_get();
 
-    // refrescar lista
+    // 🔴 CASO: perfil activo
+    if (active && strcmp(code, active) == 0)
+    {
+        printf("ERROR: no podés borrar el perfil activo\n");
+
+        // 🔥 1. cerrar modal actual SIEMPRE
+        lv_obj_del(overlay);
+
+        // 🔥 2. mostrar error arriba
+        show_error_modal("No podés borrar el perfil activo");
+
+        return;
+    }
+
+    // 🔴 CASO: error general
+    if (!profile_delete(code))
+    {
+        lv_obj_del(overlay);
+        show_error_modal("Error al eliminar perfil");
+        return;
+    }
+
+    // ✅ OK
+    lv_obj_del(overlay);
     search_profiles();
 }
 
@@ -204,7 +242,7 @@ static void duplicate_confirm_cb(lv_event_t *e)
 // =========================
 static void show_duplicate_modal(const char *source_code)
 {
-    lv_obj_t *overlay = lv_obj_create(lv_scr_act());
+    lv_obj_t *overlay = lv_obj_create(lv_layer_top());
     lv_obj_set_size(overlay, LV_PCT(100), LV_PCT(100));
     lv_obj_set_style_bg_opa(overlay, LV_OPA_50, 0);
 
@@ -289,7 +327,7 @@ static void action_details_cb(lv_event_t *e)
 // =========================
 static void show_profile_actions_modal(const char *code)
 {
-    lv_obj_t *overlay = lv_obj_create(lv_scr_act());
+    lv_obj_t *overlay = lv_obj_create(lv_layer_top());
     lv_obj_set_size(overlay, LV_PCT(100), LV_PCT(100));
     lv_obj_set_style_bg_opa(overlay, LV_OPA_50, 0);
 
@@ -339,8 +377,6 @@ static void show_profile_actions_modal(const char *code)
     lv_label_set_text(lbl_dup, "Duplicar");
     lv_obj_center(lbl_dup);
 
-
-
     lv_obj_t *btn_delete = lv_btn_create(modal);
     lv_obj_set_width(btn_delete, LV_PCT(100));
     lv_obj_add_event_cb(btn_delete, action_delete_cb, LV_EVENT_CLICKED, (void *)code);
@@ -352,8 +388,6 @@ static void show_profile_actions_modal(const char *code)
     // opcional: deshabilitar si está corriendo
     if (running)
         lv_obj_add_state(btn_delete, LV_STATE_DISABLED);
-
-
 
     lv_obj_t *btn_cancel = lv_btn_create(modal);
     lv_obj_set_width(btn_cancel, LV_PCT(100));
@@ -374,7 +408,7 @@ static void show_profile_details_modal(const char *code)
     if (!profile_get_by_code(code, &p))
         return;
 
-    lv_obj_t *overlay = lv_obj_create(lv_scr_act());
+    lv_obj_t *overlay = lv_obj_create(lv_layer_top());
     lv_obj_set_size(overlay, LV_PCT(100), LV_PCT(100));
     lv_obj_set_style_bg_opa(overlay, LV_OPA_50, 0);
 
@@ -455,9 +489,9 @@ static void show_results(const char results[][32], int count)
 
 static void show_delete_confirm_modal(const char *code)
 {
-    lv_obj_t *overlay = lv_obj_create(lv_scr_act());
+    lv_obj_t *overlay = lv_obj_create(lv_layer_top());
     lv_obj_set_size(overlay, LV_PCT(100), LV_PCT(100));
-    lv_obj_set_style_bg_opa(overlay, LV_OPA_50, 0);    
+    lv_obj_set_style_bg_opa(overlay, LV_OPA_50, 0);
 
     lv_obj_t *modal = lv_obj_create(overlay);
     lv_obj_set_size(modal, 260, LV_SIZE_CONTENT);
@@ -469,7 +503,12 @@ static void show_delete_confirm_modal(const char *code)
 
     // texto
     lv_obj_t *label = lv_label_create(modal);
-    lv_label_set_text_fmt(label, "Eliminar perfil:\n%s ?", code);
+
+    lv_label_set_recolor(label, true);
+    
+    lv_label_set_text_fmt(label,
+    "Eliminar perfil:\n%s\n\n#ff0000 ⚠ IRREVERSIBLE #",
+    code);
 
     // botón confirmar
     lv_obj_t *btn_ok = lv_btn_create(modal);
