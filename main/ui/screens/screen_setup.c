@@ -325,6 +325,7 @@ static void action_details_cb(lv_event_t *e)
 // =========================
 // MODAL ACCIONES
 // =========================
+
 static void show_profile_actions_modal(const char *code)
 {
     lv_obj_t *overlay = lv_obj_create(lv_layer_top());
@@ -341,14 +342,23 @@ static void show_profile_actions_modal(const char *code)
 
     bool running = production_is_running();
 
+    // =========================
+    // TITULO
+    // =========================
     lv_obj_t *title = lv_label_create(modal);
+
     if (running)
         lv_label_set_text_fmt(title, "Perfil: %s (LOCK)", code);
     else
         lv_label_set_text_fmt(title, "Perfil: %s", code);
 
+    // =========================
+    // BOTON SELECCIONAR
+    // =========================
     lv_obj_t *btn_select = lv_btn_create(modal);
     lv_obj_set_width(btn_select, LV_PCT(100));
+    lv_obj_set_height(btn_select, 45);
+
     lv_obj_add_event_cb(btn_select, action_select_cb, LV_EVENT_CLICKED, (void *)code);
 
     if (running)
@@ -358,39 +368,26 @@ static void show_profile_actions_modal(const char *code)
     lv_label_set_text(lbl_select, "Seleccionar");
     lv_obj_center(lbl_select);
 
+    // =========================
+    // BOTON DETALLES
+    // =========================
     lv_obj_t *btn_details = lv_btn_create(modal);
     lv_obj_set_width(btn_details, LV_PCT(100));
+    lv_obj_set_height(btn_details, 45);
+
     lv_obj_add_event_cb(btn_details, action_details_cb, LV_EVENT_CLICKED, (void *)code);
 
     lv_obj_t *lbl_details = lv_label_create(btn_details);
     lv_label_set_text(lbl_details, "Detalles");
     lv_obj_center(lbl_details);
 
-    lv_obj_t *btn_duplicate = lv_btn_create(modal);
-    lv_obj_set_width(btn_duplicate, LV_PCT(100));
-    lv_obj_add_event_cb(btn_duplicate, action_duplicate_cb, LV_EVENT_CLICKED, (void *)code);
-
-    if (running)
-        lv_obj_add_state(btn_duplicate, LV_STATE_DISABLED);
-
-    lv_obj_t *lbl_dup = lv_label_create(btn_duplicate);
-    lv_label_set_text(lbl_dup, "Duplicar");
-    lv_obj_center(lbl_dup);
-
-    lv_obj_t *btn_delete = lv_btn_create(modal);
-    lv_obj_set_width(btn_delete, LV_PCT(100));
-    lv_obj_add_event_cb(btn_delete, action_delete_cb, LV_EVENT_CLICKED, (void *)code);
-
-    lv_obj_t *lbl_delete = lv_label_create(btn_delete);
-    lv_label_set_text(lbl_delete, "Eliminar");
-    lv_obj_center(lbl_delete);
-
-    // opcional: deshabilitar si está corriendo
-    if (running)
-        lv_obj_add_state(btn_delete, LV_STATE_DISABLED);
-
+    // =========================
+    // BOTON CANCELAR
+    // =========================
     lv_obj_t *btn_cancel = lv_btn_create(modal);
     lv_obj_set_width(btn_cancel, LV_PCT(100));
+    lv_obj_set_height(btn_cancel, 45);
+
     lv_obj_add_event_cb(btn_cancel, action_cancel_cb, LV_EVENT_CLICKED, NULL);
 
     lv_obj_t *lbl_cancel = lv_label_create(btn_cancel);

@@ -15,6 +15,9 @@ idf_component_register(
         "ui/screens/screen_historicos.c"
         "ui/components/numpad.c"
 
+        # PRODUCTION
+        "services/production_log.c"
+
         # =========================
         # PORT
         # =========================

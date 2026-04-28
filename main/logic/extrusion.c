@@ -4,6 +4,11 @@
 #include "drivers/rtc/rtc.h"
 #include "lvgl.h"
 #include <stdio.h>
+#include <string.h>
+
+// 🔥 NUEVO
+#include "services/production_log.h"
+#include "logic/active_profile.h"
 
 // =========================
 // PARÁMETROS SISTEMA
@@ -11,7 +16,7 @@
 #define SENSOR_DIAMETER_MM 200.0f
 #define BELT_DIAMETER_MM 300.0f
 #define HOLES_COUNT 22.0f
-#define CUT_DISTANCE_M 1.0f
+#define CUT_DISTANCE_M 0.1f
 #define CUT_DISTANCE_MM (CUT_DISTANCE_M * 1000.0f)
 #define SPEED_TIMEOUT_MS 1000
 #define MM_PER_PULSE ((3.14159265f * BELT_DIAMETER_MM) / HOLES_COUNT)
@@ -35,7 +40,7 @@ static int speed_samples = 0;
 static bool last_sensor_state = false;
 static uint32_t last_pulse_time = 0;
 
-// tiempos (🔥 FIX tamaño)
+// tiempos
 static char start_time_str[32];
 static char end_time_str[32];
 
@@ -51,6 +56,9 @@ static uint32_t relay_2_on_time = 0;
 
 static float last_cut_mm = 0.0f;
 
+// =========================
+// PROMEDIO
+// =========================
 float extrusion_get_avg_speed(void)
 {
     if (speed_samples == 0)
@@ -178,14 +186,13 @@ void extrusion_process_tick(void)
 
         last_pulse_time = now;
 
-        // promedio velocidad (🔥 ahora incluye pausas)
-        if (recording)
-        {
-            speed_sum += speed_m_min;
-            speed_samples++;
-        }
+        // promedio velocidad
+        speed_sum += speed_m_min;
+        speed_samples++;
 
-        // corte por distancia
+        // =========================
+        // 🔥 CORTE POR DISTANCIA
+        // =========================
         if ((total_mm - last_cut_mm) >= CUT_DISTANCE_MM)
         {
             total_count++;
@@ -193,6 +200,31 @@ void extrusion_process_tick(void)
             relay_1_on();
             relay_active = true;
             relay_start_time = now;
+
+            // =========================
+            // 🔥 LOG REAL DEL CORTE
+            // =========================
+            char end_time[32];
+            rtc_get_datetime_string(end_time);
+
+            const char *profile = active_profile_get();
+
+            float length_m = CUT_DISTANCE_MM / 1000.0f;
+            float speed_avg = extrusion_get_avg_speed();
+
+            if (profile && strlen(profile) > 0)
+            {
+                production_log_write_row(
+                    start_time_str,
+                    end_time,
+                    profile,
+                    length_m,
+                    speed_avg);
+            }
+
+            // 🔥 RESET PROMEDIO PARA PRÓXIMO CORTE
+            speed_sum = 0;
+            speed_samples = 0;
 
             last_cut_mm = total_mm;
         }

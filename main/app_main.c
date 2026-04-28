@@ -18,8 +18,10 @@
 #include "http_server.h"
 
 #include "nvs_flash.h"
-#include "storage/nvs/storage_nvs.h"   // 🔥 NUEVO
+#include "storage/nvs/storage_nvs.h" // 🔥 NUEVO
 #include "logic/extrusion.h"
+
+#include "services/production_log.h"
 
 // 🔥 DECLARACIÓN
 void rtc_set_manual_time(void);
@@ -63,7 +65,7 @@ void app_main(void)
     digital_outputs_init();
     rtc_hw_init();
 
-    //rtc_set_manual_time(); // para volver a configurar la hora: descomentar esta función, flashear con la nueva hora de rtc.c. volver a comentar y volver a flashear. 
+    // rtc_set_manual_time(); // para volver a configurar la hora: descomentar esta función, flashear con la nueva hora de rtc.c. volver a comentar y volver a flashear.
 
     // =========================
     // STORAGE SD (OPCIONAL)
@@ -73,6 +75,10 @@ void app_main(void)
     if (sdcard_init() == ESP_OK)
     {
         printf("SD montada correctamente\n");
+
+        // 🔥 INICIALIZAR CSV
+        production_log_init();
+
         sdcard_test();
     }
     else
@@ -126,6 +132,6 @@ void app_main(void)
             lvgl_port_unlock();
         }
 
-        vTaskDelay(pdMS_TO_TICKS(50));
+        vTaskDelay(pdMS_TO_TICKS(500));
     }
 }

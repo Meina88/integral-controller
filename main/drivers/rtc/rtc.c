@@ -17,14 +17,14 @@ void rtc_hw_init(void)
 // =========================
 void rtc_set_default_time(void)
 {
-    rtc_time.year  = 2026;
+    rtc_time.year = 2026;
     rtc_time.month = 1;
-    rtc_time.day   = 1;
-    rtc_time.dotw  = 1;
+    rtc_time.day = 1;
+    rtc_time.dotw = 1;
 
     rtc_time.hour = 00;
-    rtc_time.min  = 0;
-    rtc_time.sec  = 0;
+    rtc_time.min = 0;
+    rtc_time.sec = 0;
 
     PCF85063A_Set_All(rtc_time);
 }
@@ -50,12 +50,12 @@ void rtc_get_datetime_string(char *buffer)
     PCF85063A_Read_now(&rtc_time);
 
     snprintf(buffer, 32, "%02d-%02d-%04d %02d:%02d:%02d",
-            rtc_time.day,
-            rtc_time.month,
-            rtc_time.year,
-            rtc_time.hour,
-            rtc_time.min,
-            rtc_time.sec);
+             rtc_time.day,
+             rtc_time.month,
+             rtc_time.year,
+             rtc_time.hour,
+             rtc_time.min,
+             rtc_time.sec);
 }
 
 // =========================
@@ -65,14 +65,24 @@ void rtc_set_manual_time(void)
 {
     datetime_t t;
 
-    t.year  = 2026;
+    t.year = 2026;
     t.month = 4;
-    t.day   = 26;
-    t.dotw  = 7;   // domingo
+    t.day = 26;
+    t.dotw = 7; // domingo
 
     t.hour = 20;
-    t.min  = 36;
-    t.sec  = 20;
+    t.min = 36;
+    t.sec = 20;
 
     PCF85063A_Set_All(t);
+}
+
+void rtc_get_date_filename_string(char *buffer)
+{
+    PCF85063A_Read_now(&rtc_time);
+
+    sprintf(buffer, "%04d-%02d-%02d",
+            rtc_time.year,
+            rtc_time.month,
+            rtc_time.day);
 }
