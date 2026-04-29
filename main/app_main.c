@@ -18,13 +18,27 @@
 #include "http_server.h"
 
 #include "nvs_flash.h"
-#include "storage/nvs/storage_nvs.h" // 🔥 NUEVO
+#include "storage/nvs/storage_nvs.h"
 #include "logic/extrusion.h"
 
 #include "services/production_log.h"
 
 // 🔥 DECLARACIÓN
 void rtc_set_manual_time(void);
+
+// =========================
+// TASK DEDICADA A EXTRUSIÓN
+// =========================
+static void extrusion_task(void *arg)
+{
+    while (1)
+    {
+        extrusion_process_tick();
+
+        // Lectura rápida del sensor
+        vTaskDelay(pdMS_TO_TICKS(5));
+    }
+}
 
 void app_main(void)
 {
@@ -65,7 +79,7 @@ void app_main(void)
     digital_outputs_init();
     rtc_hw_init();
 
-    // rtc_set_manual_time(); // para volver a configurar la hora: descomentar esta función, flashear con la nueva hora de rtc.c. volver a comentar y volver a flashear.
+    // rtc_set_manual_time();
 
     // =========================
     // STORAGE SD (OPCIONAL)
@@ -76,9 +90,7 @@ void app_main(void)
     {
         printf("SD montada correctamente\n");
 
-        // 🔥 INICIALIZAR CSV
         production_log_init();
-
         sdcard_test();
     }
     else
@@ -100,6 +112,15 @@ void app_main(void)
     // =========================
     extrusion_start();
 
+    xTaskCreate(
+        extrusion_task,
+        "extrusion_task",
+        4096,
+        NULL,
+        5,
+        NULL
+    );
+
     // =========================
     // COMMS
     // =========================
@@ -110,28 +131,16 @@ void app_main(void)
     start_http_server();
 
     // =========================
-    // LOOP
+    // LOOP PRINCIPAL: SOLO UI
     // =========================
     while (1)
     {
-        // DEBUG
-        printf("loop\n");
-
-        // RTC
-        char dt[32];
-        rtc_get_datetime_string(dt);
-        printf("RTC: %s\n", dt);
-
-        // lógica de extrusión
-        extrusion_process_tick();
-
-        // UI
         if (lvgl_port_lock(-1))
         {
             ui_update();
             lvgl_port_unlock();
         }
 
-        vTaskDelay(pdMS_TO_TICKS(500));
+        vTaskDelay(pdMS_TO_TICKS(200));
     }
 }

@@ -158,79 +158,69 @@ int extrusion_get_total_count(void)
 void extrusion_process_tick(void)
 {
     uint8_t di = CH422G_io_input(0x01);
-    bool current_state = !(di & 0x01); // activo LOW
+    bool sensor = !(di & 0x01); // true = detecta metal
 
     uint32_t now = lv_tick_get();
 
     // =========================
     // DETECCIÓN DE PULSOS
     // =========================
-    if (running && recording && current_state && !last_sensor_state)
+
+    // flanco de bajada REAL (sensor PNP → pasa a LOW al detectar)
+    // detectar flanco de salida de metal (metal → hueco)
+    if (running && !sensor && last_sensor_state)
     {
-        pulse_count++;
-
-        // distancia
-        total_mm += MM_PER_PULSE;
-
-        // velocidad instantánea
-        if (last_pulse_time > 0)
+        // anti rebote
+        if ((now - last_pulse_time) > 10)
         {
-            float delta_t_sec = (now - last_pulse_time) / 1000.0f;
-
-            if (delta_t_sec > 0.001f)
-            {
-                float speed_mm_s = MM_PER_PULSE / delta_t_sec;
-                speed_m_min = (speed_mm_s / 1000.0f) * 60.0f;
-            }
-        }
-
-        last_pulse_time = now;
-
-        // promedio velocidad
-        speed_sum += speed_m_min;
-        speed_samples++;
-
-        // =========================
-        // 🔥 CORTE POR DISTANCIA
-        // =========================
-        if ((total_mm - last_cut_mm) >= CUT_DISTANCE_MM)
-        {
-            total_count++;
-
-            relay_1_on();
-            relay_active = true;
-            relay_start_time = now;
+            pulse_count++;
+            total_mm += MM_PER_PULSE;
 
             // =========================
-            // 🔥 LOG REAL DEL CORTE
+            // VELOCIDAD
             // =========================
-            char end_time[32];
-            rtc_get_datetime_string(end_time);
-
-            const char *profile = active_profile_get();
-
-            float length_m = CUT_DISTANCE_MM / 1000.0f;
-            float speed_avg = extrusion_get_avg_speed();
-
-            if (profile && strlen(profile) > 0)
+            if (last_pulse_time > 0)
             {
-                production_log_write_row(
-                    start_time_str,
-                    end_time,
-                    profile,
-                    length_m,
-                    speed_avg);
+                float delta_t_sec = (now - last_pulse_time) / 1000.0f;
+
+                if (delta_t_sec > 0.001f)
+                {
+                    float speed_mm_s = MM_PER_PULSE / delta_t_sec;
+                    speed_m_min = (speed_mm_s / 1000.0f) * 60.0f;
+                }
             }
 
-            // 🔥 RESET PROMEDIO PARA PRÓXIMO CORTE
-            speed_sum = 0;
-            speed_samples = 0;
+            last_pulse_time = now;
 
-            last_cut_mm = total_mm;
+            // =========================
+            // CORTE POR DISTANCIA
+            // =========================
+            if ((total_mm - last_cut_mm) >= CUT_DISTANCE_MM)
+            {
+                printf("CORTE! total_mm=%.1f\n", total_mm);
+
+                total_count++;
+
+                relay_1_on();
+                relay_active = true;
+                relay_start_time = now;
+
+                last_cut_mm = total_mm;
+            }
+
+            // =========================
+            // PROMEDIO
+            // =========================
+            if (recording)
+            {
+                speed_sum += speed_m_min;
+                speed_samples++;
+            }
         }
     }
 
-    last_sensor_state = current_state;
+    // guardar estado correcto
+    last_sensor_state = sensor;
 
     // =========================
     // RELAY 1
