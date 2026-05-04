@@ -163,22 +163,15 @@ void extrusion_process_tick(void)
     uint32_t now = lv_tick_get();
 
     // =========================
-    // DETECCIÓN DE PULSOS
+    // DETECCIÓN DE PULSO
     // =========================
-
-    // flanco de bajada REAL (sensor PNP → pasa a LOW al detectar)
-    // detectar flanco de salida de metal (metal → hueco)
-    if (running && !sensor && last_sensor_state)
+    if (!sensor && last_sensor_state)
     {
-        // anti rebote
         if ((now - last_pulse_time) > 10)
         {
             pulse_count++;
-            total_mm += MM_PER_PULSE;
 
-            // =========================
-            // VELOCIDAD
-            // =========================
+            // 🔥 SIEMPRE calcular velocidad
             if (last_pulse_time > 0)
             {
                 float delta_t_sec = (now - last_pulse_time) / 1000.0f;
@@ -193,26 +186,25 @@ void extrusion_process_tick(void)
             last_pulse_time = now;
 
             // =========================
-            // CORTE POR DISTANCIA
-            // =========================
-            if ((total_mm - last_cut_mm) >= CUT_DISTANCE_MM)
-            {
-                printf("CORTE! total_mm=%.1f\n", total_mm);
-
-                total_count++;
-
-                relay_1_on();
-                relay_active = true;
-                relay_start_time = now;
-
-                last_cut_mm = total_mm;
-            }
-
-            // =========================
-            // PROMEDIO
+            // SOLO SI GRABANDO
             // =========================
             if (recording)
             {
+                total_mm += MM_PER_PULSE;
+
+                // CORTE
+                if ((total_mm - last_cut_mm) >= CUT_DISTANCE_MM)
+                {
+                    total_count++;
+
+                    relay_1_on();
+                    relay_active = true;
+                    relay_start_time = now;
+
+                    last_cut_mm = total_mm;
+                }
+
+                // PROMEDIO
                 speed_sum += speed_m_min;
                 speed_samples++;
             }
@@ -241,4 +233,14 @@ void extrusion_process_tick(void)
             speed_m_min = 0.0f;
         }
     }
+}
+
+const char *extrusion_get_start_time(void)
+{
+    return start_time_str;
+}
+
+const char *extrusion_get_end_time(void)
+{
+    return end_time_str;
 }

@@ -17,9 +17,6 @@
 static void show_profile_actions_modal(const char *code);
 static void show_profile_details_modal(const char *code);
 static void action_details_cb(lv_event_t *e);
-static void action_duplicate_cb(lv_event_t *e);
-static void show_duplicate_modal(const char *source_code);
-static void duplicate_confirm_cb(lv_event_t *e);
 static void search_profiles(void);
 static void action_cancel_cb(lv_event_t *e);
 static void action_select_cb(lv_event_t *e);
@@ -111,20 +108,7 @@ static void free_code_cb(lv_event_t *e)
     free((void *)code);
 }
 
-// =========================
-// CALLBACK DUPLICAR
-// =========================
-static void action_duplicate_cb(lv_event_t *e)
-{
-    const char *code = (const char *)lv_event_get_user_data(e);
 
-    lv_obj_t *btn = lv_event_get_target(e);
-    lv_obj_t *modal = lv_obj_get_parent(btn);
-    lv_obj_t *overlay = lv_obj_get_parent(modal);
-    lv_obj_del(overlay);
-
-    show_duplicate_modal(code);
-}
 
 static void delete_confirm_cb(lv_event_t *e)
 {
@@ -176,112 +160,37 @@ static void result_btn_cb(lv_event_t *e)
     {
         char buf[64];
 
-        snprintf(buf, sizeof(buf), "Perfil: %s", p.code);
+        // =========================
+        // MOSTRAR DATOS
+        // =========================
+        snprintf(buf, sizeof(buf), "Perfil: %s", p.commercial_name);
         lv_label_set_text(label_profile, buf);
 
         snprintf(buf, sizeof(buf), "Matriz: %s", p.matrix);
         lv_label_set_text(label_matrix, buf);
 
-        snprintf(buf, sizeof(buf), "Gusano: %d", p.screw);
+        snprintf(buf, sizeof(buf), "Bocas: %d", p.bocas);
         lv_label_set_text(label_screw, buf);
 
-        snprintf(buf, sizeof(buf), "Vel VFD: %d", p.vfd_speed);
+        snprintf(buf, sizeof(buf), "VFD: %d rpm", p.vfd_rpm);
         lv_label_set_text(label_vfd, buf);
 
-        snprintf(buf, sizeof(buf), "Vel extrusión: %.2f", p.extrusion_speed);
+        snprintf(buf, sizeof(buf), "Vel: %.2f m/min", p.belt_speed);
         lv_label_set_text(label_extrusion, buf);
 
-        snprintf(buf, sizeof(buf), "Densidad: %.2f", p.density);
+        snprintf(buf, sizeof(buf), "Densidad: %.2f gr/m", p.theoretical_density);
         lv_label_set_text(label_density, buf);
 
-        snprintf(buf, sizeof(buf), "Longitud: %.2f", p.cut_length);
+        snprintf(buf, sizeof(buf), "Corte: %.2f m", p.default_cut);
         lv_label_set_text(label_length, buf);
 
-        strncpy(selected_code, code, sizeof(selected_code) - 1);
-        selected_code[sizeof(selected_code) - 1] = '\0';
-
-        show_profile_actions_modal(selected_code);
+        // =========================
+        // 🔥 NUEVO: ABRIR MODAL
+        // =========================
+        show_profile_actions_modal(code);
     }
 }
 
-// =========================
-// CONFIRMAR DUPLICADO
-// =========================
-static void duplicate_confirm_cb(lv_event_t *e)
-{
-    lv_obj_t *btn = lv_event_get_target(e);
-    lv_obj_t *modal = lv_obj_get_parent(btn);
-    lv_obj_t *overlay = lv_obj_get_parent(modal);
-
-    // recuperar textarea
-    lv_obj_t *ta = (lv_obj_t *)lv_obj_get_user_data(modal);
-
-    const char *new_code = lv_textarea_get_text(ta);
-    const char *source_code = (const char *)lv_event_get_user_data(e);
-
-    if (strlen(new_code) == 0)
-        return;
-
-    if (profile_exists(new_code))
-    {
-        printf("ERROR: ya existe\n");
-        return;
-    }
-
-    if (profile_duplicate(source_code, new_code))
-    {
-        printf("Perfil duplicado OK\n");
-    }
-
-    lv_obj_del(overlay);
-    search_profiles();
-}
-
-// =========================
-// MODAL DUPLICAR
-// =========================
-static void show_duplicate_modal(const char *source_code)
-{
-    lv_obj_t *overlay = lv_obj_create(lv_layer_top());
-    lv_obj_set_size(overlay, LV_PCT(100), LV_PCT(100));
-    lv_obj_set_style_bg_opa(overlay, LV_OPA_50, 0);
-
-    lv_obj_t *modal = lv_obj_create(overlay);
-    lv_obj_set_size(modal, 260, LV_SIZE_CONTENT);
-    lv_obj_center(modal);
-
-    lv_obj_set_flex_flow(modal, LV_FLEX_FLOW_COLUMN);
-    lv_obj_set_style_pad_all(modal, 10, 0);
-    lv_obj_set_style_pad_gap(modal, 10, 0);
-
-    lv_obj_t *title = lv_label_create(modal);
-    lv_label_set_text(title, "Nuevo nombre:");
-
-    lv_obj_t *ta = lv_textarea_create(modal);
-    lv_obj_set_width(ta, LV_PCT(100));
-    lv_textarea_set_placeholder_text(ta, "Ej: 1234.5678.2");
-
-    lv_obj_add_event_cb(ta, ta_duplicate_click_cb, LV_EVENT_CLICKED, NULL);
-
-    // 🔥 guardamos textarea
-    lv_obj_set_user_data(modal, ta);
-
-    lv_obj_t *btn_ok = lv_btn_create(modal);
-    lv_obj_set_width(btn_ok, LV_PCT(100));
-    lv_obj_add_event_cb(btn_ok, duplicate_confirm_cb, LV_EVENT_CLICKED, (void *)source_code);
-
-    lv_obj_t *lbl_ok = lv_label_create(btn_ok);
-    lv_label_set_text(lbl_ok, "Crear");
-    lv_obj_center(lbl_ok);
-
-    lv_obj_t *btn_cancel = lv_btn_create(modal);
-    lv_obj_set_width(btn_cancel, LV_PCT(100));
-    lv_obj_add_event_cb(btn_cancel, action_cancel_cb, LV_EVENT_CLICKED, NULL);
-
-    lv_obj_t *lbl_cancel = lv_label_create(btn_cancel);
-    lv_label_set_text(lbl_cancel, "Cancelar");
-    lv_obj_center(lbl_cancel);
-}
 
 // =========================
 // ACTIONS
@@ -418,36 +327,65 @@ static void show_profile_details_modal(const char *code)
     lv_obj_set_style_pad_gap(modal, 8, 0);
 
     char buf[64];
-
-    lv_obj_t *title = lv_label_create(modal);
-    lv_label_set_text_fmt(title, "Detalles: %s", p.code);
-
     lv_obj_t *lbl;
 
+    // =========================
+    // TITULO
+    // =========================
+    lv_obj_t *title = lv_label_create(modal);
+    lv_label_set_text_fmt(title, "Perfil: %s", p.commercial_name);
+
+    // =========================
+    // GEOMETRÍA
+    // =========================
     snprintf(buf, sizeof(buf), "Matriz: %s", p.matrix);
     lbl = lv_label_create(modal);
     lv_label_set_text(lbl, buf);
 
+    snprintf(buf, sizeof(buf), "Bocas: %d", p.bocas);
+    lbl = lv_label_create(modal);
+    lv_label_set_text(lbl, buf);
+
+    snprintf(buf, sizeof(buf), "Área: %.2f mm²", p.area_mm2);
+    lbl = lv_label_create(modal);
+    lv_label_set_text(lbl, buf);
+
+    // =========================
+    // PROCESO
+    // =========================
     snprintf(buf, sizeof(buf), "Gusano: %d", p.screw);
     lbl = lv_label_create(modal);
     lv_label_set_text(lbl, buf);
 
-    snprintf(buf, sizeof(buf), "VFD: %d", p.vfd_speed);
+    snprintf(buf, sizeof(buf), "VFD: %d rpm", p.vfd_rpm);
     lbl = lv_label_create(modal);
     lv_label_set_text(lbl, buf);
 
-    snprintf(buf, sizeof(buf), "Extrusión: %.2f", p.extrusion_speed);
+    snprintf(buf, sizeof(buf), "Vel banda: %.2f m/min", p.belt_speed);
     lbl = lv_label_create(modal);
     lv_label_set_text(lbl, buf);
 
-    snprintf(buf, sizeof(buf), "Densidad: %.2f", p.density);
+    // =========================
+    // INGENIERÍA
+    // =========================
+    snprintf(buf, sizeof(buf), "Densidad teórica: %.2f gr/m", p.theoretical_density);
     lbl = lv_label_create(modal);
     lv_label_set_text(lbl, buf);
 
-    snprintf(buf, sizeof(buf), "Longitud: %.2f", p.cut_length);
+    snprintf(buf, sizeof(buf), "Densidad real: %.2f gr/m", p.real_density);
     lbl = lv_label_create(modal);
     lv_label_set_text(lbl, buf);
 
+    // =========================
+    // PRODUCCIÓN
+    // =========================
+    snprintf(buf, sizeof(buf), "Corte default: %.2f m", p.default_cut);
+    lbl = lv_label_create(modal);
+    lv_label_set_text(lbl, buf);
+
+    // =========================
+    // BOTÓN CERRAR
+    // =========================
     lv_obj_t *btn_close = lv_btn_create(modal);
     lv_obj_set_width(btn_close, LV_PCT(100));
     lv_obj_add_event_cb(btn_close, action_cancel_cb, LV_EVENT_CLICKED, NULL);
@@ -456,7 +394,6 @@ static void show_profile_details_modal(const char *code)
     lv_label_set_text(lbl_close, "Cerrar");
     lv_obj_center(lbl_close);
 }
-
 // =========================
 // RENDER RESULTADOS
 // =========================
@@ -502,10 +439,10 @@ static void show_delete_confirm_modal(const char *code)
     lv_obj_t *label = lv_label_create(modal);
 
     lv_label_set_recolor(label, true);
-    
+
     lv_label_set_text_fmt(label,
-    "Eliminar perfil:\n%s\n\n#ff0000 ⚠ IRREVERSIBLE #",
-    code);
+                          "Eliminar perfil:\n%s\n\n#ff0000 ⚠ IRREVERSIBLE #",
+                          code);
 
     // botón confirmar
     lv_obj_t *btn_ok = lv_btn_create(modal);

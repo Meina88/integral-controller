@@ -2,7 +2,8 @@
 #include "logic/extrusion.h"
 #include "logic/active_profile.h"
 #include "drivers/rtc/rtc.h"
-
+#include "logic/profile.h"
+#include "services/production_log.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
@@ -28,35 +29,47 @@ void production_stop(void)
     if (!profile || strlen(profile) == 0)
         return;
 
-    // 🔥 LEER DATOS ANTES DE APAGAR
+    // 🔥 DATOS
     float meters = extrusion_get_total_mm() / 1000.0f;
     float speed = extrusion_get_avg_speed();
 
-    char time_str[32];
-    rtc_get_time_string(time_str);
+    // 🔥 PERFIL
+    profile_t p;
+    bool ok = profile_get_by_code(profile, &p);
 
-    // 🔥 AHORA SÍ PARAR TODO
+    // 🔥 PARAR (esto fija end_time)
     extrusion_stop();
     recording_stop();
 
-    // 🔥 GUARDAR
-    FILE *f = fopen("/sdcard/logs/production.log", "a");
-    if (!f)
-    {
-        printf("ERROR guardando log\n");
-        return;
-    }
+    // 🔥 TIEMPOS CORRECTOS
+    const char *start = extrusion_get_start_time();
+    const char *end = extrusion_get_end_time();
 
-    fprintf(f,
-            "{\"profile\":\"%s\",\"time\":\"%s\",\"meters\":%.2f,\"speed\":%.2f}\n",
+    // 🔥 LOG
+    if (ok)
+    {
+        production_log_append(
+            start,
+            end,
             profile,
-            time_str,
+            p.commercial_name,
+            p.matrix,
             meters,
             speed);
-    fflush(f);
-    fclose(f);
+    }
+    else
+    {
+        production_log_append(
+            start,
+            end,
+            profile,
+            "N/A",
+            "N/A",
+            meters,
+            speed);
+    }
 
-    printf("LOG GUARDADO OK\n");
+    printf("LOG CSV GUARDADO OK\n");
 }
 
 bool production_is_running(void)

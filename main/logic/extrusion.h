@@ -77,3 +77,6 @@ void recording_stop(void);
 // Para futura expansión (UI / API / debug)
 const char* extrusion_get_start_time(void);
 const char* extrusion_get_end_time(void);
+
+const char* extrusion_get_start_time(void);
+const char* extrusion_get_end_time(void);

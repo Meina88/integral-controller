@@ -38,7 +38,7 @@ static bool file_exists(const char *path)
 }
 
 // =========================
-// CREAR ARCHIVO + HEADER
+// INIT CSV
 // =========================
 void production_log_init(void)
 {
@@ -57,10 +57,10 @@ void production_log_init(void)
         return;
     }
 
-    // 🔥 Excel friendly + profesional
+    // 🔥 HEADER PRO
     fprintf(f,
         "sep=;\n"
-        "start_time;end_time;profile;length_m;speed_avg\n"
+        "start_time;end_time;profile;name;matrix;length_m;speed_avg\n"
     );
 
     fflush(f);
@@ -70,12 +70,14 @@ void production_log_init(void)
 }
 
 // =========================
-// ESCRIBIR FILA
+// APPEND ROW
 // =========================
-void production_log_write_row(
+void production_log_append(
     const char *start_time,
     const char *end_time,
     const char *profile,
+    const char *name,
+    const char *matrix,
     float length_m,
     float speed_avg)
 {
@@ -88,12 +90,13 @@ void production_log_write_row(
         return;
     }
 
-    // 🔥 escritura robusta
     int written = fprintf(f,
-        "%s;%s;%s;%.3f;%.2f\n",
-        start_time,
-        end_time,
-        profile,
+        "%s;%s;%s;%s;%s;%.3f;%.2f\n",
+        start_time ? start_time : "N/A",
+        end_time   ? end_time   : "N/A",
+        profile    ? profile    : "N/A",
+        name       ? name       : "N/A",
+        matrix     ? matrix     : "N/A",
         length_m,
         speed_avg);
 
@@ -103,9 +106,12 @@ void production_log_write_row(
     }
     else
     {
-        printf("[LOG] Row OK → %s | %.2f m/min\n", profile, speed_avg);
+        printf("[LOG] OK → %s | %.2f m | %.2f m/min\n",
+               profile,
+               length_m,
+               speed_avg);
     }
 
-    fflush(f);  // 🔥 crítico en embedded
+    fflush(f);
     fclose(f);
 }

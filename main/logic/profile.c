@@ -31,31 +31,139 @@ bool profile_get_by_code(const char *code, profile_t *out)
     if (!root)
         return false;
 
-    const cJSON *j_code = cJSON_GetObjectItem(root, "code");
-    const cJSON *j_matrix = cJSON_GetObjectItem(root, "matrix");
-    const cJSON *j_screw = cJSON_GetObjectItem(root, "screw");
-    const cJSON *j_vfd = cJSON_GetObjectItem(root, "vfd_speed");
-    const cJSON *j_ext = cJSON_GetObjectItem(root, "extrusion_speed");
-    const cJSON *j_density = cJSON_GetObjectItem(root, "density");
-    const cJSON *j_length = cJSON_GetObjectItem(root, "cut_length");
+    memset(out, 0, sizeof(profile_t));
 
-    if (!cJSON_IsString(j_code) || !cJSON_IsString(j_matrix))
+    // =========================
+    // ID
+    // =========================
+    strncpy(out->id, code, sizeof(out->id) - 1);
+    out->id[sizeof(out->id) - 1] = '\0';
+
+    // =========================
+    // GENERAL
+    // =========================
+    cJSON *general = cJSON_GetObjectItem(root, "general");
+    if (general)
     {
-        cJSON_Delete(root);
-        return false;
+        cJSON *j_code = cJSON_GetObjectItem(general, "code");
+        cJSON *j_name = cJSON_GetObjectItem(general, "commercial_name");
+
+        if (cJSON_IsString(j_code))
+        {
+            strncpy(out->code, j_code->valuestring, sizeof(out->code) - 1);
+            out->code[sizeof(out->code) - 1] = '\0';
+        }
+
+        if (cJSON_IsString(j_name))
+        {
+            strncpy(out->commercial_name, j_name->valuestring, sizeof(out->commercial_name) - 1);
+            out->commercial_name[sizeof(out->commercial_name) - 1] = '\0';
+        }
     }
 
-    strncpy(out->code, j_code->valuestring, sizeof(out->code) - 1);
-    out->code[sizeof(out->code) - 1] = '\0';
+    // =========================
+    // GEOMETRY
+    // =========================
+    cJSON *geometry = cJSON_GetObjectItem(root, "geometry");
+    if (geometry)
+    {
+        cJSON *j_matrix = cJSON_GetObjectItem(geometry, "matrix");
+        cJSON *j_bocas = cJSON_GetObjectItem(geometry, "bocas");
+        cJSON *j_area = cJSON_GetObjectItem(geometry, "area_mm2");
 
-    strncpy(out->matrix, j_matrix->valuestring, sizeof(out->matrix) - 1);
-    out->matrix[sizeof(out->matrix) - 1] = '\0';
+        if (cJSON_IsString(j_matrix))
+        {
+            strncpy(out->matrix, j_matrix->valuestring, sizeof(out->matrix) - 1);
+            out->matrix[sizeof(out->matrix) - 1] = '\0';
+        }
 
-    out->screw = j_screw ? j_screw->valueint : 0;
-    out->vfd_speed = j_vfd ? j_vfd->valueint : 0;
-    out->extrusion_speed = j_ext ? j_ext->valuedouble : 0;
-    out->density = j_density ? j_density->valuedouble : 0;
-    out->cut_length = j_length ? j_length->valuedouble : 0;
+        if (cJSON_IsNumber(j_bocas))
+            out->bocas = j_bocas->valueint;
+
+        if (cJSON_IsNumber(j_area))
+            out->area_mm2 = j_area->valuedouble;
+    }
+
+    // =========================
+    // PRODUCTION
+    // =========================
+    cJSON *prod = cJSON_GetObjectItem(root, "production");
+    if (prod)
+    {
+        cJSON *opts = cJSON_GetObjectItem(prod, "cut_options_m");
+
+        if (cJSON_IsArray(opts))
+        {
+            int n = cJSON_GetArraySize(opts);
+            out->cut_options_count = (n < MAX_CUT_OPTIONS) ? n : MAX_CUT_OPTIONS;
+
+            for (int i = 0; i < out->cut_options_count; i++)
+            {
+                cJSON *item = cJSON_GetArrayItem(opts, i);
+                if (cJSON_IsNumber(item))
+                    out->cut_options[i] = item->valuedouble;
+            }
+        }
+
+        cJSON *j_def = cJSON_GetObjectItem(prod, "default_cut_m");
+        if (cJSON_IsNumber(j_def))
+            out->default_cut = j_def->valuedouble;
+
+        cJSON *j_custom = cJSON_GetObjectItem(prod, "allow_custom");
+        if (cJSON_IsBool(j_custom))
+            out->allow_custom = cJSON_IsTrue(j_custom);
+    }
+
+    // =========================
+    // PROCESS
+    // =========================
+    cJSON *process = cJSON_GetObjectItem(root, "process");
+    if (process)
+    {
+        cJSON *j_screw = cJSON_GetObjectItem(process, "screw");
+        cJSON *j_vfd = cJSON_GetObjectItem(process, "target_speed_vfd_rpm");
+        cJSON *j_belt = cJSON_GetObjectItem(process, "target_speed_belt_m_min");
+
+        if (cJSON_IsNumber(j_screw))
+            out->screw = j_screw->valueint;
+
+        if (cJSON_IsNumber(j_vfd))
+            out->vfd_rpm = j_vfd->valueint;
+
+        if (cJSON_IsNumber(j_belt))
+            out->belt_speed = j_belt->valuedouble;
+    }
+
+    // =========================
+    // ENGINEERING
+    // =========================
+    cJSON *eng = cJSON_GetObjectItem(root, "engineering");
+    if (eng)
+    {
+        cJSON *j_t = cJSON_GetObjectItem(eng, "theoretical_density_gr_m");
+        cJSON *j_r = cJSON_GetObjectItem(eng, "real_density_gr_m");
+
+        if (cJSON_IsNumber(j_t))
+            out->theoretical_density = j_t->valuedouble;
+
+        if (cJSON_IsNumber(j_r))
+            out->real_density = j_r->valuedouble;
+    }
+
+    // =========================
+    // FILES
+    // =========================
+    cJSON *files = cJSON_GetObjectItem(root, "files");
+    if (files)
+    {
+        cJSON *j_img = cJSON_GetObjectItem(files, "image");
+
+        if (cJSON_IsString(j_img))
+        {
+            strncpy(out->image, j_img->valuestring, sizeof(out->image) - 1);
+            out->image[sizeof(out->image) - 1] = '\0';
+        }
+    }
 
     cJSON_Delete(root);
     return true;
@@ -121,16 +229,8 @@ bool profile_exists(const char *code)
 
 bool profile_duplicate(const char *source_code, const char *new_code)
 {
-    profile_t p;
-
-    if (!profile_get_by_code(source_code, &p))
-        return false;
-
-    // cambiar código
-    strncpy(p.code, new_code, sizeof(p.code) - 1);
-    p.code[sizeof(p.code) - 1] = '\0';
-
-    return profile_update(&p);
+    printf("Duplicado deshabilitado en nueva versión\n");
+    return false;
 }
 
 #include "logic/active_profile.h"
@@ -155,36 +255,4 @@ bool profile_delete(const char *code)
     }
 
     return false;
-}
-
-bool profile_update(const profile_t *p)
-{
-    char path[128];
-
-    snprintf(path, sizeof(path), "%s/%s.json", PROFILE_DIR, p->code);
-
-    FILE *f = fopen(path, "w");
-    if (!f)
-        return false;
-
-    fprintf(f,
-            "{"
-            "\"code\":\"%s\","
-            "\"matrix\":\"%s\","
-            "\"screw\":%d,"
-            "\"vfd_speed\":%d,"
-            "\"extrusion_speed\":%.2f,"
-            "\"density\":%.2f,"
-            "\"cut_length\":%.2f"
-            "}",
-            p->code,
-            p->matrix,
-            p->screw,
-            p->vfd_speed,
-            p->extrusion_speed,
-            p->density,
-            p->cut_length);
-
-    fclose(f);
-    return true;
 }
