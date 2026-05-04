@@ -156,9 +156,18 @@ void sdcard_test(void)
 
 #include <sys/stat.h>
 
+
+static void ensure_dir(const char *path)
+{
+    struct stat st = {0};
+    if (stat(path, &st) == -1)
+    {
+        mkdir(path, 0775);
+    }
+}
+
 void sdcard_create_dirs(void)
 {
-    mkdir("/sdcard/logs", 0775);
-    mkdir("/sdcard/profiles", 0775);
-    mkdir("/sdcard/summary", 0775);
+    ensure_dir("/sdcard/logs");
+    ensure_dir("/sdcard/profiles");
 }

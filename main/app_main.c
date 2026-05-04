@@ -91,7 +91,7 @@ void app_main(void)
         printf("SD montada correctamente\n");
 
         production_log_init();
-        sdcard_test();
+        
     }
     else
     {
