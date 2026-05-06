@@ -10,6 +10,7 @@
 
 static lv_obj_t *root;
 static lv_obj_t *label_speed;
+static lv_obj_t *label_target_speed;
 
 static lv_obj_t *btn_record;
 static lv_obj_t *label_btn;
@@ -171,6 +172,20 @@ lv_obj_t *screen_extruir_create(lv_obj_t *parent)
     lv_obj_align(label_speed, LV_ALIGN_CENTER, 0, -100);
 
     // =========================
+    // VELOCIDAD OBJETIVO
+    // =========================
+    label_target_speed = lv_label_create(root);
+
+    lv_label_set_text(label_target_speed, "Objetivo: --");
+
+    lv_obj_set_style_text_font(
+        label_target_speed,
+        &lv_font_montserrat_16,
+        0);
+
+    lv_obj_align(label_target_speed, LV_ALIGN_CENTER, 0, -55);
+
+    // =========================
     // CUT OPTIONS
     // =========================
     cut_container = lv_obj_create(root);
@@ -226,6 +241,8 @@ void screen_extruir_refresh_profile(void)
 
         extrusion_set_cut_distance_m(0);
 
+        lv_label_set_text(label_target_speed, "Objetivo: --");
+
         if (cut_container)
             lv_obj_clean(cut_container);
 
@@ -240,6 +257,20 @@ void screen_extruir_refresh_profile(void)
     }
 
     extrusion_set_cut_distance_m(current_profile.default_cut);
+
+    // =========================
+    // VELOCIDAD OBJETIVO
+    // =========================
+    char speed_buf[64];
+
+    snprintf(
+        speed_buf,
+        sizeof(speed_buf),
+        "Objetivo: %.2f m/min",
+        current_profile.belt_speed);
+
+    lv_label_set_text(label_target_speed, speed_buf);
+
     printf("Opciones de corte: %d\n", current_profile.cut_options_count);
 
     // =========================
