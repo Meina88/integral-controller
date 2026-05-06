@@ -16,8 +16,6 @@
 #define SENSOR_DIAMETER_MM 200.0f
 #define BELT_DIAMETER_MM 300.0f
 #define HOLES_COUNT 22.0f
-#define CUT_DISTANCE_M 0.1f
-#define CUT_DISTANCE_MM (CUT_DISTANCE_M * 1000.0f)
 #define SPEED_TIMEOUT_MS 1000
 #define MM_PER_PULSE ((3.14159265f * BELT_DIAMETER_MM) / HOLES_COUNT)
 
@@ -55,6 +53,7 @@ static uint32_t relay_2_delay_start = 0;
 static uint32_t relay_2_on_time = 0;
 
 static float last_cut_mm = 0.0f;
+static float cut_distance_mm = 0.0f;
 
 // =========================
 // PROMEDIO
@@ -153,6 +152,27 @@ int extrusion_get_total_count(void)
 }
 
 // =========================
+// DISTANCIA DE CORTE
+// =========================
+void extrusion_set_cut_distance_m(float meters)
+{
+    if (meters <= 0.0f)
+    {
+        cut_distance_mm = 0.0f;
+        return;
+    }
+
+    cut_distance_mm = meters * 1000.0f;
+
+    printf("Distancia de corte configurada: %.2f m\n", meters);
+}
+
+float extrusion_get_cut_distance_m(void)
+{
+    return cut_distance_mm / 1000.0f;
+}
+
+// =========================
 // PROCESO PRINCIPAL
 // =========================
 void extrusion_process_tick(void)
@@ -193,7 +213,8 @@ void extrusion_process_tick(void)
                 total_mm += MM_PER_PULSE;
 
                 // CORTE
-                if ((total_mm - last_cut_mm) >= CUT_DISTANCE_MM)
+                if (cut_distance_mm > 0.0f &&
+                    (total_mm - last_cut_mm) >= cut_distance_mm)
                 {
                     total_count++;
 

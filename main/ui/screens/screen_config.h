@@ -1,4 +1,6 @@
 #pragma once
+#include "drivers/rtc/rtc.h"
+#include "drivers/rtc/rtc_pcf85063a.h"
 
 #include "lvgl.h"
 

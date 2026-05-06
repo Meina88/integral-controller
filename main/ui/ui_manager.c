@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "logic/production.h"
+#include "drivers/rtc/rtc.h"
 
 static lv_obj_t *content;
 static lv_obj_t *main_area;
@@ -22,6 +23,7 @@ static lv_obj_t *status_bar;
 // labels status bar
 static lv_obj_t *label_status;
 static lv_obj_t *label_profile;
+static lv_obj_t *label_time;
 
 // =========================
 // SET PROFILE (🔥 usada globalmente)
@@ -48,16 +50,24 @@ static void switch_tab(int tab)
     lv_obj_add_flag(screen_config, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(screen_historicos, LV_OBJ_FLAG_HIDDEN);
 
-    if (tab == 0) lv_obj_clear_flag(screen_extruir, LV_OBJ_FLAG_HIDDEN);
-    if (tab == 1) lv_obj_clear_flag(screen_setup, LV_OBJ_FLAG_HIDDEN);
-    if (tab == 2) lv_obj_clear_flag(screen_config, LV_OBJ_FLAG_HIDDEN);
-    if (tab == 3) lv_obj_clear_flag(screen_historicos, LV_OBJ_FLAG_HIDDEN);
+    if (tab == 0)
+        lv_obj_clear_flag(screen_extruir, LV_OBJ_FLAG_HIDDEN);
+    if (tab == 1)
+        lv_obj_clear_flag(screen_setup, LV_OBJ_FLAG_HIDDEN);
+    if (tab == 2)
+        lv_obj_clear_flag(screen_config, LV_OBJ_FLAG_HIDDEN);
+    if (tab == 3)
+        lv_obj_clear_flag(screen_historicos, LV_OBJ_FLAG_HIDDEN);
 }
 
 // =========================
 // EVENTOS BOTONES
 // =========================
-static void tab_extruir_cb(lv_event_t *e) { switch_tab(0); }
+static void tab_extruir_cb(lv_event_t *e)
+{
+    screen_extruir_refresh_profile();
+    switch_tab(0);
+}
 static void tab_setup_cb(lv_event_t *e)
 {
     if (production_is_running())
@@ -111,10 +121,10 @@ void ui_start(void)
     lv_label_set_text(label_profile, "Perfil: ninguno");
     lv_obj_set_style_text_color(label_profile, lv_color_white(), 0);
 
-    // derecha (placeholder)
-    lv_obj_t *label_right = lv_label_create(status_bar);
-    lv_label_set_text(label_right, "OK");
-    lv_obj_set_style_text_color(label_right, lv_color_white(), 0);
+    // derecha: hora actual
+    label_time = lv_label_create(status_bar);
+    lv_label_set_text(label_time, "--:--:--");
+    lv_obj_set_style_text_color(label_time, lv_color_white(), 0);
 
     // =========================
     // MAIN AREA
@@ -186,9 +196,22 @@ void ui_start(void)
 }
 
 // =========================
+// UPDATE TIME
+// =========================
+
+static void update_time_label(void)
+{
+    char buf[16];
+    rtc_get_time_string(buf);
+
+    lv_label_set_text(label_time, buf);
+}
+
+// =========================
 // UPDATE
 // =========================
 void ui_update(void)
 {
     screen_extruir_update();
+    update_time_label();
 }

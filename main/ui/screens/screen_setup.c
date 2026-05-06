@@ -11,6 +11,8 @@
 #include "ui/ui_manager.h"
 #include "logic/production.h"
 
+#include "ui/screens/screen_extruir.h"
+
 // =========================
 // PROTOTIPOS
 // =========================
@@ -108,8 +110,6 @@ static void free_code_cb(lv_event_t *e)
     free((void *)code);
 }
 
-
-
 static void delete_confirm_cb(lv_event_t *e)
 {
     const char *code = (const char *)lv_event_get_user_data(e);
@@ -191,7 +191,6 @@ static void result_btn_cb(lv_event_t *e)
     }
 }
 
-
 // =========================
 // ACTIONS
 // =========================
@@ -201,6 +200,7 @@ static void action_select_cb(lv_event_t *e)
 
     active_profile_set(code);
     ui_set_active_profile(code);
+    screen_extruir_refresh_profile();
 
     lv_obj_t *btn = lv_event_get_target(e);
     lv_obj_t *modal = lv_obj_get_parent(btn);
