@@ -32,6 +32,7 @@ void production_stop(void)
     // 🔥 DATOS
     float meters = extrusion_get_total_mm() / 1000.0f;
     float speed = extrusion_get_avg_speed();
+    int cuts = extrusion_get_total_count();
 
     // 🔥 PERFIL
     profile_t p;
@@ -46,28 +47,13 @@ void production_stop(void)
     const char *end = extrusion_get_end_time();
 
     // 🔥 LOG
-    if (ok)
-    {
-        production_log_append(
-            start,
-            end,
-            profile,
-            p.commercial_name,
-            p.matrix,
-            meters,
-            speed);
-    }
-    else
-    {
-        production_log_append(
-            start,
-            end,
-            profile,
-            "N/A",
-            "N/A",
-            meters,
-            speed);
-    }
+production_log_append(
+    start,
+    end,
+    profile,
+    meters,
+    speed,
+    cuts);
 
     printf("LOG CSV GUARDADO OK\n");
 }

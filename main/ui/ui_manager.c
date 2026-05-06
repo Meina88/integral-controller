@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include "logic/production.h"
 #include "drivers/rtc/rtc.h"
+#include "logic/active_profile.h"
 
 static lv_obj_t *content;
 static lv_obj_t *main_area;
@@ -23,6 +24,7 @@ static lv_obj_t *status_bar;
 // labels status bar
 static lv_obj_t *label_status;
 static lv_obj_t *label_profile;
+static lv_obj_t *btn_clear_profile;
 static lv_obj_t *label_time;
 
 // =========================
@@ -33,9 +35,21 @@ void ui_set_active_profile(const char *code)
     char buf[64];
 
     if (code && strlen(code) > 0)
+    {
         snprintf(buf, sizeof(buf), "Perfil: %s", code);
+
+        lv_obj_clear_flag(
+            btn_clear_profile,
+            LV_OBJ_FLAG_HIDDEN);
+    }
     else
+    {
         snprintf(buf, sizeof(buf), "Perfil: ninguno");
+
+        lv_obj_add_flag(
+            btn_clear_profile,
+            LV_OBJ_FLAG_HIDDEN);
+    }
 
     lv_label_set_text(label_profile, buf);
 }
@@ -82,6 +96,26 @@ static void tab_config_cb(lv_event_t *e) { switch_tab(2); }
 static void tab_historicos_cb(lv_event_t *e) { switch_tab(3); }
 
 // =========================
+// CLEAR PROFILE
+// =========================
+static void clear_profile_cb(lv_event_t *e)
+{
+    if (production_is_running())
+    {
+        printf("No se puede liberar perfil durante grabacion\n");
+        return;
+    }
+
+    active_profile_set("");
+
+    ui_set_active_profile(NULL);
+
+    screen_extruir_refresh_profile();
+
+    printf("Perfil liberado\n");
+}
+
+// =========================
 // UI START
 // =========================
 void ui_start(void)
@@ -116,10 +150,48 @@ void ui_start(void)
     lv_label_set_text(label_status, "Listo");
     lv_obj_set_style_text_color(label_status, lv_color_white(), 0);
 
-    // centro
-    label_profile = lv_label_create(status_bar);
+    // =========================
+    // PROFILE CONTAINER
+    // =========================
+    lv_obj_t *profile_container = lv_obj_create(status_bar);
+
+    lv_obj_set_size(
+    profile_container,
+    LV_SIZE_CONTENT,
+    LV_SIZE_CONTENT);
+    
+    lv_obj_set_style_bg_opa(profile_container, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_border_width(profile_container, 0, 0);
+    lv_obj_set_style_pad_all(profile_container, 0, 0);
+    lv_obj_set_style_pad_gap(profile_container, 6, 0);
+
+    lv_obj_set_layout(profile_container, LV_LAYOUT_FLEX);
+    lv_obj_set_flex_flow(profile_container, LV_FLEX_FLOW_ROW);
+
+    lv_obj_clear_flag(profile_container, LV_OBJ_FLAG_SCROLLABLE);
+
+    // label perfil
+    label_profile = lv_label_create(profile_container);
     lv_label_set_text(label_profile, "Perfil: ninguno");
     lv_obj_set_style_text_color(label_profile, lv_color_white(), 0);
+
+    // botón liberar
+    btn_clear_profile = lv_btn_create(profile_container);
+
+    lv_obj_set_size(btn_clear_profile, 28, 28);
+
+    lv_obj_add_event_cb(
+        btn_clear_profile,
+        clear_profile_cb,
+        LV_EVENT_CLICKED,
+        NULL);
+
+    lv_obj_t *lbl_x = lv_label_create(btn_clear_profile);
+    lv_label_set_text(lbl_x, "X");
+    lv_obj_center(lbl_x);
+
+    // ocultar inicialmente
+    lv_obj_add_flag(btn_clear_profile, LV_OBJ_FLAG_HIDDEN);
 
     // derecha: hora actual
     label_time = lv_label_create(status_bar);

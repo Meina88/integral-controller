@@ -59,9 +59,8 @@ void production_log_init(void)
 
     // 🔥 HEADER PRO
     fprintf(f,
-        "sep=;\n"
-        "start_time;end_time;profile;name;matrix;length_m;speed_avg\n"
-    );
+            "sep=;\n"
+            "start_time;end_time;profile;length_m;speed_avg;cuts\n");
 
     fflush(f);
     fclose(f);
@@ -76,10 +75,9 @@ void production_log_append(
     const char *start_time,
     const char *end_time,
     const char *profile,
-    const char *name,
-    const char *matrix,
     float length_m,
-    float speed_avg)
+    float speed_avg,
+    int cuts)
 {
     build_filename();
 
@@ -91,14 +89,13 @@ void production_log_append(
     }
 
     int written = fprintf(f,
-        "%s;%s;%s;%s;%s;%.3f;%.2f\n",
-        start_time ? start_time : "N/A",
-        end_time   ? end_time   : "N/A",
-        profile    ? profile    : "N/A",
-        name       ? name       : "N/A",
-        matrix     ? matrix     : "N/A",
-        length_m,
-        speed_avg);
+                          "%s;%s;%s;%.3f;%.2f;%d\n",
+                          start_time ? start_time : "N/A",
+                          end_time ? end_time : "N/A",
+                          profile ? profile : "N/A",
+                          length_m,
+                          speed_avg,
+                          cuts);
 
     if (written <= 0)
     {
@@ -106,10 +103,11 @@ void production_log_append(
     }
     else
     {
-        printf("[LOG] OK → %s | %.2f m | %.2f m/min\n",
+        printf("[LOG] OK → %s | %.2f m | %.2f m/min | cuts=%d\n",
                profile,
                length_m,
-               speed_avg);
+               speed_avg,
+               cuts);
     }
 
     fflush(f);
