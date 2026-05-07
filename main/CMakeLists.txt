@@ -8,14 +8,26 @@ idf_component_register(
         "ui/ui_manager.c"
         "ui/ui_events.c"
 
+        # =========================
         # SCREENS
+        # =========================
         "ui/screens/screen_extruir.c"
         "ui/screens/screen_setup.c"
         "ui/screens/screen_config.c"
+
+        # 🔥 NUEVOS SUBMENUS CONFIG
+        "ui/screens/screen_config_datetime.c"
+        "ui/screens/screen_config_wifi.c"
+        "ui/screens/screen_config_machine.c"
+
         "ui/screens/screen_historicos.c"
+
+        # COMPONENTS
         "ui/components/numpad.c"
 
-        # PRODUCTION
+        # =========================
+        # SERVICES
+        # =========================
         "services/production_log.c"
 
         # =========================
@@ -43,9 +55,9 @@ idf_component_register(
         # LOGIC
         # =========================
         "logic/extrusion.c"
-        "logic/profile.c" 
-        "logic/active_profile.c"   
-        "logic/production.c"             
+        "logic/profile.c"
+        "logic/active_profile.c"
+        "logic/production.c"
 
         # =========================
         # STORAGE
@@ -76,7 +88,7 @@ idf_component_register(
         "drivers/rtc"
 
         # STORAGE
-        "storage/nvs"        # 🔥 NUEVO
+        "storage/nvs"
         "storage/sdcard"
 
         # COMMS

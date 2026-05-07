@@ -6,8 +6,8 @@
 extern "C" {
 #endif
 
-lv_obj_t *screen_config_create(lv_obj_t *parent);
-void screen_config_update(void);
+lv_obj_t *screen_config_datetime_create(lv_obj_t *parent);
+void screen_config_datetime_update(void);
 
 #ifdef __cplusplus
 }

@@ -1,68 +1,57 @@
 #include "screen_config.h"
+
+#include "screen_config_datetime.h"
+#include "screen_config_wifi.h"
+#include "screen_config_machine.h"
+
 #include "lvgl.h"
-#include "drivers/rtc/rtc.h"
-#include "drivers/rtc/rtc_pcf85063a.h"
-#include <stdio.h>
-#include "ui/components/numpad.h"
 
+// =========================
+// OBJETOS
+// =========================
 static lv_obj_t *root;
-static lv_obj_t *ta_date;
-static lv_obj_t *ta_time;
 
-static void ta_event_cb(lv_event_t *e)
+static lv_obj_t *content;
+
+static lv_obj_t *screen_datetime;
+static lv_obj_t *screen_wifi;
+static lv_obj_t *screen_machine;
+
+// =========================
+// SWITCH SCREEN
+// =========================
+static void switch_screen(int id)
 {
-    lv_obj_t *ta = lv_event_get_target(e);
+    lv_obj_add_flag(screen_datetime, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(screen_wifi, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(screen_machine, LV_OBJ_FLAG_HIDDEN);
 
-    numpad_open(ta, NULL); // NULL si no usás callback extra
+    if (id == 0)
+        lv_obj_clear_flag(screen_datetime, LV_OBJ_FLAG_HIDDEN);
+
+    if (id == 1)
+        lv_obj_clear_flag(screen_wifi, LV_OBJ_FLAG_HIDDEN);
+
+    if (id == 2)
+        lv_obj_clear_flag(screen_machine, LV_OBJ_FLAG_HIDDEN);
 }
 
 // =========================
-// BOTÓN GUARDAR
+// EVENTS
 // =========================
-static void btn_save_cb(lv_event_t *e)
+static void btn_datetime_cb(lv_event_t *e)
 {
-    const char *date = lv_textarea_get_text(ta_date);
-    const char *time = lv_textarea_get_text(ta_time);
+    switch_screen(0);
+}
 
-    datetime_t t;
+static void btn_wifi_cb(lv_event_t *e)
+{
+    switch_screen(1);
+}
 
-    int year, month, day;
-    int hour, min, sec;
-
-    // =========================
-    // PARSE FECHA
-    // =========================
-    if (sscanf(date, "%d.%d.%d", &year, &month, &day) != 3)
-    {
-        printf("ERROR fecha\n");
-        return;
-    }
-
-    // =========================
-    // PARSE HORA
-    // =========================
-    if (sscanf(time, "%d.%d.%d", &hour, &min, &sec) != 3)
-    {
-        printf("ERROR hora\n");
-        return;
-    }
-
-    // =========================
-    // ASIGNACIÓN SEGURA
-    // =========================
-    t.year = (uint16_t)year;
-    t.month = (uint8_t)month;
-    t.day = (uint8_t)day;
-
-    t.hour = (uint8_t)hour;
-    t.min = (uint8_t)min;
-    t.sec = (uint8_t)sec;
-
-    t.dotw = 1;
-
-    PCF85063A_Set_All(t);
-
-    printf("RTC actualizado OK\n");
+static void btn_machine_cb(lv_event_t *e)
+{
+    switch_screen(2);
 }
 
 // =========================
@@ -71,49 +60,155 @@ static void btn_save_cb(lv_event_t *e)
 lv_obj_t *screen_config_create(lv_obj_t *parent)
 {
     root = lv_obj_create(parent);
+
     lv_obj_set_size(root, LV_PCT(100), LV_PCT(100));
 
     lv_obj_set_style_border_width(root, 0, 0);
 
-    // 🔥 IMPORTANTE
+    lv_obj_set_style_pad_all(root, 0, 0);
+
     lv_obj_set_layout(root, LV_LAYOUT_FLEX);
-    lv_obj_set_flex_flow(root, LV_FLEX_FLOW_COLUMN);
-    lv_obj_set_style_pad_all(root, 20, 0);
-    lv_obj_set_style_pad_gap(root, 10, 0);
+
+    lv_obj_set_flex_flow(root, LV_FLEX_FLOW_ROW);
 
     // =========================
-    // TÍTULO
+    // SIDEBAR
     // =========================
-    lv_obj_t *title = lv_label_create(root);
-    lv_label_set_text(title, "Configurar Fecha y Hora");
+    lv_obj_t *sidebar = lv_obj_create(root);
 
-    // INPUT FECHA
-    ta_date = lv_textarea_create(root);
-    lv_obj_set_width(ta_date, LV_PCT(100));
-    lv_textarea_set_placeholder_text(ta_date, "YYYY.MM.DD");
-    lv_obj_add_event_cb(ta_date, ta_event_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_set_width(sidebar, 180);
 
-    // INPUT HORA
-    ta_time = lv_textarea_create(root);
-    lv_obj_set_width(ta_time, LV_PCT(100));
-    lv_textarea_set_placeholder_text(ta_time, "HH.MM.SS");
-    lv_obj_add_event_cb(ta_time, ta_event_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_set_height(sidebar, LV_PCT(100));
 
-    // BOTÓN GUARDAR
-    lv_obj_t *btn = lv_btn_create(root);
-    lv_obj_set_width(btn, LV_PCT(100));
-    lv_obj_add_event_cb(btn, btn_save_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_set_style_radius(sidebar, 0, 0);
 
-    lv_obj_t *lbl = lv_label_create(btn);
-    lv_label_set_text(lbl, "Guardar");
-    lv_obj_center(lbl);
+    lv_obj_set_style_border_width(sidebar, 0, 0);
+
+    lv_obj_set_style_bg_color(
+        sidebar,
+        lv_color_hex(0x161B20),
+        0);
+
+    lv_obj_set_style_pad_all(sidebar, 15, 0);
+
+    lv_obj_set_style_pad_gap(sidebar, 12, 0);
+
+    lv_obj_set_layout(sidebar, LV_LAYOUT_FLEX);
+
+    lv_obj_set_flex_flow(sidebar, LV_FLEX_FLOW_COLUMN);
+
+    // =========================
+    // TITULO
+    // =========================
+    lv_obj_t *title = lv_label_create(sidebar);
+
+    lv_label_set_text(title, "CONFIG");
+
+    lv_obj_set_style_text_font(
+        title,
+        &lv_font_montserrat_24,
+        0);
+
+    lv_obj_set_style_text_color(
+        title,
+        lv_color_white(),
+        0);
+
+    // =========================
+    // BOTONES
+    // =========================
+
+    // Fecha y Hora
+    lv_obj_t *btn_datetime = lv_btn_create(sidebar);
+
+    lv_obj_set_width(btn_datetime, LV_PCT(100));
+
+    lv_obj_set_height(btn_datetime, 55);
+
+    lv_obj_add_event_cb(
+        btn_datetime,
+        btn_datetime_cb,
+        LV_EVENT_CLICKED,
+        NULL);
+
+    lv_obj_t *lbl_datetime = lv_label_create(btn_datetime);
+
+    lv_label_set_text(lbl_datetime, "Fecha y hora");
+
+    lv_obj_center(lbl_datetime);
+
+    // WiFi
+    lv_obj_t *btn_wifi = lv_btn_create(sidebar);
+
+    lv_obj_set_width(btn_wifi, LV_PCT(100));
+
+    lv_obj_set_height(btn_wifi, 55);
+
+    lv_obj_add_event_cb(
+        btn_wifi,
+        btn_wifi_cb,
+        LV_EVENT_CLICKED,
+        NULL);
+
+    lv_obj_t *lbl_wifi = lv_label_create(btn_wifi);
+
+    lv_label_set_text(lbl_wifi, "WiFi");
+
+    lv_obj_center(lbl_wifi);
+
+    // Máquina
+    lv_obj_t *btn_machine = lv_btn_create(sidebar);
+
+    lv_obj_set_width(btn_machine, LV_PCT(100));
+
+    lv_obj_set_height(btn_machine, 55);
+
+    lv_obj_add_event_cb(
+        btn_machine,
+        btn_machine_cb,
+        LV_EVENT_CLICKED,
+        NULL);
+
+    lv_obj_t *lbl_machine = lv_label_create(btn_machine);
+
+    lv_label_set_text(lbl_machine, "Maquina");
+
+    lv_obj_center(lbl_machine);
+
+    // =========================
+    // CONTENT
+    // =========================
+    content = lv_obj_create(root);
+
+    lv_obj_set_flex_grow(content, 1);
+
+    lv_obj_set_height(content, LV_PCT(100));
+
+    lv_obj_set_style_border_width(content, 0, 0);
+
+    lv_obj_set_style_pad_all(content, 0, 0);
+
+    // =========================
+    // SUBSCREENS
+    // =========================
+    screen_datetime = screen_config_datetime_create(content);
+
+    screen_wifi = screen_config_wifi_create(content);
+
+    screen_machine = screen_config_machine_create(content);
+
+    // =========================
+    // DEFAULT
+    // =========================
+    switch_screen(0);
 
     return root;
 }
 
 // =========================
-// UPDATE (opcional)
+// UPDATE
 // =========================
 void screen_config_update(void)
 {
+   // screen_config_datetime_update();
 }
