@@ -19,6 +19,9 @@ idf_component_register(
         "ui/screens/screen_config_datetime.c"
         "ui/screens/screen_config_wifi.c"
         "ui/screens/screen_config_machine.c"
+        "ui/fonts/inter_18.c"
+        "ui/fonts/inter_24.c"
+        "ui/fonts/inter_28.c"
 
         "ui/screens/screen_historicos.c"
 
@@ -77,6 +80,7 @@ idf_component_register(
         "ui"
         "ui/screens"
         "ui/components"
+        "ui/fonts"
 
         # BSP
         "bsp"
