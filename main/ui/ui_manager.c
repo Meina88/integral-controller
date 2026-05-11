@@ -8,6 +8,7 @@
 #include "logic/production.h"
 #include "drivers/rtc/rtc.h"
 #include "logic/active_profile.h"
+#include "screens/screen_config_wifi.h"
 
 static lv_obj_t *content;
 static lv_obj_t *main_area;
@@ -285,5 +286,7 @@ static void update_time_label(void)
 void ui_update(void)
 {
     screen_extruir_update();
+    screen_config_wifi_update();
+
     update_time_label();
 }

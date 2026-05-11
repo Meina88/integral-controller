@@ -5,6 +5,8 @@
 #include <stdio.h>
 
 #define NAMESPACE "storage"
+#define KEY_WIFI_SSID "wifi_ssid"
+#define KEY_WIFI_PASS "wifi_pass"
 #define KEY_PROFILES "profiles_json"
 
 // =========================
@@ -157,4 +159,85 @@ const char *default_json =
 "}";
 
     return storage_nvs_save_profiles(default_json);
+}
+
+// =========================
+// SAVE WIFI
+// =========================
+esp_err_t storage_nvs_save_wifi(const char *ssid, const char *password)
+{
+    nvs_handle_t handle;
+
+    esp_err_t err = nvs_open(NAMESPACE, NVS_READWRITE, &handle);
+    if (err != ESP_OK)
+        return err;
+
+    err = nvs_set_str(handle, KEY_WIFI_SSID, ssid ? ssid : "");
+    if (err != ESP_OK)
+    {
+        nvs_close(handle);
+        return err;
+    }
+
+    err = nvs_set_str(handle, KEY_WIFI_PASS, password ? password : "");
+    if (err != ESP_OK)
+    {
+        nvs_close(handle);
+        return err;
+    }
+
+    err = nvs_commit(handle);
+
+    nvs_close(handle);
+
+    return err;
+}
+
+// =========================
+// LOAD WIFI
+// =========================
+esp_err_t storage_nvs_load_wifi(char *ssid, size_t ssid_max_len,
+                                char *password, size_t pass_max_len)
+{
+    nvs_handle_t handle;
+
+    esp_err_t err = nvs_open(NAMESPACE, NVS_READONLY, &handle);
+    if (err != ESP_OK)
+        return err;
+
+    size_t ssid_len = ssid_max_len;
+    size_t pass_len = pass_max_len;
+
+    err = nvs_get_str(handle, KEY_WIFI_SSID, ssid, &ssid_len);
+    if (err != ESP_OK)
+    {
+        nvs_close(handle);
+        return err;
+    }
+
+    err = nvs_get_str(handle, KEY_WIFI_PASS, password, &pass_len);
+
+    nvs_close(handle);
+
+    return err;
+}
+
+// =========================
+// CHECK WIFI EXISTS
+// =========================
+bool storage_nvs_wifi_exists(void)
+{
+    nvs_handle_t handle;
+
+    esp_err_t err = nvs_open(NAMESPACE, NVS_READONLY, &handle);
+    if (err != ESP_OK)
+        return false;
+
+    size_t required_size = 0;
+
+    err = nvs_get_str(handle, KEY_WIFI_SSID, NULL, &required_size);
+
+    nvs_close(handle);
+
+    return (err == ESP_OK && required_size > 1);
 }

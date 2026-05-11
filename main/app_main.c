@@ -91,12 +91,20 @@ void app_main(void)
         printf("SD montada correctamente\n");
 
         production_log_init();
-        
     }
     else
     {
         printf("Error montando SD (no afecta perfiles)\n");
     }
+
+    // =========================
+    // COMMS
+    // =========================
+    wifi_init_sta();
+
+    vTaskDelay(pdMS_TO_TICKS(2000));
+
+    start_http_server();
 
     // =========================
     // UI (LVGL)
@@ -118,17 +126,7 @@ void app_main(void)
         4096,
         NULL,
         5,
-        NULL
-    );
-
-    // =========================
-    // COMMS
-    // =========================
-    wifi_init_sta();
-
-    vTaskDelay(pdMS_TO_TICKS(2000));
-
-    start_http_server();
+        NULL);
 
     // =========================
     // LOOP PRINCIPAL: SOLO UI
