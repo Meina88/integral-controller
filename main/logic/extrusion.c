@@ -55,6 +55,9 @@ static uint32_t relay_2_on_time = 0;
 static float last_cut_mm = 0.0f;
 static float cut_distance_mm = 0.0f;
 
+static int target_count = 0;
+static bool target_reached = false;
+
 // =========================
 // PROMEDIO
 // =========================
@@ -78,10 +81,10 @@ void extrusion_stop(void)
 {
     running = false;
 
-    relay_1_off();
+    // relay_1 NO se apaga acá.
+    // El pulso temporizado se apaga solo en extrusion_process_tick().
     relay_2_off();
 
-    relay_active = false;
     relay_2_pending = false;
     relay_2_active = false;
 
@@ -100,6 +103,8 @@ void recording_start(void)
     pulse_count = 0;
 
     last_cut_mm = 0;
+
+    target_reached = false;
 
     speed_sum = 0;
     speed_samples = 0;
@@ -120,10 +125,10 @@ void recording_stop(void)
 {
     recording = false;
 
-    relay_1_off();
+    // relay_1 NO se apaga acá.
+    // Si hay un pulso activo, debe terminar su tiempo normal de 500 ms.
     relay_2_off();
 
-    relay_active = false;
     relay_2_pending = false;
     relay_2_active = false;
 
@@ -181,6 +186,29 @@ float extrusion_get_cut_distance_m(void)
 }
 
 // =========================
+// TARGET PRODUCCIÓN
+// =========================
+void extrusion_set_target_count(int count)
+{
+    if (count < 0)
+        count = 0;
+
+    target_count = count;
+
+    printf("Cantidad objetivo configurada: %d\n", target_count);
+}
+
+int extrusion_get_target_count(void)
+{
+    return target_count;
+}
+
+bool extrusion_is_target_reached(void)
+{
+    return target_reached;
+}
+
+// =========================
 // PROCESO PRINCIPAL
 // =========================
 void extrusion_process_tick(void)
@@ -227,6 +255,18 @@ void extrusion_process_tick(void)
                     total_count++;
 
                     relay_1_on();
+
+                    // =========================
+                    // TARGET ALCANZADO
+                    // =========================
+                    if (target_count > 0 &&
+                        total_count >= target_count)
+                    {
+                        target_reached = true;
+
+                        printf("TARGET DE PRODUCCION ALCANZADO\n");
+                    }
+
                     relay_active = true;
                     relay_start_time = now;
 

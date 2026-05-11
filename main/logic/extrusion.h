@@ -45,3 +45,10 @@ void recording_stop(void);
 // =========================
 const char* extrusion_get_start_time(void);
 const char* extrusion_get_end_time(void);
+
+// =========================
+// TARGET PRODUCCIÓN
+// =========================
+void extrusion_set_target_count(int count);
+int extrusion_get_target_count(void);
+bool extrusion_is_target_reached(void);

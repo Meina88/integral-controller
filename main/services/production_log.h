@@ -8,4 +8,5 @@ void production_log_append(
     const char *profile,
     float length_m,
     float speed_avg,
-    int cuts);
+    int cuts,
+    const char *finish_reason);

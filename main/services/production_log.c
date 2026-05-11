@@ -60,7 +60,7 @@ void production_log_init(void)
     // 🔥 HEADER PRO
     fprintf(f,
             "sep=;\n"
-            "start_time;end_time;profile;length_m;speed_avg;cuts\n");
+            "start_time;end_time;profile;length_m;speed_avg;cuts;finish_reason\n");
 
     fflush(f);
     fclose(f);
@@ -77,7 +77,8 @@ void production_log_append(
     const char *profile,
     float length_m,
     float speed_avg,
-    int cuts)
+    int cuts,
+    const char *finish_reason)
 {
     build_filename();
 
@@ -89,13 +90,14 @@ void production_log_append(
     }
 
     int written = fprintf(f,
-                          "%s;%s;%s;%.3f;%.2f;%d\n",
+                          "%s;%s;%s;%.3f;%.2f;%d;%s\n",
                           start_time ? start_time : "N/A",
                           end_time ? end_time : "N/A",
                           profile ? profile : "N/A",
                           length_m,
                           speed_avg,
-                          cuts);
+                          cuts,
+                          finish_reason ? finish_reason : "unknown");
 
     if (written <= 0)
     {

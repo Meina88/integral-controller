@@ -16,9 +16,20 @@ static lv_obj_t *btn_record;
 static lv_obj_t *label_btn;
 
 static bool recording_ui = false;
+static bool auto_finished = false;
 static profile_t current_profile;
 static lv_obj_t *cut_container;
 static lv_obj_t *cut_buttons[MAX_CUT_OPTIONS];
+
+// =========================
+// TARGET QTY
+// =========================
+static lv_obj_t *qty_container;
+static lv_obj_t *btn_qty_minus;
+static lv_obj_t *btn_qty_plus;
+static lv_obj_t *label_qty;
+
+static int target_qty_ui = 25;
 
 // =========================
 // MODAL CLOSE
@@ -84,6 +95,62 @@ static void set_cut_buttons_enabled(bool enabled)
 }
 
 // =========================
+// UPDATE QTY LABEL
+// =========================
+static void update_qty_label(void)
+{
+    char buf[32];
+
+    snprintf(buf, sizeof(buf), "%d perfiles", target_qty_ui);
+
+    lv_label_set_text(label_qty, buf);
+
+    extrusion_set_target_count(target_qty_ui);
+}
+
+// =========================
+// ENABLE/DISABLE QTY BUTTONS
+// =========================
+static void set_qty_buttons_enabled(bool enabled)
+{
+    if (!btn_qty_minus || !btn_qty_plus)
+        return;
+
+    if (enabled)
+    {
+        lv_obj_clear_state(btn_qty_minus, LV_STATE_DISABLED);
+        lv_obj_clear_state(btn_qty_plus, LV_STATE_DISABLED);
+    }
+    else
+    {
+        lv_obj_add_state(btn_qty_minus, LV_STATE_DISABLED);
+        lv_obj_add_state(btn_qty_plus, LV_STATE_DISABLED);
+    }
+}
+
+// =========================
+// QTY BUTTON EVENT
+// =========================
+static void qty_minus_event_cb(lv_event_t *e)
+{
+    if (target_qty_ui > 1)
+    {
+        target_qty_ui--;
+        update_qty_label();
+    }
+}
+
+static void qty_plus_event_cb(lv_event_t *e)
+{
+    if (target_qty_ui < 999)
+    {
+        target_qty_ui++;
+        update_qty_label();
+    }
+}
+
+
+// =========================
 // BOTÓN
 // =========================
 static void btn_event_cb(lv_event_t *e)
@@ -100,8 +167,10 @@ static void btn_event_cb(lv_event_t *e)
         }
 
         production_start();
+        auto_finished = false;
 
         set_cut_buttons_enabled(false);
+        set_qty_buttons_enabled(false);
 
         recording_ui = true;
         lv_label_set_text(label_btn, "Detener");
@@ -109,9 +178,10 @@ static void btn_event_cb(lv_event_t *e)
     }
     else
     {
-        production_stop();
+        production_finish(PRODUCTION_FINISH_MANUAL);
 
         set_cut_buttons_enabled(true);
+        set_qty_buttons_enabled(true);
 
         recording_ui = false;
         lv_label_set_text(label_btn, "Grabar");
@@ -211,11 +281,62 @@ lv_obj_t *screen_extruir_create(lv_obj_t *parent)
     lv_obj_align(cut_container, LV_ALIGN_CENTER, 0, -10);
 
     // =========================
+// CANTIDAD OBJETIVO
+// =========================
+qty_container = lv_obj_create(root);
+
+lv_obj_set_size(qty_container, 320, 70);
+
+lv_obj_set_flex_flow(qty_container, LV_FLEX_FLOW_ROW);
+
+lv_obj_set_flex_align(
+    qty_container,
+    LV_FLEX_ALIGN_CENTER,
+    LV_FLEX_ALIGN_CENTER,
+    LV_FLEX_ALIGN_CENTER);
+
+lv_obj_set_style_pad_all(qty_container, 4, 0);
+lv_obj_set_style_pad_gap(qty_container, 10, 0);
+
+// ocultar estética container
+lv_obj_set_style_bg_opa(qty_container, LV_OPA_TRANSP, 0);
+lv_obj_set_style_border_width(qty_container, 0, 0);
+lv_obj_set_style_shadow_width(qty_container, 0, 0);
+
+lv_obj_align(qty_container, LV_ALIGN_CENTER, 0, 45);
+
+// botón -
+btn_qty_minus = lv_btn_create(qty_container);
+lv_obj_set_size(btn_qty_minus, 55, 45);
+lv_obj_add_event_cb(btn_qty_minus, qty_minus_event_cb, LV_EVENT_CLICKED, NULL);
+
+lv_obj_t *lbl_minus = lv_label_create(btn_qty_minus);
+lv_label_set_text(lbl_minus, "-");
+lv_obj_center(lbl_minus);
+
+// label cantidad
+label_qty = lv_label_create(qty_container);
+lv_obj_set_width(label_qty, 130);
+lv_obj_set_style_text_align(label_qty, LV_TEXT_ALIGN_CENTER, 0);
+lv_label_set_text(label_qty, "25 perfiles");
+
+// botón +
+btn_qty_plus = lv_btn_create(qty_container);
+lv_obj_set_size(btn_qty_plus, 55, 45);
+lv_obj_add_event_cb(btn_qty_plus, qty_plus_event_cb, LV_EVENT_CLICKED, NULL);
+
+lv_obj_t *lbl_plus = lv_label_create(btn_qty_plus);
+lv_label_set_text(lbl_plus, "+");
+lv_obj_center(lbl_plus);
+
+update_qty_label();
+
+    // =========================
     // BOTÓN GRABAR
     // =========================
     btn_record = lv_btn_create(root);
     lv_obj_set_size(btn_record, 180, 70);
-    lv_obj_align(btn_record, LV_ALIGN_CENTER, 0, 80);
+    lv_obj_align(btn_record, LV_ALIGN_CENTER, 0, 125);
 
     label_btn = lv_label_create(btn_record);
     lv_label_set_text(label_btn, "Grabar");
@@ -340,8 +461,35 @@ void screen_extruir_refresh_profile(void)
 void screen_extruir_update(void)
 {
     char buf[32];
+
     float speed = extrusion_get_speed_m_min();
 
     snprintf(buf, sizeof(buf), "%.2f m/min", speed);
+
     lv_label_set_text(label_speed, buf);
+
+    // =========================
+    // TARGET COMPLETADO
+    // =========================
+    if (extrusion_is_target_reached() &&
+        !auto_finished)
+    {
+        auto_finished = true;
+
+        production_finish(PRODUCTION_FINISH_TARGET);
+
+        show_error_modal("Lote completado");
+
+        set_cut_buttons_enabled(true);
+        set_qty_buttons_enabled(true);
+
+        recording_ui = false;
+
+        lv_label_set_text(label_btn, "Grabar");
+
+        lv_obj_set_style_bg_color(
+            btn_record,
+            lv_palette_main(LV_PALETTE_GREEN),
+            0);
+    }
 }
