@@ -105,6 +105,14 @@ void recording_start(void)
     speed_samples = 0;
 
     rtc_get_datetime_string(start_time_str);
+
+    // =========================
+    // MARCA INICIAL
+    // =========================
+    relay_1_on();
+
+    relay_active = true;
+    relay_start_time = lv_tick_get();
 }
 
 // =========================
