@@ -29,3 +29,5 @@ void wifi_start_scan(void);
 int wifi_get_scan_count(void);
 
 const char *wifi_get_scan_ssid(int index);
+const char *wifi_get_last_error(void);
+void wifi_clear_last_error(void);

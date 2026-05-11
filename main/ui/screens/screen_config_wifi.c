@@ -1,11 +1,10 @@
 #include "screen_config_wifi.h"
 
 #include "comms/wifi/wifi_manager.h"
-#include "components/numpad.h"
+#include "components/keyboard.h"
 #include "storage/nvs/storage_nvs.h"
 #include <stdbool.h>
 #include "lvgl.h"
-
 
 #include <stdio.h>
 #include <string.h>
@@ -24,30 +23,12 @@ static lv_obj_t *wifi_container;
 static char ssid_buffer[33] = {0};
 static char pass_buffer[65] = {0};
 static bool wifi_scan_loaded = false;
-// =========================
-// SSID CALLBACK
-// =========================
-static void ssid_numpad_cb(const char *text)
+static bool wifi_error_visible = false;
+
+
+static void wifi_msgbox_event_cb(lv_event_t *e)
 {
-    if (!text)
-        return;
-
-    strncpy(ssid_buffer,
-            text,
-            sizeof(ssid_buffer));
-}
-
-// =========================
-// PASSWORD CALLBACK
-// =========================
-static void pass_numpad_cb(const char *text)
-{
-    if (!text)
-        return;
-
-    strncpy(pass_buffer,
-            text,
-            sizeof(pass_buffer));
+    wifi_error_visible = false;
 }
 
 // =========================
@@ -55,9 +36,7 @@ static void pass_numpad_cb(const char *text)
 // =========================
 static void ta_ssid_event_cb(lv_event_t *e)
 {
-    numpad_open(
-        ta_ssid,
-        ssid_numpad_cb);
+    keyboard_open(ta_ssid);
 }
 
 // =========================
@@ -65,9 +44,7 @@ static void ta_ssid_event_cb(lv_event_t *e)
 // =========================
 static void ta_pass_event_cb(lv_event_t *e)
 {
-    numpad_open(
-        ta_password,
-        pass_numpad_cb);
+    keyboard_open(ta_password);
 }
 
 // =========================
@@ -104,6 +81,16 @@ static void btn_connect_event_cb(lv_event_t *e)
     }
     else
     {
+        strncpy(
+            ssid_buffer,
+            lv_textarea_get_text(ta_ssid),
+            sizeof(ssid_buffer));
+
+        strncpy(
+            pass_buffer,
+            lv_textarea_get_text(ta_password),
+            sizeof(pass_buffer));
+
         wifi_connect(
             ssid_buffer,
             pass_buffer);
@@ -216,8 +203,6 @@ lv_obj_t *screen_config_wifi_create(lv_obj_t *parent)
     lv_obj_set_width(
         wifi_container,
         LV_PCT(100));
-
-
 
     lv_obj_set_layout(
         wifi_container,
@@ -392,4 +377,49 @@ void screen_config_wifi_update(void)
     lv_label_set_text(
         label_ip,
         ip_buf);
+
+const char *err =
+    wifi_get_last_error();
+
+if (!wifi_error_visible &&
+    err &&
+    strlen(err) > 0)
+{
+    wifi_error_visible = true;
+
+    lv_obj_t *mbox =
+        lv_msgbox_create(NULL);
+
+    lv_msgbox_add_title(
+        mbox,
+        "WiFi");
+
+    lv_msgbox_add_text(
+        mbox,
+        err);
+
+    lv_msgbox_add_close_button(
+        mbox);
+
+    lv_obj_center(mbox);
+
+    // 🔥 quitar sombras pesadas
+    lv_obj_set_style_shadow_width(
+        mbox,
+        0,
+        0);
+
+    lv_obj_set_style_radius(
+        mbox,
+        8,
+        0);
+
+    wifi_clear_last_error();
+
+    lv_obj_add_event_cb(
+        mbox,
+        wifi_msgbox_event_cb,
+        LV_EVENT_DELETE,
+        NULL);
+}
 }

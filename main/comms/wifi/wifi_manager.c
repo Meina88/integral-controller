@@ -12,8 +12,10 @@ static char wifi_ssid[33] = {0};
 static char wifi_pass[65] = {0};
 static bool wifi_connected = false;
 static bool reconnect_enabled = true;
+static bool connection_error_reported = false;
 static char ip_string[32] = "0.0.0.0";
 #define MAX_WIFI_SCAN_RESULTS 20
+static char wifi_last_error[64] = "";
 
 static wifi_ap_record_t scan_results[MAX_WIFI_SCAN_RESULTS];
 
@@ -33,12 +35,53 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
     else if (event_base == WIFI_EVENT &&
              event_id == WIFI_EVENT_STA_DISCONNECTED)
     {
+        wifi_event_sta_disconnected_t *disconn =
+            (wifi_event_sta_disconnected_t *)event_data;
+
         wifi_connected = false;
 
         strcpy(ip_string, "0.0.0.0");
 
         if (reconnect_enabled)
         {
+            if (!connection_error_reported)
+            {
+                connection_error_reported = true;
+
+                switch (disconn->reason)
+                {
+                case WIFI_REASON_AUTH_FAIL:
+                case WIFI_REASON_4WAY_HANDSHAKE_TIMEOUT:
+                case WIFI_REASON_HANDSHAKE_TIMEOUT:
+
+                    snprintf(
+                        wifi_last_error,
+                        sizeof(wifi_last_error),
+                        "Password WiFi incorrecta");
+
+                    break;
+
+                case WIFI_REASON_NO_AP_FOUND:
+
+                    snprintf(
+                        wifi_last_error,
+                        sizeof(wifi_last_error),
+                        "Red WiFi no encontrada");
+
+                    break;
+
+                default:
+
+                    snprintf(
+                        wifi_last_error,
+                        sizeof(wifi_last_error),
+                        "Error WiFi (%d)",
+                        disconn->reason);
+
+                    break;
+                }
+            }
+
             ESP_LOGI(TAG, "Reconnecting...");
 
             esp_wifi_connect();
@@ -51,6 +94,10 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
             (ip_event_got_ip_t *)event_data;
 
         wifi_connected = true;
+
+        connection_error_reported = false;
+
+        wifi_clear_last_error();
 
         snprintf(ip_string,
                  sizeof(ip_string),
@@ -170,6 +217,9 @@ void wifi_connect(const char *ssid,
 
     reconnect_enabled = true;
 
+    connection_error_reported = false;
+    wifi_clear_last_error();
+
     esp_wifi_disconnect();
 
     esp_wifi_set_config(
@@ -255,4 +305,14 @@ const char *wifi_get_scan_ssid(int index)
         return "";
 
     return (const char *)scan_results[index].ssid;
+}
+
+const char *wifi_get_last_error(void)
+{
+    return wifi_last_error;
+}
+
+void wifi_clear_last_error(void)
+{
+    wifi_last_error[0] = 0;
 }

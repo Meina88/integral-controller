@@ -27,6 +27,7 @@ idf_component_register(
 
         # COMPONENTS
         "ui/components/numpad.c"
+        "ui/components/keyboard.c"
 
         # =========================
         # SERVICES
