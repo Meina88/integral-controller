@@ -11,6 +11,7 @@ static const char *TAG = "wifi";
 static char wifi_ssid[33] = {0};
 static char wifi_pass[65] = {0};
 static bool wifi_connected = false;
+static bool reconnect_enabled = true;
 static char ip_string[32] = "0.0.0.0";
 #define MAX_WIFI_SCAN_RESULTS 20
 
@@ -36,9 +37,12 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
 
         strcpy(ip_string, "0.0.0.0");
 
-        ESP_LOGI(TAG, "Reconnecting...");
+        if (reconnect_enabled)
+        {
+            ESP_LOGI(TAG, "Reconnecting...");
 
-        esp_wifi_connect();
+            esp_wifi_connect();
+        }
     }
     else if (event_base == IP_EVENT &&
              event_id == IP_EVENT_STA_GOT_IP)
@@ -164,6 +168,8 @@ void wifi_connect(const char *ssid,
             wifi_pass,
             sizeof(wifi_config.sta.password));
 
+    reconnect_enabled = true;
+
     esp_wifi_disconnect();
 
     esp_wifi_set_config(
@@ -182,6 +188,8 @@ void wifi_connect(const char *ssid,
 // =========================
 void wifi_disconnect(void)
 {
+    reconnect_enabled = false;
+
     esp_wifi_disconnect();
 
     wifi_connected = false;

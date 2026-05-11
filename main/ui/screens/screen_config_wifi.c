@@ -6,10 +6,13 @@
 #include <stdbool.h>
 #include "lvgl.h"
 
+
 #include <stdio.h>
 #include <string.h>
 
 static lv_obj_t *root;
+static lv_obj_t *btn_connect;
+static lv_obj_t *label_btn_connect;
 
 static lv_obj_t *ta_ssid;
 static lv_obj_t *ta_password;
@@ -95,9 +98,16 @@ static void wifi_network_event_cb(lv_event_t *e)
 // =========================
 static void btn_connect_event_cb(lv_event_t *e)
 {
-    wifi_connect(
-        ssid_buffer,
-        pass_buffer);
+    if (wifi_is_connected())
+    {
+        wifi_disconnect();
+    }
+    else
+    {
+        wifi_connect(
+            ssid_buffer,
+            pass_buffer);
+    }
 }
 
 // =========================
@@ -203,14 +213,11 @@ lv_obj_t *screen_config_wifi_create(lv_obj_t *parent)
     // =========================
     wifi_container = lv_obj_create(root);
 
-    lv_obj_set_size(
+    lv_obj_set_width(
         wifi_container,
-        320,
-        360);
+        LV_PCT(100));
 
-    lv_obj_set_flex_grow(
-        wifi_container,
-        1);
+
 
     lv_obj_set_layout(
         wifi_container,
@@ -291,7 +298,7 @@ lv_obj_t *screen_config_wifi_create(lv_obj_t *parent)
     // =========================
     // CONNECT BUTTON
     // =========================
-    lv_obj_t *btn_connect =
+    btn_connect =
         lv_btn_create(root);
 
     lv_obj_set_width(btn_connect, 220);
@@ -302,14 +309,14 @@ lv_obj_t *screen_config_wifi_create(lv_obj_t *parent)
         LV_EVENT_CLICKED,
         NULL);
 
-    lv_obj_t *label_btn =
+    label_btn_connect =
         lv_label_create(btn_connect);
 
     lv_label_set_text(
-        label_btn,
+        label_btn_connect,
         "CONECTAR");
 
-    lv_obj_center(label_btn);
+    lv_obj_center(label_btn_connect);
 
     // =========================
     // STATUS
@@ -349,6 +356,19 @@ void screen_config_wifi_update(void)
     // =========================
     // STATUS
     // =========================
+
+    if (wifi_is_connected())
+    {
+        lv_label_set_text(
+            label_btn_connect,
+            "DESCONECTAR");
+    }
+    else
+    {
+        lv_label_set_text(
+            label_btn_connect,
+            "CONECTAR");
+    }
     if (wifi_is_connected())
     {
         lv_label_set_text(
