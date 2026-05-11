@@ -306,9 +306,24 @@ lv_obj_set_style_shadow_width(qty_container, 0, 0);
 lv_obj_align(qty_container, LV_ALIGN_CENTER, 0, 45);
 
 // botón -
+// botón -
 btn_qty_minus = lv_btn_create(qty_container);
+
 lv_obj_set_size(btn_qty_minus, 55, 45);
-lv_obj_add_event_cb(btn_qty_minus, qty_minus_event_cb, LV_EVENT_CLICKED, NULL);
+
+// click normal
+lv_obj_add_event_cb(
+    btn_qty_minus,
+    qty_minus_event_cb,
+    LV_EVENT_CLICKED,
+    NULL);
+
+// mantener presionado
+lv_obj_add_event_cb(
+    btn_qty_minus,
+    qty_minus_event_cb,
+    LV_EVENT_LONG_PRESSED_REPEAT,
+    NULL);
 
 lv_obj_t *lbl_minus = lv_label_create(btn_qty_minus);
 lv_label_set_text(lbl_minus, "-");
@@ -321,9 +336,24 @@ lv_obj_set_style_text_align(label_qty, LV_TEXT_ALIGN_CENTER, 0);
 lv_label_set_text(label_qty, "25 perfiles");
 
 // botón +
+// botón +
 btn_qty_plus = lv_btn_create(qty_container);
+
 lv_obj_set_size(btn_qty_plus, 55, 45);
-lv_obj_add_event_cb(btn_qty_plus, qty_plus_event_cb, LV_EVENT_CLICKED, NULL);
+
+// click normal
+lv_obj_add_event_cb(
+    btn_qty_plus,
+    qty_plus_event_cb,
+    LV_EVENT_CLICKED,
+    NULL);
+
+// mantener presionado
+lv_obj_add_event_cb(
+    btn_qty_plus,
+    qty_plus_event_cb,
+    LV_EVENT_LONG_PRESSED_REPEAT,
+    NULL);
 
 lv_obj_t *lbl_plus = lv_label_create(btn_qty_plus);
 lv_label_set_text(lbl_plus, "+");
