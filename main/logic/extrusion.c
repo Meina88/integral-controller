@@ -35,8 +35,9 @@ static float speed_m_min = 0.0f;
 static float speed_sum = 0.0f;
 static int speed_samples = 0;
 
-static bool last_sensor_state = false;
-static uint32_t last_pulse_time = 0;
+static bool     last_sensor_state    = false;
+static uint32_t last_pulse_time      = 0;
+static uint32_t last_pulse_interval  = 0; // tiempo entre los dos últimos pulsos
 
 // tiempos
 static char start_time_str[32];
@@ -227,11 +228,13 @@ void extrusion_process_tick(void)
         {
             pulse_count++;
 
-            // 🔥 SIEMPRE calcular velocidad
+            // calcular velocidad siempre (no solo al grabar)
             if (last_pulse_time > 0)
             {
-                float delta_t_sec = (now - last_pulse_time) / 1000.0f;
+                uint32_t interval = now - last_pulse_time;
+                last_pulse_interval = interval;
 
+                float delta_t_sec = interval / 1000.0f;
                 if (delta_t_sec > 0.001f)
                 {
                     float speed_mm_s = MM_PER_PULSE / delta_t_sec;
@@ -295,9 +298,16 @@ void extrusion_process_tick(void)
     // =========================
     // TIMEOUT VELOCIDAD = 0
     // =========================
-    if (running && last_pulse_time > 0)
+    // Sin condición 'running': la velocidad siempre debe volver a cero
+    // si no llegan pulsos. El timeout es adaptativo: espera al menos
+    // 2× el intervalo del último pulso para no zerear en velocidades bajas.
+    if (last_pulse_time > 0)
     {
-        if ((now - last_pulse_time) > SPEED_TIMEOUT_MS)
+        uint32_t adaptive_timeout = (last_pulse_interval > 0)
+            ? LV_MAX(SPEED_TIMEOUT_MS, last_pulse_interval * 2)
+            : SPEED_TIMEOUT_MS;
+
+        if ((now - last_pulse_time) > adaptive_timeout)
         {
             speed_m_min = 0.0f;
         }
