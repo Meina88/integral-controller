@@ -273,7 +273,17 @@ void wifi_start_scan(void)
     wifi_scan_config_t scan_config = {
         .show_hidden = false};
 
-    esp_wifi_scan_start(&scan_config, true);
+    esp_err_t err =
+        esp_wifi_scan_start(&scan_config, true);
+
+    if (err != ESP_OK)
+    {
+        ESP_LOGW(TAG,
+                 "WiFi scan skipped: %s",
+                 esp_err_to_name(err));
+
+        return;
+    }
 
     scan_count = MAX_WIFI_SCAN_RESULTS;
 

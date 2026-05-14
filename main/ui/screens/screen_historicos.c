@@ -6,6 +6,7 @@
 #include <string.h>
 #include <dirent.h>
 #include <stdlib.h>
+#include "ui/fonts/fonts.h"
 
 static lv_obj_t *root;
 static lv_obj_t *list;
@@ -31,6 +32,12 @@ static void back_btn_cb(lv_event_t *e)
 
     // relist
     screen_historicos_update();
+}
+
+static void free_name_cb(lv_event_t *e)
+{
+    char *name = lv_event_get_user_data(e);
+    free(name);
 }
 
 // =========================
@@ -134,7 +141,17 @@ static void refresh_list(void)
 
         char *name = strdup(entry->d_name);
 
-        lv_obj_add_event_cb(btn, file_btn_cb, LV_EVENT_CLICKED, name);
+        lv_obj_add_event_cb(
+            btn,
+            free_name_cb,
+            LV_EVENT_DELETE,
+            name);
+
+        lv_obj_add_event_cb(
+            btn,
+            file_btn_cb,
+            LV_EVENT_CLICKED,
+            name);
     }
 
     closedir(dir);
@@ -146,6 +163,7 @@ static void refresh_list(void)
 lv_obj_t *screen_historicos_create(lv_obj_t *parent)
 {
     root = lv_obj_create(parent);
+    lv_obj_set_style_text_font(root, FONT_SMALL, 0);
     lv_obj_set_size(root, LV_PCT(100), LV_PCT(100));
 
     lv_obj_set_flex_flow(root, LV_FLEX_FLOW_ROW);

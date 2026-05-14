@@ -9,6 +9,7 @@
 #include "drivers/rtc/rtc.h"
 #include "logic/active_profile.h"
 #include "screens/screen_config_wifi.h"
+#include "ui/fonts/fonts.h"
 
 static lv_obj_t *content;
 static lv_obj_t *main_area;
@@ -123,6 +124,20 @@ void ui_start(void)
 {
     lv_obj_t *scr = lv_scr_act();
 
+    // =========================
+    // THEME + FONT DEFAULT
+    // =========================
+    lv_theme_t *theme = lv_theme_default_init(
+        lv_display_get_default(),
+        lv_palette_main(LV_PALETTE_BLUE),
+        lv_palette_main(LV_PALETTE_RED),
+        false,
+        FONT_SMALL);
+
+    lv_display_set_theme(
+        lv_display_get_default(),
+        theme);
+
     // 🔥 layout raíz
     lv_obj_set_style_pad_all(scr, 0, 0);
     lv_obj_set_layout(scr, LV_LAYOUT_FLEX);
@@ -157,10 +172,10 @@ void ui_start(void)
     lv_obj_t *profile_container = lv_obj_create(status_bar);
 
     lv_obj_set_size(
-    profile_container,
-    LV_SIZE_CONTENT,
-    LV_SIZE_CONTENT);
-    
+        profile_container,
+        LV_SIZE_CONTENT,
+        LV_SIZE_CONTENT);
+
     lv_obj_set_style_bg_opa(profile_container, LV_OPA_TRANSP, 0);
     lv_obj_set_style_border_width(profile_container, 0, 0);
     lv_obj_set_style_pad_all(profile_container, 0, 0);

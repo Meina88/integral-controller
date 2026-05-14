@@ -148,7 +148,7 @@ static void load_wifi_list(void)
         snprintf(txt,
                  sizeof(txt),
                  "%s %s",
-                 LV_SYMBOL_WIFI,
+                 "WiFi",
                  ssid);
 
         lv_label_set_text(

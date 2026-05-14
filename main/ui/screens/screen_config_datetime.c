@@ -132,7 +132,7 @@ lv_obj_t *screen_config_datetime_create(lv_obj_t *parent)
 
     lv_label_set_text(
         title,
-        "Configuración Ñandú ÁÉÍÓÚ");
+        "Configuración");
 
     lv_obj_set_style_text_font(
         title,
@@ -142,27 +142,6 @@ lv_obj_t *screen_config_datetime_create(lv_obj_t *parent)
     lv_obj_set_style_text_color(
         title,
         lv_color_white(),
-        0);
-
-    // =========================
-    // SUBTEXTO
-    // =========================
-    lv_obj_t *subtitle = lv_label_create(card);
-
-    lv_label_set_text(
-        subtitle,
-        "Prueba de caracteres especiales:\n"
-        "mañana, producción, hidráulica,\n"
-        "configuración, extrusión, conexión.");
-
-    lv_obj_set_style_text_font(
-        subtitle,
-        &inter_18,
-        0);
-
-    lv_obj_set_style_text_color(
-        subtitle,
-        lv_color_hex(0xB0B7C0),
         0);
 
     // =========================

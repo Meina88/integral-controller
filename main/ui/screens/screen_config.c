@@ -3,7 +3,7 @@
 #include "screen_config_datetime.h"
 #include "screen_config_wifi.h"
 #include "screen_config_machine.h"
-
+#include "ui/fonts/fonts.h"
 #include "lvgl.h"
 
 // =========================
@@ -106,7 +106,7 @@ lv_obj_t *screen_config_create(lv_obj_t *parent)
 
     lv_obj_set_style_text_font(
         title,
-        &lv_font_montserrat_24,
+        FONT_MEDIUM,
         0);
 
     lv_obj_set_style_text_color(
