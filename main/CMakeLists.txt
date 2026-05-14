@@ -125,3 +125,11 @@ idf_component_register(
 # =========================
 idf_component_get_property(lvgl_lib lvgl__lvgl COMPONENT_LIB)
 target_compile_options(${lvgl_lib} PRIVATE -Wno-format)
+idf_component_get_property(lvgl_dir lvgl__lvgl COMPONENT_DIR)
+
+set_property(
+    TARGET ${lvgl_lib}
+    APPEND PROPERTY
+    INTERFACE_INCLUDE_DIRECTORIES
+    "${IDF_PATH}/components/fatfs/src"
+)

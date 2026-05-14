@@ -151,19 +151,25 @@ bool profile_get_by_code(const char *code, profile_t *out)
     }
 
     // =========================
-    // FILES
-    // =========================
-    cJSON *files = cJSON_GetObjectItem(root, "files");
-    if (files)
-    {
-        cJSON *j_img = cJSON_GetObjectItem(files, "image");
+// FILES
+// =========================
+cJSON *files = cJSON_GetObjectItem(root, "files");
 
-        if (cJSON_IsString(j_img))
-        {
-            strncpy(out->image, j_img->valuestring, sizeof(out->image) - 1);
-            out->image[sizeof(out->image) - 1] = '\0';
-        }
+if (files)
+{
+    cJSON *j_img = cJSON_GetObjectItem(files, "image");
+
+    if (cJSON_IsString(j_img))
+    {
+        strncpy(
+            out->image,
+            j_img->valuestring,
+            sizeof(out->image) - 1
+        );
+
+        out->image[sizeof(out->image) - 1] = '\0';
     }
+}
 
     cJSON_Delete(root);
     return true;

@@ -14,6 +14,9 @@
 #include "ui/screens/screen_extruir.h"
 #include "ui/fonts/fonts.h"
 
+#include <stdio.h>
+#include "lvgl.h"
+
 // =========================
 // PROTOTIPOS
 // =========================
@@ -67,7 +70,7 @@ static void action_select_cb(lv_event_t *e)
     lv_obj_t *btn = lv_event_get_target(e);
     lv_obj_t *modal = lv_obj_get_parent(btn);
     lv_obj_t *overlay = lv_obj_get_parent(modal);
-
+lv_image_cache_drop(NULL);
     lv_obj_del(overlay);
 }
 
@@ -200,6 +203,54 @@ static void show_profile_details_modal(const char *code)
     // =========================
     lv_obj_t *title = lv_label_create(modal);
     lv_label_set_text_fmt(title, "Perfil: %s", p.commercial_name);
+
+    // =========================
+    // IMAGE
+    // =========================
+
+    char img_path[128];
+    char real_path[128];
+
+snprintf(
+    img_path,
+    sizeof(img_path),
+    "S:/profiles/%s",
+    p.image);
+
+snprintf(
+    real_path,
+    sizeof(real_path),
+    "/sdcard/profiles/%s",
+    p.image);
+
+    printf("REAL: %s\n", real_path);
+    printf("LVGL: %s\n", img_path);
+    FILE *f = fopen(real_path, "r");
+
+    if (f)
+    {
+        fclose(f);
+
+        lv_obj_t *img = lv_image_create(modal);
+
+        lv_image_set_src(img, img_path);
+        lv_obj_set_size(img, 120, 120);
+        lv_image_set_scale(img, 256);
+        lv_obj_set_width(img, 120);
+        lv_obj_set_height(img, 120);
+
+        lv_obj_set_style_align(
+            img,
+            LV_ALIGN_CENTER,
+            0);
+
+        lv_obj_set_style_align(
+            img,
+            LV_ALIGN_CENTER,
+            0);
+        lv_obj_set_style_radius(img, 8, 0);
+        lv_obj_set_style_clip_corner(img, true, 0);
+    }
 
     // =========================
     // GEOMETRÍA
