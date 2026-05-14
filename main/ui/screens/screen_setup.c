@@ -77,7 +77,7 @@ static void action_select_cb(lv_event_t *e)
 
         if (next == lv_layer_top())
         {
-            lv_image_cache_drop(NULL);
+            //lv_image_cache_drop(NULL);
             lv_obj_del(parent);
             return;
         }

@@ -233,7 +233,7 @@ void ui_start(void)
     // SIDEBAR
     // =========================
     sidebar = lv_obj_create(main_area);
-    lv_obj_set_width(sidebar, 90);
+    lv_obj_set_width(sidebar, 110);
     lv_obj_set_height(sidebar, LV_PCT(100));
 
     lv_obj_set_style_bg_opa(sidebar, LV_OPA_TRANSP, 0);
@@ -247,7 +247,7 @@ void ui_start(void)
     lv_obj_clear_flag(sidebar, LV_OBJ_FLAG_SCROLLABLE);
 
     // botones
-    const char *names[] = {"Extruir", "Setup", "Config", "Historicos"};
+    const char *names[] = {"Extruir", "Perfiles", "Setup", "Archivos"};
     lv_event_cb_t callbacks[] = {tab_extruir_cb, tab_setup_cb, tab_config_cb, tab_historicos_cb};
 
     for (int i = 0; i < 4; i++)
