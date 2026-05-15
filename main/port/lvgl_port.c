@@ -142,7 +142,7 @@ esp_err_t lvgl_port_init(esp_lcd_panel_handle_t lcd, esp_lcd_touch_handle_t tp)
     xTaskCreatePinnedToCore(
         lvgl_task,
         "lvgl",
-        8192,   // 🔥 antes: LVGL_PORT_TASK_STACK_SIZE → ahora fijo y seguro
+        16384,  // keyboard + montserrat_20 + popovers requieren > 8KB
         NULL,
         LVGL_PORT_TASK_PRIORITY,
         &lvgl_task_handle,

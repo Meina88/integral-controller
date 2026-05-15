@@ -1,214 +1,144 @@
 #include "screen_config.h"
-
 #include "screen_config_datetime.h"
 #include "screen_config_wifi.h"
 #include "screen_config_machine.h"
 #include "ui/fonts/fonts.h"
 #include "lvgl.h"
 
-// =========================
-// OBJETOS
-// =========================
+#define C_BG          lv_color_hex(0x111827)
+#define C_TABBAR      lv_color_hex(0x0D1117)
+#define C_BORDER      lv_color_hex(0x1E293B)
+#define C_TAB_ACTIVE  lv_color_hex(0x1D4ED8)
+#define C_TAB_ACCENT  lv_color_hex(0x93C5FD)
+#define C_TAB_MUTED   lv_color_hex(0x6B7280)
+#define C_PRESSED     lv_color_hex(0x2D3748)
+
 static lv_obj_t *root;
-
 static lv_obj_t *content;
-
 static lv_obj_t *screen_datetime;
 static lv_obj_t *screen_wifi;
 static lv_obj_t *screen_machine;
+static lv_obj_t *tab_btns[3];
+static lv_obj_t *tab_lbls[3];
 
-// =========================
-// SWITCH SCREEN
-// =========================
-static void switch_screen(int id)
+static void switch_tab(int id)
 {
     lv_obj_add_flag(screen_datetime, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(screen_wifi, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(screen_machine, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(screen_wifi,     LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(screen_machine,  LV_OBJ_FLAG_HIDDEN);
 
-    if (id == 0)
-        lv_obj_clear_flag(screen_datetime, LV_OBJ_FLAG_HIDDEN);
+    if (id == 0) lv_obj_clear_flag(screen_datetime, LV_OBJ_FLAG_HIDDEN);
+    if (id == 1) lv_obj_clear_flag(screen_wifi,     LV_OBJ_FLAG_HIDDEN);
+    if (id == 2) lv_obj_clear_flag(screen_machine,  LV_OBJ_FLAG_HIDDEN);
 
-    if (id == 1)
-        lv_obj_clear_flag(screen_wifi, LV_OBJ_FLAG_HIDDEN);
-
-    if (id == 2)
-        lv_obj_clear_flag(screen_machine, LV_OBJ_FLAG_HIDDEN);
+    for (int i = 0; i < 3; i++)
+    {
+        if (i == id)
+        {
+            lv_obj_add_state(tab_btns[i], LV_STATE_CHECKED);
+            lv_obj_set_style_text_color(tab_lbls[i], lv_color_white(), 0);
+        }
+        else
+        {
+            lv_obj_clear_state(tab_btns[i], LV_STATE_CHECKED);
+            lv_obj_set_style_text_color(tab_lbls[i], C_TAB_MUTED, 0);
+        }
+    }
 }
 
-// =========================
-// EVENTS
-// =========================
-static void btn_datetime_cb(lv_event_t *e)
+static void tab_cb(lv_event_t *e)
 {
-    switch_screen(0);
+    int id = (int)(intptr_t)lv_event_get_user_data(e);
+    switch_tab(id);
 }
 
-static void btn_wifi_cb(lv_event_t *e)
-{
-    switch_screen(1);
-}
-
-static void btn_machine_cb(lv_event_t *e)
-{
-    switch_screen(2);
-}
-
-// =========================
-// CREATE
-// =========================
 lv_obj_t *screen_config_create(lv_obj_t *parent)
 {
     root = lv_obj_create(parent);
-
     lv_obj_set_size(root, LV_PCT(100), LV_PCT(100));
-
+    lv_obj_set_style_bg_color(root, C_BG, 0);
+    lv_obj_set_style_bg_opa(root, LV_OPA_COVER, 0);
     lv_obj_set_style_border_width(root, 0, 0);
-
+    lv_obj_set_style_radius(root, 0, 0);
     lv_obj_set_style_pad_all(root, 0, 0);
-
     lv_obj_set_layout(root, LV_LAYOUT_FLEX);
-
-    lv_obj_set_flex_flow(root, LV_FLEX_FLOW_ROW);
-
-    // =========================
-    // SIDEBAR
-    // =========================
-    lv_obj_t *sidebar = lv_obj_create(root);
-
-    lv_obj_set_width(sidebar, 180);
-
-    lv_obj_set_height(sidebar, LV_PCT(100));
-
-    lv_obj_set_style_radius(sidebar, 0, 0);
-
-    lv_obj_set_style_border_width(sidebar, 0, 0);
-
-    lv_obj_set_style_bg_color(
-        sidebar,
-        lv_color_hex(0x161B20),
-        0);
-
-    lv_obj_set_style_pad_all(sidebar, 15, 0);
-
-    lv_obj_set_style_pad_gap(sidebar, 12, 0);
-
-    lv_obj_set_layout(sidebar, LV_LAYOUT_FLEX);
-
-    lv_obj_set_flex_flow(sidebar, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_flow(root, LV_FLEX_FLOW_COLUMN);
+    lv_obj_clear_flag(root, LV_OBJ_FLAG_SCROLLABLE);
 
     // =========================
-    // TITULO
+    // TAB BAR (horizontal)
     // =========================
-    lv_obj_t *title = lv_label_create(sidebar);
+    lv_obj_t *tabbar = lv_obj_create(root);
+    lv_obj_set_width(tabbar, LV_PCT(100));
+    lv_obj_set_height(tabbar, 48);
+    lv_obj_set_style_bg_color(tabbar, C_TABBAR, 0);
+    lv_obj_set_style_bg_opa(tabbar, LV_OPA_COVER, 0);
+    lv_obj_set_style_border_side(tabbar, LV_BORDER_SIDE_BOTTOM, 0);
+    lv_obj_set_style_border_color(tabbar, C_BORDER, 0);
+    lv_obj_set_style_border_width(tabbar, 1, 0);
+    lv_obj_set_style_radius(tabbar, 0, 0);
+    lv_obj_set_style_pad_all(tabbar, 0, 0);
+    lv_obj_set_style_pad_gap(tabbar, 0, 0);
+    lv_obj_set_layout(tabbar, LV_LAYOUT_FLEX);
+    lv_obj_set_flex_flow(tabbar, LV_FLEX_FLOW_ROW);
+    lv_obj_clear_flag(tabbar, LV_OBJ_FLAG_SCROLLABLE);
 
-    lv_label_set_text(title, "CONFIG");
+    const char *tab_names[] = {"Fecha/Hora", "WiFi", "Maquina"};
 
-    lv_obj_set_style_text_font(
-        title,
-        FONT_MEDIUM,
-        0);
+    for (int i = 0; i < 3; i++)
+    {
+        lv_obj_t *btn = lv_btn_create(tabbar);
+        lv_obj_set_flex_grow(btn, 1);
+        lv_obj_set_height(btn, LV_PCT(100));
 
-    lv_obj_set_style_text_color(
-        title,
-        lv_color_white(),
-        0);
+        lv_obj_set_style_bg_color(btn, C_TABBAR, 0);
+        lv_obj_set_style_bg_opa(btn, LV_OPA_COVER, 0);
+        lv_obj_set_style_border_width(btn, 0, 0);
+        lv_obj_set_style_radius(btn, 0, 0);
+        lv_obj_set_style_shadow_width(btn, 0, 0);
 
-    // =========================
-    // BOTONES
-    // =========================
+        lv_obj_set_style_bg_color(btn, C_TAB_ACTIVE, LV_STATE_CHECKED);
+        lv_obj_set_style_bg_opa(btn, LV_OPA_COVER, LV_STATE_CHECKED);
+        lv_obj_set_style_border_side(btn, LV_BORDER_SIDE_BOTTOM, LV_STATE_CHECKED);
+        lv_obj_set_style_border_width(btn, 3, LV_STATE_CHECKED);
+        lv_obj_set_style_border_color(btn, C_TAB_ACCENT, LV_STATE_CHECKED);
 
-    // Fecha y Hora
-    lv_obj_t *btn_datetime = lv_btn_create(sidebar);
+        lv_obj_set_style_bg_color(btn, C_PRESSED, LV_STATE_PRESSED);
+        lv_obj_set_style_bg_opa(btn, LV_OPA_COVER, LV_STATE_PRESSED);
 
-    lv_obj_set_width(btn_datetime, LV_PCT(100));
+        lv_obj_add_event_cb(btn, tab_cb, LV_EVENT_CLICKED, (void *)(intptr_t)i);
 
-    lv_obj_set_height(btn_datetime, 55);
+        lv_obj_t *lbl = lv_label_create(btn);
+        lv_label_set_text(lbl, tab_names[i]);
+        lv_obj_set_style_text_font(lbl, FONT_SMALL, 0);
+        lv_obj_set_style_text_color(lbl, C_TAB_MUTED, 0);
+        lv_obj_center(lbl);
 
-    lv_obj_add_event_cb(
-        btn_datetime,
-        btn_datetime_cb,
-        LV_EVENT_CLICKED,
-        NULL);
-
-    lv_obj_t *lbl_datetime = lv_label_create(btn_datetime);
-
-    lv_label_set_text(lbl_datetime, "Fecha y hora");
-
-    lv_obj_center(lbl_datetime);
-
-    // WiFi
-    lv_obj_t *btn_wifi = lv_btn_create(sidebar);
-
-    lv_obj_set_width(btn_wifi, LV_PCT(100));
-
-    lv_obj_set_height(btn_wifi, 55);
-
-    lv_obj_add_event_cb(
-        btn_wifi,
-        btn_wifi_cb,
-        LV_EVENT_CLICKED,
-        NULL);
-
-    lv_obj_t *lbl_wifi = lv_label_create(btn_wifi);
-
-    lv_label_set_text(lbl_wifi, "WiFi");
-
-    lv_obj_center(lbl_wifi);
-
-    // Máquina
-    lv_obj_t *btn_machine = lv_btn_create(sidebar);
-
-    lv_obj_set_width(btn_machine, LV_PCT(100));
-
-    lv_obj_set_height(btn_machine, 55);
-
-    lv_obj_add_event_cb(
-        btn_machine,
-        btn_machine_cb,
-        LV_EVENT_CLICKED,
-        NULL);
-
-    lv_obj_t *lbl_machine = lv_label_create(btn_machine);
-
-    lv_label_set_text(lbl_machine, "Maquina");
-
-    lv_obj_center(lbl_machine);
+        tab_btns[i] = btn;
+        tab_lbls[i] = lbl;
+    }
 
     // =========================
     // CONTENT
     // =========================
     content = lv_obj_create(root);
-
+    lv_obj_set_width(content, LV_PCT(100));
     lv_obj_set_flex_grow(content, 1);
-
-    lv_obj_set_height(content, LV_PCT(100));
-
+    lv_obj_set_style_bg_color(content, C_BG, 0);
+    lv_obj_set_style_bg_opa(content, LV_OPA_COVER, 0);
     lv_obj_set_style_border_width(content, 0, 0);
-
     lv_obj_set_style_pad_all(content, 0, 0);
+    lv_obj_clear_flag(content, LV_OBJ_FLAG_SCROLLABLE);
 
-    // =========================
-    // SUBSCREENS
-    // =========================
     screen_datetime = screen_config_datetime_create(content);
+    screen_wifi     = screen_config_wifi_create(content);
+    screen_machine  = screen_config_machine_create(content);
 
-    screen_wifi = screen_config_wifi_create(content);
-
-    screen_machine = screen_config_machine_create(content);
-
-    // =========================
-    // DEFAULT
-    // =========================
-    switch_screen(0);
+    switch_tab(0);
 
     return root;
 }
 
-// =========================
-// UPDATE
-// =========================
 void screen_config_update(void)
 {
-   // screen_config_datetime_update();
 }
