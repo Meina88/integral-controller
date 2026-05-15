@@ -7,6 +7,7 @@ idf_component_register(
         # =========================
         "ui/ui_manager.c"
         "ui/ui_events.c"
+        "ui/ui_theme.c"
 
         # =========================
         # SCREENS

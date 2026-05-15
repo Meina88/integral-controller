@@ -10,6 +10,7 @@
 #include "logic/active_profile.h"
 #include "screens/screen_config_wifi.h"
 #include "ui/fonts/fonts.h"
+#include "ui/ui_theme.h"
 
 // ─── Paleta ────────────────────────────────────────────────────
 #define C_BG_DARK      lv_color_hex(0x0D1117)  // fondo sidebar / statusbar
@@ -41,6 +42,7 @@ static lv_obj_t *btn_clear_profile;
 static lv_obj_t *label_time;
 
 static bool last_production_state = false;
+static int  active_tab            = 0;
 
 // =========================
 // SET PROFILE
@@ -68,6 +70,8 @@ void ui_set_active_profile(const char *code)
 // =========================
 static void switch_tab(int tab)
 {
+    active_tab = tab;
+
     lv_obj_t *screens[] = {
         screen_extruir,
         screen_setup,
@@ -151,17 +155,48 @@ static lv_obj_t *make_invis(lv_obj_t *parent)
 }
 
 // =========================
+// UI REBUILD (theme switch)
+// =========================
+void ui_rebuild(void)
+{
+    // Re-apply the LVGL built-in widget theme with the updated dark/light flag
+    // so that widgets like lv_scale, lv_btn, etc. adapt their inherited colors.
+    lv_theme_t *lvgl_theme = lv_theme_default_init(
+        lv_display_get_default(),
+        lv_palette_main(LV_PALETTE_BLUE),
+        lv_palette_main(LV_PALETTE_RED),
+        ui_theme_get()->id == UI_THEME_DARK,
+        FONT_SMALL);
+    lv_display_set_theme(lv_display_get_default(), lvgl_theme);
+
+    lv_obj_clean(lv_layer_top());
+    lv_obj_clean(content);
+
+    screen_extruir    = screen_extruir_create(content);
+    screen_setup      = screen_setup_create(content);
+    screen_config     = screen_config_create(content);
+    screen_historicos = screen_historicos_create(content);
+
+    switch_tab(active_tab);
+
+    if (active_tab == 2)
+        screen_config_show_machine();
+}
+
+// =========================
 // UI START
 // =========================
 void ui_start(void)
 {
+    ui_theme_init();
+
     lv_obj_t *scr = lv_scr_act();
 
     lv_theme_t *theme = lv_theme_default_init(
         lv_display_get_default(),
         lv_palette_main(LV_PALETTE_BLUE),
         lv_palette_main(LV_PALETTE_RED),
-        false,
+        ui_theme_get()->id == UI_THEME_DARK,
         FONT_SMALL);
 
     lv_display_set_theme(lv_display_get_default(), theme);

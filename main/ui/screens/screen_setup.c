@@ -13,19 +13,17 @@
 
 #include "ui/screens/screen_extruir.h"
 #include "ui/fonts/fonts.h"
+#include "ui/ui_theme.h"
 
-// =========================
-// COLORES
-// =========================
-#define C_BG        lv_color_hex(0x111827)
-#define C_SURFACE   lv_color_hex(0x1E293B)
-#define C_SURFACE2  lv_color_hex(0x263347)
-#define C_BORDER    lv_color_hex(0x334155)
-#define C_PRESSED   lv_color_hex(0x2D3748)
-#define C_MUTED     lv_color_hex(0x64748B)
-#define C_SUBTLE    lv_color_hex(0x94A3B8)
-#define C_BLUE      lv_color_hex(0x1D4ED8)
-#define C_BTN_GREY  lv_color_hex(0x374151)
+#define C_BG       (ui_theme_get()->bg)
+#define C_SURFACE  (ui_theme_get()->surface)
+#define C_SURFACE2 (ui_theme_get()->surface2)
+#define C_BORDER   (ui_theme_get()->border)
+#define C_PRESSED  (ui_theme_get()->pressed)
+#define C_MUTED    (ui_theme_get()->muted)
+#define C_SUBTLE   (ui_theme_get()->subtle)
+#define C_BLUE     (ui_theme_get()->blue)
+#define C_BTN_GREY (ui_theme_get()->btn_grey)
 
 // =========================
 // PROTOTIPOS
@@ -94,7 +92,7 @@ static lv_obj_t *make_modal_header(lv_obj_t *modal, const char *text)
     lv_obj_t *title = lv_label_create(header);
     lv_label_set_text(title, text);
     lv_obj_set_style_text_font(title, FONT_MEDIUM, 0);
-    lv_obj_set_style_text_color(title, lv_color_white(), 0);
+    lv_obj_set_style_text_color(title, ui_theme_get()->text, 0);
     lv_obj_align(title, LV_ALIGN_LEFT_MID, 0, 0);
 
     return header;
@@ -255,7 +253,7 @@ static void show_profile_details_modal(const char *code)
         lv_label_set_text(lv, buf);                                                   \
         lv_obj_set_flex_grow(lv, 1);                                                  \
         lv_obj_set_style_text_font(lv, FONT_SMALL, 0);                               \
-        lv_obj_set_style_text_color(lv, lv_color_hex(0xCBD5E1), 0);                 \
+        lv_obj_set_style_text_color(lv, ui_theme_get()->subtle, 0);                  \
     } while (0)
 
     ADD_ROW("Matriz",        "%s",         p.matrix);
@@ -273,7 +271,7 @@ static void show_profile_details_modal(const char *code)
     // Right: image panel
     lv_obj_t *right = lv_obj_create(body);
     lv_obj_set_size(right, 200, LV_PCT(100));
-    lv_obj_set_style_bg_color(right, lv_color_hex(0x0D1117), 0);
+    lv_obj_set_style_bg_color(right, ui_theme_get()->surface2, 0);
     lv_obj_set_style_bg_opa(right, LV_OPA_COVER, 0);
     lv_obj_set_style_border_color(right, C_BORDER, 0);
     lv_obj_set_style_border_width(right, 1, 0);
@@ -386,7 +384,7 @@ static void show_results(const char results[][32], int count)
         lv_obj_t *label = lv_label_create(card);
         lv_label_set_text(label, results[i]);
         lv_obj_set_style_text_font(label, FONT_MEDIUM, 0);
-        lv_obj_set_style_text_color(label, lv_color_white(), 0);
+        lv_obj_set_style_text_color(label, ui_theme_get()->text, 0);
         lv_obj_align(label, LV_ALIGN_LEFT_MID, 0, 0);
 
         lv_obj_t *arrow = lv_label_create(card);

@@ -7,7 +7,8 @@
 #define NAMESPACE "storage"
 #define KEY_WIFI_SSID "wifi_ssid"
 #define KEY_WIFI_PASS "wifi_pass"
-#define KEY_PROFILES "profiles_json"
+#define KEY_PROFILES  "profiles_json"
+#define KEY_THEME     "ui_theme"
 
 // =========================
 // INIT NVS
@@ -220,6 +221,33 @@ esp_err_t storage_nvs_load_wifi(char *ssid, size_t ssid_max_len,
     nvs_close(handle);
 
     return err;
+}
+
+// =========================
+// SAVE THEME
+// =========================
+void storage_nvs_save_theme(int theme_id)
+{
+    nvs_handle_t handle;
+    if (nvs_open(NAMESPACE, NVS_READWRITE, &handle) != ESP_OK)
+        return;
+    nvs_set_i32(handle, KEY_THEME, (int32_t)theme_id);
+    nvs_commit(handle);
+    nvs_close(handle);
+}
+
+// =========================
+// LOAD THEME
+// =========================
+int storage_nvs_load_theme(void)
+{
+    nvs_handle_t handle;
+    if (nvs_open(NAMESPACE, NVS_READONLY, &handle) != ESP_OK)
+        return 0;
+    int32_t val = 0;
+    nvs_get_i32(handle, KEY_THEME, &val);
+    nvs_close(handle);
+    return (int)val;
 }
 
 // =========================

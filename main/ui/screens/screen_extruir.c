@@ -8,25 +8,26 @@
 #include "logic/profile.h"
 #include <stdlib.h>
 #include "ui/fonts/fonts.h"
+#include "ui/ui_theme.h"
 
 // Rango máximo del velocímetro en m/min
-#define GAUGE_SIZE      240
-#define GAUGE_X_OFS   (-190)
-#define CTRL_X_OFS      160
-#define SPEED_MAX        20
+#define GAUGE_SIZE 240
+#define GAUGE_X_OFS (-190)
+#define CTRL_X_OFS 160
+#define SPEED_MAX 20
 
 static lv_obj_t *root;
 
 // ─── Velocímetro ──────────────────────────────────────────────
-static lv_obj_t            *scale_speed;
-static lv_obj_t            *needle_current;
-static lv_scale_section_t  *section_target;
-static lv_scale_section_t  *section_redzone;
-static lv_style_t           style_needle;
-static lv_style_t           style_section_target_arc;
-static lv_style_t           style_section_target_tick;
-static lv_style_t           style_section_red_arc;
-static lv_style_t           style_section_red_tick;
+static lv_obj_t *scale_speed;
+static lv_obj_t *needle_current;
+static lv_scale_section_t *section_target;
+static lv_scale_section_t *section_redzone;
+static lv_style_t style_needle;
+static lv_style_t style_section_target_arc;
+static lv_style_t style_section_target_tick;
+static lv_style_t style_section_red_arc;
+static lv_style_t style_section_red_tick;
 
 // ─── Velocidad (texto) ────────────────────────────────────────
 static lv_obj_t *label_speed;
@@ -48,19 +49,19 @@ static lv_obj_t *btn_qty_minus;
 static lv_obj_t *btn_qty_plus;
 static lv_obj_t *label_qty;
 
-static bool      recording_ui  = false;
-static bool      auto_finished = false;
+static bool recording_ui = false;
+static bool auto_finished = false;
 static profile_t current_profile;
-static int       target_qty_ui = 25;
-static float     display_speed = 0.0f; // velocidad suavizada para la aguja
+static int target_qty_ui = 25;
+static float display_speed = 0.0f; // velocidad suavizada para la aguja
 
 // =========================
 // MODAL CLOSE
 // =========================
 static void modal_close_cb(lv_event_t *e)
 {
-    lv_obj_t *btn     = lv_event_get_target(e);
-    lv_obj_t *modal   = lv_obj_get_parent(btn);
+    lv_obj_t *btn = lv_event_get_target(e);
+    lv_obj_t *modal = lv_obj_get_parent(btn);
     lv_obj_t *overlay = lv_obj_get_parent(modal);
     lv_obj_del(overlay);
 }
@@ -202,16 +203,16 @@ static void btn_event_cb(lv_event_t *e)
 // =========================
 static void cut_btn_event_cb(lv_event_t *e)
 {
-    lv_obj_t *btn   = lv_event_get_target(e);
-    float     cut_m = (float)(uintptr_t)lv_event_get_user_data(e);
+    lv_obj_t *btn = lv_event_get_target(e);
+    float cut_m = (float)(uintptr_t)lv_event_get_user_data(e);
 
     extrusion_set_cut_distance_m(cut_m);
 
     for (int i = 0; i < current_profile.cut_options_count; i++)
     {
         lv_color_t color = (cut_buttons[i] == btn)
-            ? lv_palette_main(LV_PALETTE_BLUE)
-            : lv_palette_main(LV_PALETTE_GREY);
+                               ? ui_theme_get()->blue
+                               : ui_theme_get()->btn_grey;
         lv_obj_set_style_bg_color(cut_buttons[i], color, 0);
     }
 
@@ -227,9 +228,9 @@ static lv_obj_t *make_flex_row(lv_obj_t *parent, int w, int h)
     lv_obj_set_size(cont, w, h);
     lv_obj_set_flex_flow(cont, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(cont,
-        LV_FLEX_ALIGN_CENTER,
-        LV_FLEX_ALIGN_CENTER,
-        LV_FLEX_ALIGN_CENTER);
+                          LV_FLEX_ALIGN_CENTER,
+                          LV_FLEX_ALIGN_CENTER,
+                          LV_FLEX_ALIGN_CENTER);
     lv_obj_set_style_pad_all(cont, 4, 0);
     lv_obj_set_style_pad_gap(cont, 12, 0);
     lv_obj_set_style_bg_opa(cont, LV_OPA_TRANSP, 0);
@@ -243,7 +244,7 @@ static lv_obj_t *make_section_label(lv_obj_t *parent, const char *text)
     lv_obj_t *lbl = lv_label_create(parent);
     lv_label_set_text(lbl, text);
     lv_obj_set_style_text_font(lbl, FONT_SMALL, 0);
-    lv_obj_set_style_text_color(lbl, lv_palette_main(LV_PALETTE_GREY), 0);
+    lv_obj_set_style_text_color(lbl, ui_theme_get()->muted, 0);
     return lbl;
 }
 
@@ -254,6 +255,8 @@ lv_obj_t *screen_extruir_create(lv_obj_t *parent)
 {
     root = lv_obj_create(parent);
     lv_obj_set_size(root, LV_PCT(100), LV_PCT(100));
+    lv_obj_set_style_bg_color(root, ui_theme_get()->bg, 0);
+    lv_obj_set_style_bg_opa(root, LV_OPA_COVER, 0);
     lv_obj_set_style_border_width(root, 0, 0);
     lv_obj_set_style_pad_all(root, 0, 0);
 
@@ -295,23 +298,62 @@ lv_obj_t *screen_extruir_create(lv_obj_t *parent)
     lv_scale_set_total_tick_count(scale_speed, 41); // un tick cada 0.5 m/min
     lv_scale_set_major_tick_every(scale_speed, 10); // label cada 5 m/min
     lv_scale_set_label_show(scale_speed, true);
-    lv_obj_set_style_length(scale_speed, 5,  LV_PART_ITEMS);
+    lv_obj_set_style_length(scale_speed, 5, LV_PART_ITEMS);
     lv_obj_set_style_length(scale_speed, 12, LV_PART_INDICATOR);
     lv_obj_align(scale_speed, LV_ALIGN_CENTER, GAUGE_X_OFS, -10);
 
+    // Base scale colors — explicit so they adapt to theme independently of
+    // the LVGL widget theme (which may lag if not re-inited before rebuild).
+    lv_obj_set_style_arc_color(scale_speed, ui_theme_get()->border, LV_PART_MAIN);
+    lv_obj_set_style_line_color(scale_speed, ui_theme_get()->text, LV_PART_INDICATOR);
+    lv_obj_set_style_line_color(scale_speed, ui_theme_get()->muted, LV_PART_ITEMS);
+    lv_obj_set_style_text_color(scale_speed, ui_theme_get()->text, LV_PART_INDICATOR);
+
     // sección zona roja (estática, últimos 2 m/min)
     section_redzone = lv_scale_add_section(scale_speed);
-    lv_scale_section_set_range(section_redzone, SPEED_MAX - 2, SPEED_MAX);
-    lv_scale_section_set_style(section_redzone, LV_PART_MAIN,      &style_section_red_arc);
-    lv_scale_section_set_style(section_redzone, LV_PART_INDICATOR, &style_section_red_tick);
-    lv_scale_section_set_style(section_redzone, LV_PART_ITEMS,     &style_section_red_tick);
+
+    lv_scale_section_set_range(
+        section_redzone,
+        SPEED_MAX - 2,
+        SPEED_MAX);
+
+    lv_scale_set_section_style_main(
+        scale_speed,
+        section_redzone,
+        &style_section_red_arc);
+
+    lv_scale_set_section_style_indicator(
+        scale_speed,
+        section_redzone,
+        &style_section_red_tick);
+
+    lv_scale_set_section_style_items(
+        scale_speed,
+        section_redzone,
+        &style_section_red_tick);
 
     // sección objetivo (se actualiza al cargar perfil)
     section_target = lv_scale_add_section(scale_speed);
-    lv_scale_section_set_range(section_target, 0, 0);
-    lv_scale_section_set_style(section_target, LV_PART_MAIN,      &style_section_target_arc);
-    lv_scale_section_set_style(section_target, LV_PART_INDICATOR, &style_section_target_tick);
-    lv_scale_section_set_style(section_target, LV_PART_ITEMS,     &style_section_target_tick);
+
+    lv_scale_section_set_range(
+        section_target,
+        0,
+        0);
+
+    lv_scale_set_section_style_main(
+        scale_speed,
+        section_target,
+        &style_section_target_arc);
+
+    lv_scale_set_section_style_indicator(
+        scale_speed,
+        section_target,
+        &style_section_target_tick);
+
+    lv_scale_set_section_style_items(
+        scale_speed,
+        section_target,
+        &style_section_target_tick);
 
     // aguja velocidad actual
     needle_current = lv_line_create(scale_speed);
@@ -454,8 +496,8 @@ void screen_extruir_refresh_profile(void)
         lv_obj_set_size(cut_buttons[i], 100, 55);
 
         lv_color_t color = (cut_m == current_profile.default_cut)
-            ? lv_palette_main(LV_PALETTE_BLUE)
-            : lv_palette_main(LV_PALETTE_GREY);
+                               ? ui_theme_get()->blue
+                               : ui_theme_get()->btn_grey;
         lv_obj_set_style_bg_color(cut_buttons[i], color, 0);
 
         lv_obj_add_event_cb(cut_buttons[i], cut_btn_event_cb, LV_EVENT_CLICKED,

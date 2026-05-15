@@ -8,6 +8,7 @@ extern "C" {
 
 lv_obj_t *screen_config_create(lv_obj_t *parent);
 void screen_config_update(void);
+void screen_config_show_machine(void);
 
 #ifdef __cplusplus
 }

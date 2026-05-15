@@ -2,22 +2,23 @@
 #include "comms/wifi/wifi_manager.h"
 #include "storage/nvs/storage_nvs.h"
 #include "ui/fonts/fonts.h"
+#include "ui/ui_theme.h"
 #include <stdbool.h>
 #include "lvgl.h"
 #include <stdio.h>
 #include <string.h>
 
-#define C_BG lv_color_hex(0x111827)
-#define C_SURFACE lv_color_hex(0x1E293B)
-#define C_SURFACE2 lv_color_hex(0x0D1117)
-#define C_PREVIEW lv_color_hex(0x1A2535)
-#define C_BORDER lv_color_hex(0x334155)
-#define C_PRESSED lv_color_hex(0x2D3748)
-#define C_MUTED lv_color_hex(0x64748B)
-#define C_SUBTLE lv_color_hex(0x94A3B8)
-#define C_BLUE lv_color_hex(0x1D4ED8)
-#define C_GREEN lv_color_hex(0x16A34A)
-#define C_RED lv_color_hex(0xDC2626)
+#define C_BG      (ui_theme_get()->bg)
+#define C_SURFACE (ui_theme_get()->surface)
+#define C_SURFACE2 (ui_theme_get()->surface2)
+#define C_PREVIEW (ui_theme_get()->preview)
+#define C_BORDER  (ui_theme_get()->border)
+#define C_PRESSED (ui_theme_get()->pressed)
+#define C_MUTED   (ui_theme_get()->muted)
+#define C_SUBTLE  (ui_theme_get()->subtle)
+#define C_BLUE    (ui_theme_get()->blue)
+#define C_GREEN   (ui_theme_get()->green)
+#define C_RED     (ui_theme_get()->red)
 
 static lv_obj_t *root;
 static lv_obj_t *kb_panel;
@@ -43,11 +44,24 @@ static void load_wifi_list(void);
 // =========================
 // KEYBOARD
 // =========================
+
+// Fired when kb_panel is deleted (e.g. during ui_rebuild).
+// Nulls all overlay statics so dangling-pointer callbacks bail out safely.
+static void kb_panel_delete_cb(lv_event_t *e)
+{
+    kb_panel          = NULL;
+    kb                = NULL;
+    preview_name_lbl  = NULL;
+    preview_value_lbl = NULL;
+}
+
 static void kb_event_cb(lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
     if (code == LV_EVENT_READY || code == LV_EVENT_CANCEL)
     {
+        if (!kb_panel || !lv_obj_is_valid(kb_panel))
+            return;
         lv_obj_add_flag(kb_panel, LV_OBJ_FLAG_HIDDEN);
         lv_keyboard_set_textarea(kb, NULL);
     }
@@ -55,33 +69,40 @@ static void kb_event_cb(lv_event_t *e)
 
 static void kb_overlay_click_cb(lv_event_t *e)
 {
+    if (!kb_panel || !lv_obj_is_valid(kb_panel))
+        return;
     if (lv_event_get_target(e) == kb_panel)
     {
         lv_obj_add_flag(kb_panel, LV_OBJ_FLAG_HIDDEN);
-        lv_keyboard_set_textarea(kb, NULL);
+        if (kb && lv_obj_is_valid(kb))
+            lv_keyboard_set_textarea(kb, NULL);
     }
 }
 
 static void ta_changed_cb(lv_event_t *e)
 {
+    if (!kb_panel || !lv_obj_is_valid(kb_panel))
+        return;
+    if (!preview_value_lbl || !lv_obj_is_valid(preview_value_lbl))
+        return;
+    if (lv_obj_has_flag(kb_panel, LV_OBJ_FLAG_HIDDEN))
+        return;
+
     lv_obj_t *ta = lv_event_get_target(e);
-
-    if (!kb_panel)
-        return;
-
-    if (!preview_value_lbl)
-        return;
-
-    if (!lv_obj_has_flag(kb_panel, LV_OBJ_FLAG_HIDDEN))
-    {
-        lv_label_set_text(
-            preview_value_lbl,
-            lv_textarea_get_text(ta));
-    }
+    lv_label_set_text(preview_value_lbl, lv_textarea_get_text(ta));
 }
 
 static void ta_click_cb(lv_event_t *e)
 {
+    if (!kb_panel          || !lv_obj_is_valid(kb_panel))
+        return;
+    if (!kb                || !lv_obj_is_valid(kb))
+        return;
+    if (!preview_name_lbl  || !lv_obj_is_valid(preview_name_lbl))
+        return;
+    if (!preview_value_lbl || !lv_obj_is_valid(preview_value_lbl))
+        return;
+
     lv_obj_t *ta = lv_event_get_target(e);
     const char *name = (const char *)lv_event_get_user_data(e);
 
@@ -155,7 +176,7 @@ static lv_obj_t *make_field(lv_obj_t *parent, const char *label_text, bool passw
     lv_obj_set_style_border_width(ta, 1, 0);
     lv_obj_set_style_radius(ta, 8, 0);
     lv_obj_set_style_text_font(ta, FONT_MEDIUM, 0);
-    lv_obj_set_style_text_color(ta, lv_color_white(), 0);
+    lv_obj_set_style_text_color(ta, ui_theme_get()->text, 0);
     lv_obj_set_style_pad_left(ta, 12, 0);
 
     lv_obj_add_event_cb(ta, ta_click_cb, LV_EVENT_CLICKED, (void *)label_text);
@@ -210,7 +231,7 @@ static void load_wifi_list(void)
         lv_obj_t *lbl = lv_label_create(card);
         lv_label_set_text(lbl, ssid);
         lv_obj_set_style_text_font(lbl, FONT_SMALL, 0);
-        lv_obj_set_style_text_color(lbl, lv_color_white(), 0);
+        lv_obj_set_style_text_color(lbl, ui_theme_get()->text, 0);
         lv_obj_align(lbl, LV_ALIGN_LEFT_MID, 0, 0);
 
         lv_obj_add_event_cb(card, wifi_network_event_cb, LV_EVENT_CLICKED, (void *)ssid);
@@ -387,6 +408,8 @@ lv_obj_t *screen_config_wifi_create(lv_obj_t *parent)
     kb_panel = lv_obj_create(lv_layer_top());
     lv_obj_move_foreground(kb_panel);
     lv_obj_add_flag(kb_panel, LV_OBJ_FLAG_FLOATING | LV_OBJ_FLAG_HIDDEN | LV_OBJ_FLAG_CLICKABLE);
+    // Null out statics before LVGL frees child objects (prevents dangling-ptr callbacks)
+    lv_obj_add_event_cb(kb_panel, kb_panel_delete_cb, LV_EVENT_DELETE, NULL);
     lv_obj_set_size(kb_panel, LV_PCT(100), LV_PCT(100));
     lv_obj_set_style_bg_opa(kb_panel, LV_OPA_TRANSP, 0);
     lv_obj_set_style_border_width(kb_panel, 0, 0);
@@ -445,7 +468,7 @@ lv_obj_t *screen_config_wifi_create(lv_obj_t *parent)
     lv_label_set_text(preview_value_lbl, "");
     lv_obj_set_flex_grow(preview_value_lbl, 1);
     lv_obj_set_style_text_font(preview_value_lbl, FONT_MEDIUM, 0);
-    lv_obj_set_style_text_color(preview_value_lbl, lv_color_white(), 0);
+    lv_obj_set_style_text_color(preview_value_lbl, ui_theme_get()->text, 0);
 
     // Teclado
     kb = lv_keyboard_create(kb_panel);
@@ -457,13 +480,13 @@ lv_obj_t *screen_config_wifi_create(lv_obj_t *parent)
     lv_keyboard_set_mode(kb, LV_KEYBOARD_MODE_TEXT_LOWER);
     lv_keyboard_set_popovers(kb, true);
 
-    lv_obj_set_style_bg_color(kb, lv_color_hex(0x0D1117), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(kb, ui_theme_get()->surface2, LV_PART_MAIN);
     lv_obj_set_style_bg_opa(kb, LV_OPA_COVER, LV_PART_MAIN);
     lv_obj_set_style_border_width(kb, 0, LV_PART_MAIN);
 
     lv_obj_set_style_bg_color(kb, C_SURFACE, LV_PART_ITEMS);
     lv_obj_set_style_bg_opa(kb, LV_OPA_COVER, LV_PART_ITEMS);
-    lv_obj_set_style_text_color(kb, lv_color_white(), LV_PART_ITEMS);
+    lv_obj_set_style_text_color(kb, ui_theme_get()->text, LV_PART_ITEMS);
     lv_obj_set_style_border_color(kb, C_BORDER, LV_PART_ITEMS);
     lv_obj_set_style_border_width(kb, 1, LV_PART_ITEMS);
     lv_obj_set_style_radius(kb, 4, LV_PART_ITEMS);
@@ -487,12 +510,16 @@ void screen_config_wifi_update(void)
         load_wifi_list();
     }
 
+    // Guard: objects may be temporarily NULL between lv_obj_clean() and screen recreate
+    if (!label_btn_connect || !lv_obj_is_valid(label_btn_connect))
+        return;
+
     bool connected = wifi_is_connected();
 
     lv_label_set_text(label_btn_connect, connected ? "Desconectar" : "Conectar");
     lv_label_set_text(label_status, connected ? "Conectado" : "Desconectado");
     lv_obj_set_style_bg_color(status_dot, connected ? C_GREEN : C_RED, 0);
-    lv_obj_set_style_text_color(label_status, connected ? lv_color_hex(0x86EFAC) : C_SUBTLE, 0);
+    lv_obj_set_style_text_color(label_status, connected ? C_GREEN : C_SUBTLE, 0);
 
     char ip_buf[32];
     snprintf(ip_buf, sizeof(ip_buf), "IP: %s", wifi_get_ip_string());

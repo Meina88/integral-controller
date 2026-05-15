@@ -20,3 +20,9 @@ esp_err_t storage_nvs_save_wifi(const char *ssid, const char *password);
 esp_err_t storage_nvs_load_wifi(char *ssid, size_t ssid_max_len,
                                 char *password, size_t pass_max_len);
 bool storage_nvs_wifi_exists(void);
+
+// =========================
+// UI THEME
+// =========================
+void storage_nvs_save_theme(int theme_id);
+int  storage_nvs_load_theme(void);

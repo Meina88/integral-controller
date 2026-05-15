@@ -3,15 +3,16 @@
 #include "screen_config_wifi.h"
 #include "screen_config_machine.h"
 #include "ui/fonts/fonts.h"
+#include "ui/ui_theme.h"
 #include "lvgl.h"
 
-#define C_BG          lv_color_hex(0x111827)
-#define C_TABBAR      lv_color_hex(0x0D1117)
-#define C_BORDER      lv_color_hex(0x1E293B)
-#define C_TAB_ACTIVE  lv_color_hex(0x1D4ED8)
-#define C_TAB_ACCENT  lv_color_hex(0x93C5FD)
-#define C_TAB_MUTED   lv_color_hex(0x6B7280)
-#define C_PRESSED     lv_color_hex(0x2D3748)
+#define C_BG         (ui_theme_get()->bg)
+#define C_TABBAR     (ui_theme_get()->surface2)
+#define C_BORDER     (ui_theme_get()->border)
+#define C_TAB_ACTIVE (ui_theme_get()->blue)
+#define C_TAB_ACCENT (ui_theme_get()->blue_accent)
+#define C_TAB_MUTED  (ui_theme_get()->muted)
+#define C_PRESSED    (ui_theme_get()->pressed)
 
 static lv_obj_t *root;
 static lv_obj_t *content;
@@ -141,4 +142,9 @@ lv_obj_t *screen_config_create(lv_obj_t *parent)
 
 void screen_config_update(void)
 {
+}
+
+void screen_config_show_machine(void)
+{
+    switch_tab(2);
 }

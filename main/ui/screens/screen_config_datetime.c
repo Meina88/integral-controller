@@ -5,11 +5,8 @@
 #include "drivers/rtc/rtc_pcf85063a.h"
 
 #include "ui/components/numpad.h"
-
-// 🔥 FUENTES INTER
-#include "inter_18.h"
-#include "inter_24.h"
-#include "inter_28.h"
+#include "ui/fonts/fonts.h"
+#include "ui/ui_theme.h"
 
 #include <stdio.h>
 
@@ -23,7 +20,6 @@ static lv_obj_t *ta_time;
 static void ta_event_cb(lv_event_t *e)
 {
     lv_obj_t *ta = lv_event_get_target(e);
-
     numpad_open(ta, NULL);
 }
 
@@ -40,30 +36,25 @@ static void btn_save_cb(lv_event_t *e)
     int year, month, day;
     int hour, min, sec;
 
-    // FECHA
     if (sscanf(date, "%d.%d.%d", &year, &month, &day) != 3)
     {
         printf("ERROR fecha\n");
         return;
     }
 
-    // HORA
     if (sscanf(time, "%d.%d.%d", &hour, &min, &sec) != 3)
     {
         printf("ERROR hora\n");
         return;
     }
 
-    // ASIGNAR
     t.year  = (uint16_t)year;
     t.month = (uint8_t)month;
     t.day   = (uint8_t)day;
-
-    t.hour = (uint8_t)hour;
-    t.min  = (uint8_t)min;
-    t.sec  = (uint8_t)sec;
-
-    t.dotw = 1;
+    t.hour  = (uint8_t)hour;
+    t.min   = (uint8_t)min;
+    t.sec   = (uint8_t)sec;
+    t.dotw  = 1;
 
     PCF85063A_Set_All(t);
 
@@ -75,258 +66,96 @@ static void btn_save_cb(lv_event_t *e)
 // =========================
 lv_obj_t *screen_config_datetime_create(lv_obj_t *parent)
 {
+    const ui_theme_t *th = ui_theme_get();
+
     root = lv_obj_create(parent);
-
     lv_obj_set_size(root, LV_PCT(100), LV_PCT(100));
-
-    lv_obj_set_style_border_width(root, 0, 0);
-
-    lv_obj_set_style_bg_color(
-        root,
-        lv_color_hex(0x101418),
-        0);
-
+    lv_obj_set_style_bg_color(root, th->bg, 0);
     lv_obj_set_style_bg_opa(root, LV_OPA_COVER, 0);
+    lv_obj_set_style_border_width(root, 0, 0);
+    lv_obj_clear_flag(root, LV_OBJ_FLAG_SCROLLABLE);
 
-    // =========================
-    // CARD
-    // =========================
+    // Card centrada, ancho fijo, alto automático
     lv_obj_t *card = lv_obj_create(root);
-
-    lv_obj_set_size(card, 500, 520);
-
+    lv_obj_set_size(card, 460, LV_SIZE_CONTENT);
     lv_obj_center(card);
-
-    lv_obj_set_style_radius(card, 18, 0);
-
-    lv_obj_set_style_bg_color(
-        card,
-        lv_color_hex(0x1B222A),
-        0);
-
+    lv_obj_set_style_bg_color(card, th->surface, 0);
     lv_obj_set_style_bg_opa(card, LV_OPA_COVER, 0);
-
-    lv_obj_set_style_border_width(card, 0, 0);
-
-    lv_obj_set_style_shadow_width(card, 25, 0);
-
+    lv_obj_set_style_border_color(card, th->border, 0);
+    lv_obj_set_style_border_width(card, 1, 0);
+    lv_obj_set_style_radius(card, 12, 0);
+    lv_obj_set_style_shadow_width(card, 20, 0);
     lv_obj_set_style_shadow_opa(card, LV_OPA_20, 0);
-
-    lv_obj_set_style_shadow_color(
-        card,
-        lv_color_black(),
-        0);
-
+    lv_obj_set_style_shadow_color(card, lv_color_black(), 0);
     lv_obj_set_layout(card, LV_LAYOUT_FLEX);
-
     lv_obj_set_flex_flow(card, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_style_pad_all(card, 20, 0);
+    lv_obj_set_style_pad_gap(card, 10, 0);
+    lv_obj_clear_flag(card, LV_OBJ_FLAG_SCROLLABLE);
 
-    lv_obj_set_style_pad_all(card, 28, 0);
-
-    lv_obj_set_style_pad_gap(card, 18, 0);
-
-    // =========================
-    // TÍTULO
-    // =========================
+    // Título
     lv_obj_t *title = lv_label_create(card);
+    lv_label_set_text(title, "Fecha y Hora");
+    lv_obj_set_style_text_font(title, FONT_MEDIUM, 0);
+    lv_obj_set_style_text_color(title, th->text, 0);
 
-    lv_label_set_text(
-        title,
-        "Configuración");
-
-    lv_obj_set_style_text_font(
-        title,
-        &inter_28,
-        0);
-
-    lv_obj_set_style_text_color(
-        title,
-        lv_color_white(),
-        0);
-
-    // =========================
-    // LABEL FECHA
-    // =========================
+    // Label FECHA
     lv_obj_t *lbl_date = lv_label_create(card);
+    lv_label_set_text(lbl_date, "FECHA");
+    lv_obj_set_style_text_font(lbl_date, FONT_SMALL, 0);
+    lv_obj_set_style_text_color(lbl_date, th->muted, 0);
 
-    lv_label_set_text(
-        lbl_date,
-        "FECHA");
-
-    lv_obj_set_style_text_font(
-        lbl_date,
-        &inter_18,
-        0);
-
-    lv_obj_set_style_text_color(
-        lbl_date,
-        lv_color_hex(0xAAAAAA),
-        0);
-
-    // =========================
-    // INPUT FECHA
-    // =========================
+    // Input FECHA
     ta_date = lv_textarea_create(card);
-
     lv_obj_set_width(ta_date, LV_PCT(100));
+    lv_obj_set_height(ta_date, 52);
+    lv_textarea_set_placeholder_text(ta_date, "YYYY.MM.DD");
+    lv_obj_add_event_cb(ta_date, ta_event_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_set_style_radius(ta_date, 8, 0);
+    lv_obj_set_style_bg_color(ta_date, th->surface2, 0);
+    lv_obj_set_style_bg_opa(ta_date, LV_OPA_COVER, 0);
+    lv_obj_set_style_border_color(ta_date, th->border, 0);
+    lv_obj_set_style_border_width(ta_date, 1, 0);
+    lv_obj_set_style_text_color(ta_date, th->text, 0);
+    lv_obj_set_style_text_font(ta_date, FONT_MEDIUM, 0);
+    lv_obj_set_style_pad_left(ta_date, 14, 0);
 
-    lv_obj_set_height(ta_date, 60);
-
-    lv_textarea_set_placeholder_text(
-        ta_date,
-        "YYYY.MM.DD");
-
-    lv_obj_add_event_cb(
-        ta_date,
-        ta_event_cb,
-        LV_EVENT_CLICKED,
-        NULL);
-
-    lv_obj_set_style_radius(ta_date, 12, 0);
-
-    lv_obj_set_style_bg_color(
-        ta_date,
-        lv_color_hex(0x2A313A),
-        0);
-
-    lv_obj_set_style_bg_opa(
-        ta_date,
-        LV_OPA_COVER,
-        0);
-
-    lv_obj_set_style_border_width(
-        ta_date,
-        0,
-        0);
-
-    lv_obj_set_style_text_color(
-        ta_date,
-        lv_color_white(),
-        0);
-
-    lv_obj_set_style_text_font(
-        ta_date,
-        &inter_24,
-        0);
-
-    lv_obj_set_style_pad_left(
-        ta_date,
-        18,
-        0);
-
-    // =========================
-    // LABEL HORA
-    // =========================
+    // Label HORA
     lv_obj_t *lbl_time = lv_label_create(card);
+    lv_label_set_text(lbl_time, "HORA");
+    lv_obj_set_style_text_font(lbl_time, FONT_SMALL, 0);
+    lv_obj_set_style_text_color(lbl_time, th->muted, 0);
 
-    lv_label_set_text(
-        lbl_time,
-        "HORA");
-
-    lv_obj_set_style_text_font(
-        lbl_time,
-        &inter_18,
-        0);
-
-    lv_obj_set_style_text_color(
-        lbl_time,
-        lv_color_hex(0xAAAAAA),
-        0);
-
-    // =========================
-    // INPUT HORA
-    // =========================
+    // Input HORA
     ta_time = lv_textarea_create(card);
-
     lv_obj_set_width(ta_time, LV_PCT(100));
+    lv_obj_set_height(ta_time, 52);
+    lv_textarea_set_placeholder_text(ta_time, "HH.MM.SS");
+    lv_obj_add_event_cb(ta_time, ta_event_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_set_style_radius(ta_time, 8, 0);
+    lv_obj_set_style_bg_color(ta_time, th->surface2, 0);
+    lv_obj_set_style_bg_opa(ta_time, LV_OPA_COVER, 0);
+    lv_obj_set_style_border_color(ta_time, th->border, 0);
+    lv_obj_set_style_border_width(ta_time, 1, 0);
+    lv_obj_set_style_text_color(ta_time, th->text, 0);
+    lv_obj_set_style_text_font(ta_time, FONT_MEDIUM, 0);
+    lv_obj_set_style_pad_left(ta_time, 14, 0);
 
-    lv_obj_set_height(ta_time, 60);
-
-    lv_textarea_set_placeholder_text(
-        ta_time,
-        "HH.MM.SS");
-
-    lv_obj_add_event_cb(
-        ta_time,
-        ta_event_cb,
-        LV_EVENT_CLICKED,
-        NULL);
-
-    lv_obj_set_style_radius(ta_time, 12, 0);
-
-    lv_obj_set_style_bg_color(
-        ta_time,
-        lv_color_hex(0x2A313A),
-        0);
-
-    lv_obj_set_style_bg_opa(
-        ta_time,
-        LV_OPA_COVER,
-        0);
-
-    lv_obj_set_style_border_width(
-        ta_time,
-        0,
-        0);
-
-    lv_obj_set_style_text_color(
-        ta_time,
-        lv_color_white(),
-        0);
-
-    lv_obj_set_style_text_font(
-        ta_time,
-        &inter_24,
-        0);
-
-    lv_obj_set_style_pad_left(
-        ta_time,
-        18,
-        0);
-
-    // =========================
-    // BOTÓN
-    // =========================
+    // Botón guardar
     lv_obj_t *btn = lv_btn_create(card);
-
     lv_obj_set_width(btn, LV_PCT(100));
-
-    lv_obj_set_height(btn, 64);
-
-    lv_obj_add_event_cb(
-        btn,
-        btn_save_cb,
-        LV_EVENT_CLICKED,
-        NULL);
-
-    lv_obj_set_style_radius(btn, 14, 0);
-
-    lv_obj_set_style_bg_color(
-        btn,
-        lv_palette_main(LV_PALETTE_BLUE),
-        0);
-
-    lv_obj_set_style_bg_grad_color(
-        btn,
-        lv_palette_darken(LV_PALETTE_BLUE, 2),
-        0);
-
-    lv_obj_set_style_bg_grad_dir(
-        btn,
-        LV_GRAD_DIR_VER,
-        0);
+    lv_obj_set_height(btn, 52);
+    lv_obj_add_event_cb(btn, btn_save_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_set_style_radius(btn, 8, 0);
+    lv_obj_set_style_bg_color(btn, th->blue, 0);
+    lv_obj_set_style_bg_opa(btn, LV_OPA_COVER, 0);
+    lv_obj_set_style_shadow_width(btn, 0, 0);
+    lv_obj_set_style_border_width(btn, 0, 0);
 
     lv_obj_t *lbl = lv_label_create(btn);
-
-    lv_label_set_text(
-        lbl,
-        "Guardar configuración");
-
-    lv_obj_set_style_text_font(
-        lbl,
-        &inter_24,
-        0);
-
+    lv_label_set_text(lbl, "Guardar");
+    lv_obj_set_style_text_font(lbl, FONT_MEDIUM, 0);
+    lv_obj_set_style_text_color(lbl, lv_color_white(), 0);
     lv_obj_center(lbl);
 
     return root;
