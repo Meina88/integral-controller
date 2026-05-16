@@ -20,7 +20,10 @@
 #define C_TAB_TEXT_OFF lv_color_hex(0x6B7280)  // texto pestaña inactiva
 #define C_STATUS_OK    lv_color_hex(0x16A34A)  // badge verde "Listo"
 #define C_STATUS_REC   lv_color_hex(0xDC2626)  // badge rojo "Grabando"
+#define C_STATUS_ALARM lv_color_hex(0xD97706)  // badge ambar "Alarma"
 #define C_TIME_TEXT    lv_color_hex(0xD1D5DB)  // texto hora (gris suave)
+
+typedef enum { STATUS_READY, STATUS_RECORDING, STATUS_ALARM } status_t;
 
 static lv_obj_t *content;
 static lv_obj_t *main_area;
@@ -41,8 +44,10 @@ static lv_obj_t *label_profile;
 static lv_obj_t *btn_clear_profile;
 static lv_obj_t *label_time;
 
-static bool last_production_state = false;
-static int  active_tab            = 0;
+static status_t s_status              = STATUS_READY;
+static uint32_t s_alarm_phase_start   = 0;
+static bool     s_alarm_show_warning  = false;
+static int      active_tab            = 0;
 
 // =========================
 // SET PROFILE
@@ -414,23 +419,79 @@ static void update_time_label(void)
 // =========================
 // UPDATE STATUS
 // =========================
-static void update_status_label(void)
+static void set_profile_label_normal(void)
 {
-    bool running = production_is_running();
-    if (running == last_production_state)
-        return;
-
-    last_production_state = running;
-
-    if (running)
+    const char *code = active_profile_get();
+    char buf[64];
+    if (code && strlen(code) > 0)
     {
-        lv_label_set_text(label_status, "Grabando");
-        lv_obj_set_style_bg_color(status_badge, C_STATUS_REC, 0);
+        snprintf(buf, sizeof(buf), "Perfil: %s", code);
+        lv_obj_clear_flag(btn_clear_profile, LV_OBJ_FLAG_HIDDEN);
     }
     else
     {
-        lv_label_set_text(label_status, "Listo");
-        lv_obj_set_style_bg_color(status_badge, C_STATUS_OK, 0);
+        snprintf(buf, sizeof(buf), "Sin perfil");
+        lv_obj_add_flag(btn_clear_profile, LV_OBJ_FLAG_HIDDEN);
+    }
+    lv_label_set_text(label_profile, buf);
+}
+
+static void update_status_label(void)
+{
+    bool running = production_is_running();
+    bool alarm   = running && screen_extruir_is_alarm_active();
+
+    status_t target = STATUS_READY;
+    if (alarm)        target = STATUS_ALARM;
+    else if (running) target = STATUS_RECORDING;
+
+    if (target != s_status)
+    {
+        s_status = target;
+        switch (target)
+        {
+        case STATUS_READY:
+            lv_label_set_text(label_status, "Listo");
+            lv_obj_set_style_bg_color(status_badge, C_STATUS_OK, 0);
+            set_profile_label_normal();
+            break;
+
+        case STATUS_RECORDING:
+            lv_label_set_text(label_status, "Grabando");
+            lv_obj_set_style_bg_color(status_badge, C_STATUS_REC, 0);
+            set_profile_label_normal();
+            lv_obj_add_flag(btn_clear_profile, LV_OBJ_FLAG_HIDDEN);
+            break;
+
+        case STATUS_ALARM:
+            lv_label_set_text(label_status, "Alarma");
+            lv_obj_set_style_bg_color(status_badge, C_STATUS_ALARM, 0);
+            s_alarm_phase_start  = lv_tick_get();
+            s_alarm_show_warning = true;
+            lv_label_set_text(label_profile, "Velocidad fuera de rango");
+            lv_obj_add_flag(btn_clear_profile, LV_OBJ_FLAG_HIDDEN);
+            break;
+        }
+    }
+
+    // Alternating center text during alarm (3s warning / 3s profile)
+    if (s_status == STATUS_ALARM)
+    {
+        uint32_t elapsed     = lv_tick_get() - s_alarm_phase_start;
+        bool should_warn     = (elapsed % 6000) < 3000;
+        if (should_warn != s_alarm_show_warning)
+        {
+            s_alarm_show_warning = should_warn;
+            if (should_warn)
+            {
+                lv_label_set_text(label_profile, "Velocidad fuera de rango");
+                lv_obj_add_flag(btn_clear_profile, LV_OBJ_FLAG_HIDDEN);
+            }
+            else
+            {
+                set_profile_label_normal();
+            }
+        }
     }
 }
 

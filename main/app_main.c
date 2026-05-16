@@ -20,6 +20,7 @@
 #include "nvs_flash.h"
 #include "storage/nvs/storage_nvs.h"
 #include "logic/extrusion.h"
+#include "logic/alarm_config.h"
 
 #include "services/production_log.h"
 
@@ -51,6 +52,8 @@ void app_main(void)
     // STORAGE NVS (PERFILES)
     // =========================
     ESP_ERROR_CHECK(storage_nvs_init());
+
+    alarm_config_init();
 
     if (!storage_nvs_profiles_exist())
     {

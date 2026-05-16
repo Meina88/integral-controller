@@ -26,3 +26,9 @@ bool storage_nvs_wifi_exists(void);
 // =========================
 void storage_nvs_save_theme(int theme_id);
 int  storage_nvs_load_theme(void);
+
+// =========================
+// ALARM CONFIG
+// =========================
+void storage_nvs_save_alarm(bool enabled, int threshold);
+void storage_nvs_load_alarm(bool *enabled, int *threshold);

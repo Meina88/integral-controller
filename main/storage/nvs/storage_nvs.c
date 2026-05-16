@@ -5,10 +5,12 @@
 #include <stdio.h>
 
 #define NAMESPACE "storage"
-#define KEY_WIFI_SSID "wifi_ssid"
-#define KEY_WIFI_PASS "wifi_pass"
-#define KEY_PROFILES  "profiles_json"
-#define KEY_THEME     "ui_theme"
+#define KEY_WIFI_SSID       "wifi_ssid"
+#define KEY_WIFI_PASS       "wifi_pass"
+#define KEY_PROFILES        "profiles_json"
+#define KEY_THEME           "ui_theme"
+#define KEY_ALARM_ENABLED   "alarm_en"
+#define KEY_ALARM_THRESHOLD "alarm_thr"
 
 // =========================
 // INIT NVS
@@ -248,6 +250,36 @@ int storage_nvs_load_theme(void)
     nvs_get_i32(handle, KEY_THEME, &val);
     nvs_close(handle);
     return (int)val;
+}
+
+// =========================
+// SAVE ALARM CONFIG
+// =========================
+void storage_nvs_save_alarm(bool enabled, int threshold)
+{
+    nvs_handle_t handle;
+    if (nvs_open(NAMESPACE, NVS_READWRITE, &handle) != ESP_OK)
+        return;
+    nvs_set_i32(handle, KEY_ALARM_ENABLED, (int32_t)enabled);
+    nvs_set_i32(handle, KEY_ALARM_THRESHOLD, (int32_t)threshold);
+    nvs_commit(handle);
+    nvs_close(handle);
+}
+
+// =========================
+// LOAD ALARM CONFIG
+// =========================
+void storage_nvs_load_alarm(bool *enabled, int *threshold)
+{
+    nvs_handle_t handle;
+    if (nvs_open(NAMESPACE, NVS_READONLY, &handle) != ESP_OK)
+        return;
+    int32_t en = 0, thr = 10;
+    nvs_get_i32(handle, KEY_ALARM_ENABLED, &en);
+    nvs_get_i32(handle, KEY_ALARM_THRESHOLD, &thr);
+    nvs_close(handle);
+    if (enabled)   *enabled   = (bool)en;
+    if (threshold) *threshold = (int)thr;
 }
 
 // =========================

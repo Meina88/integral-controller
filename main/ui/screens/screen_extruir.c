@@ -12,6 +12,7 @@
 #include "ui/fonts/fonts.h"
 #include "ui/ui_theme.h"
 #include "drivers/rtc/rtc.h"
+#include "logic/alarm_config.h"
 
 #define GAUGE_SIZE 220
 #define SPEED_MAX 20
@@ -53,6 +54,7 @@ static lv_obj_t *label_finish_time;
 
 static bool recording_ui = false;
 static bool auto_finished = false;
+static bool s_alarm_active = false;
 static profile_t current_profile;
 static int target_qty_ui = 25;
 static float display_speed = 0.0f;
@@ -120,7 +122,7 @@ static void set_cut_buttons_enabled(bool enabled)
 static void update_qty_label(void)
 {
     char buf[16];
-    snprintf(buf, sizeof(buf), "%d", target_qty_ui);
+    snprintf(buf, sizeof(buf), "0/%d", target_qty_ui);
     lv_label_set_text(label_qty, buf);
     extrusion_set_target_count(target_qty_ui);
 }
@@ -195,6 +197,8 @@ static void btn_event_cb(lv_event_t *e)
         set_qty_buttons_enabled(true);
 
         recording_ui = false;
+        s_alarm_active = false;
+        update_qty_label();
         lv_label_set_text(label_btn, "Grabar");
         lv_obj_set_style_bg_color(btn_record, lv_palette_main(LV_PALETTE_GREEN), 0);
     }
@@ -596,6 +600,15 @@ void screen_extruir_update(void)
         lv_label_set_text(label_extruded, "--");
     }
 
+    // ─── Cantidad objetivo (completed/target) ─────────────────────
+    if (recording_ui)
+    {
+        char qty_buf[16];
+        snprintf(qty_buf, sizeof(qty_buf), "%d/%d",
+                 extrusion_get_total_count(), target_qty_ui);
+        lv_label_set_text(label_qty, qty_buf);
+    }
+
     // ─── Tiempo restante y fin estimado ───────────────────────────
     // Tiempo por tirada a velocidad actual × tiradas restantes
     if (recording_ui && display_speed > 0.1f && cut_dist > 0.0f)
@@ -649,6 +662,25 @@ void screen_extruir_update(void)
         lv_label_set_text(label_finish_time, "--");
     }
 
+    // ─── Alarma de velocidad ──────────────────────────────────────
+    if (recording_ui && alarm_config_is_enabled())
+    {
+        float target = current_profile.belt_speed;
+        if (target > 0.0f)
+        {
+            float deviation = fabsf(display_speed - target) / target * 100.0f;
+            s_alarm_active = (deviation >= (float)alarm_config_get_threshold());
+        }
+        else
+        {
+            s_alarm_active = false;
+        }
+    }
+    else
+    {
+        s_alarm_active = false;
+    }
+
     // ─── Lote completado ──────────────────────────────────────────
     if (extrusion_is_target_reached() && !auto_finished)
     {
@@ -660,7 +692,14 @@ void screen_extruir_update(void)
         set_qty_buttons_enabled(true);
 
         recording_ui = false;
+        s_alarm_active = false;
+        update_qty_label();
         lv_label_set_text(label_btn, "Grabar");
         lv_obj_set_style_bg_color(btn_record, lv_palette_main(LV_PALETTE_GREEN), 0);
     }
+}
+
+bool screen_extruir_is_alarm_active(void)
+{
+    return s_alarm_active;
 }
