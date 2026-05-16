@@ -119,7 +119,15 @@ static void tab_setup_cb(lv_event_t *e)
     switch_tab(1);
 }
 
-static void tab_config_cb(lv_event_t *e)     { switch_tab(2); }
+static void tab_config_cb(lv_event_t *e)
+{
+    if (production_is_running())
+    {
+        printf("CONFIG BLOQUEADO: producción en curso\n");
+        return;
+    }
+    switch_tab(2);
+}
 static void tab_historicos_cb(lv_event_t *e) { switch_tab(3); }
 
 // =========================
@@ -380,6 +388,7 @@ void ui_start(void)
     lv_obj_set_style_border_width(content, 0, 0);
     lv_obj_set_style_pad_all(content, 0, 0);
     lv_obj_set_style_radius(content, 0, 0);
+    lv_obj_clear_flag(content, LV_OBJ_FLAG_SCROLLABLE);
 
     // =========================
     // SCREENS

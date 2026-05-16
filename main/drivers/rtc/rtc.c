@@ -86,3 +86,11 @@ void rtc_get_date_filename_string(char *buffer)
             rtc_time.month,
             rtc_time.day);
 }
+
+void rtc_get_datetime(datetime_t *t)
+{
+    if (!t)
+        return;
+
+    PCF85063A_Read_now(t);
+}
