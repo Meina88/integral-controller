@@ -13,16 +13,17 @@
 
 #include "ui/screens/screen_extruir.h"
 #include "ui/fonts/fonts.h"
+#include "ui/fonts/fa_18.h"
 #include "ui/ui_theme.h"
 
-#define C_BG       (ui_theme_get()->bg)
-#define C_SURFACE  (ui_theme_get()->surface)
+#define C_BG (ui_theme_get()->bg)
+#define C_SURFACE (ui_theme_get()->surface)
 #define C_SURFACE2 (ui_theme_get()->surface2)
-#define C_BORDER   (ui_theme_get()->border)
-#define C_PRESSED  (ui_theme_get()->pressed)
-#define C_MUTED    (ui_theme_get()->muted)
-#define C_SUBTLE   (ui_theme_get()->subtle)
-#define C_BLUE     (ui_theme_get()->blue)
+#define C_BORDER (ui_theme_get()->border)
+#define C_PRESSED (ui_theme_get()->pressed)
+#define C_MUTED (ui_theme_get()->muted)
+#define C_SUBTLE (ui_theme_get()->subtle)
+#define C_BLUE (ui_theme_get()->blue)
 #define C_BTN_GREY (ui_theme_get()->btn_grey)
 
 // =========================
@@ -203,7 +204,7 @@ static void show_profile_details_modal(const char *code)
     bool running = production_is_running();
 
     lv_obj_t *overlay = make_overlay();
-    lv_obj_t *modal   = make_modal_panel(overlay, 760, 455);
+    lv_obj_t *modal = make_modal_panel(overlay, 760, 455);
 
     char title_buf[64];
     snprintf(title_buf, sizeof(title_buf), "%s  |  %s", p.code, p.commercial_name);
@@ -233,38 +234,39 @@ static void show_profile_details_modal(const char *code)
 
     char buf[64];
 
-#define ADD_ROW(key, fmt, ...)                                                        \
-    do {                                                                              \
-        snprintf(buf, sizeof(buf), fmt, __VA_ARGS__);                                 \
-        lv_obj_t *row = lv_obj_create(left);                                         \
-        lv_obj_set_width(row, LV_PCT(100));                                           \
-        lv_obj_set_height(row, LV_SIZE_CONTENT);                                      \
-        lv_obj_set_style_bg_opa(row, LV_OPA_TRANSP, 0);                              \
-        lv_obj_set_style_border_width(row, 0, 0);                                     \
-        lv_obj_set_style_pad_all(row, 0, 0);                                          \
-        lv_obj_set_flex_flow(row, LV_FLEX_FLOW_ROW);                                  \
-        lv_obj_clear_flag(row, LV_OBJ_FLAG_SCROLLABLE);                               \
-        lv_obj_t *lk = lv_label_create(row);                                         \
-        lv_label_set_text(lk, key);                                                   \
-        lv_obj_set_width(lk, 155);                                                    \
-        lv_obj_set_style_text_font(lk, FONT_SMALL, 0);                               \
-        lv_obj_set_style_text_color(lk, C_MUTED, 0);                                 \
-        lv_obj_t *lv = lv_label_create(row);                                         \
-        lv_label_set_text(lv, buf);                                                   \
-        lv_obj_set_flex_grow(lv, 1);                                                  \
-        lv_obj_set_style_text_font(lv, FONT_SMALL, 0);                               \
-        lv_obj_set_style_text_color(lv, ui_theme_get()->subtle, 0);                  \
+#define ADD_ROW(key, fmt, ...)                                      \
+    do                                                              \
+    {                                                               \
+        snprintf(buf, sizeof(buf), fmt, __VA_ARGS__);               \
+        lv_obj_t *row = lv_obj_create(left);                        \
+        lv_obj_set_width(row, LV_PCT(100));                         \
+        lv_obj_set_height(row, LV_SIZE_CONTENT);                    \
+        lv_obj_set_style_bg_opa(row, LV_OPA_TRANSP, 0);             \
+        lv_obj_set_style_border_width(row, 0, 0);                   \
+        lv_obj_set_style_pad_all(row, 0, 0);                        \
+        lv_obj_set_flex_flow(row, LV_FLEX_FLOW_ROW);                \
+        lv_obj_clear_flag(row, LV_OBJ_FLAG_SCROLLABLE);             \
+        lv_obj_t *lk = lv_label_create(row);                        \
+        lv_label_set_text(lk, key);                                 \
+        lv_obj_set_width(lk, 155);                                  \
+        lv_obj_set_style_text_font(lk, FONT_SMALL, 0);              \
+        lv_obj_set_style_text_color(lk, C_MUTED, 0);                \
+        lv_obj_t *lv = lv_label_create(row);                        \
+        lv_label_set_text(lv, buf);                                 \
+        lv_obj_set_flex_grow(lv, 1);                                \
+        lv_obj_set_style_text_font(lv, FONT_SMALL, 0);              \
+        lv_obj_set_style_text_color(lv, ui_theme_get()->subtle, 0); \
     } while (0)
 
-    ADD_ROW("Matriz",        "%s",         p.matrix);
-    ADD_ROW("Bocas",         "%d",         p.bocas);
-    ADD_ROW("Area",          "%.2f mm2",   p.area_mm2);
-    ADD_ROW("Gusano",        "%d",         p.screw);
-    ADD_ROW("VFD",           "%d rpm",     p.vfd_rpm);
-    ADD_ROW("Vel. banda",    "%.2f m/min", p.belt_speed);
-    ADD_ROW("Dens. teorica", "%.2f gr/m",  p.theoretical_density);
-    ADD_ROW("Dens. real",    "%.2f gr/m",  p.real_density);
-    ADD_ROW("Corte default", "%.2f m",     p.default_cut);
+    ADD_ROW("Matriz", "%s", p.matrix);
+    ADD_ROW("Bocas", "%d", p.bocas);
+    ADD_ROW("Area", "%.2f mm2", p.area_mm2);
+    ADD_ROW("Gusano", "%d", p.screw);
+    ADD_ROW("VFD", "%d rpm", p.vfd_rpm);
+    ADD_ROW("Vel. banda", "%.2f m/min", p.belt_speed);
+    ADD_ROW("Dens. teorica", "%.2f gr/m", p.theoretical_density);
+    ADD_ROW("Dens. real", "%.2f gr/m", p.real_density);
+    ADD_ROW("Corte default", "%.2f m", p.default_cut);
 
 #undef ADD_ROW
 
@@ -283,8 +285,8 @@ static void show_profile_details_modal(const char *code)
 
     char img_path[128];
     char real_path[128];
-    snprintf(img_path,  sizeof(img_path),  "S:/profiles/%s",       p.image);
-    snprintf(real_path, sizeof(real_path), "/sdcard/profiles/%s",  p.image);
+    snprintf(img_path, sizeof(img_path), "S:/profiles/%s", p.image);
+    snprintf(real_path, sizeof(real_path), "/sdcard/profiles/%s", p.image);
 
     printf("REAL: %s\n", real_path);
     printf("LVGL: %s\n", img_path);
@@ -388,7 +390,8 @@ static void show_results(const char results[][32], int count)
         lv_obj_align(label, LV_ALIGN_LEFT_MID, 0, 0);
 
         lv_obj_t *arrow = lv_label_create(card);
-        lv_label_set_text(arrow, ">");
+        lv_label_set_text(arrow, "");
+        lv_obj_set_style_text_font(arrow, &fa_18, 0);
         lv_obj_set_style_text_color(arrow, C_MUTED, 0);
         lv_obj_align(arrow, LV_ALIGN_RIGHT_MID, 0, 0);
 
@@ -397,8 +400,8 @@ static void show_results(const char results[][32], int count)
             return;
         strcpy(code_copy, results[i]);
 
-        lv_obj_add_event_cb(card, result_btn_cb,  LV_EVENT_CLICKED, code_copy);
-        lv_obj_add_event_cb(card, free_code_cb,   LV_EVENT_DELETE,  code_copy);
+        lv_obj_add_event_cb(card, result_btn_cb, LV_EVENT_CLICKED, code_copy);
+        lv_obj_add_event_cb(card, free_code_cb, LV_EVENT_DELETE, code_copy);
     }
 }
 
@@ -488,8 +491,8 @@ lv_obj_t *screen_setup_create(lv_obj_t *parent)
     lv_obj_clear_flag(icon_bg, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE);
 
     lv_obj_t *icon_lbl = lv_label_create(icon_bg);
-    lv_label_set_text(icon_lbl, "Q");
-    lv_obj_set_style_text_font(icon_lbl, FONT_SMALL, 0);
+    lv_label_set_text(icon_lbl, "");
+    lv_obj_set_style_text_font(icon_lbl, &fa_18, 0);
     lv_obj_set_style_text_color(icon_lbl, lv_color_white(), 0);
     lv_obj_center(icon_lbl);
 

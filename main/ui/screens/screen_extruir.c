@@ -291,7 +291,12 @@ lv_obj_t *screen_extruir_create(lv_obj_t *parent)
                           LV_FLEX_ALIGN_CENTER,
                           LV_FLEX_ALIGN_CENTER,
                           LV_FLEX_ALIGN_START);
-    lv_obj_set_style_pad_all(left_col, 12, 0);
+
+    lv_obj_set_style_pad_top(left_col, 12, 0);
+    lv_obj_set_style_pad_bottom(left_col, 12, 0);
+    lv_obj_set_style_pad_left(left_col, 50, 0);
+    lv_obj_set_style_pad_right(left_col, 12, 0);
+
     lv_obj_set_style_pad_gap(left_col, 8, 0);
     lv_obj_set_style_bg_opa(left_col, LV_OPA_TRANSP, 0);
     lv_obj_set_style_border_width(left_col, 0, 0);

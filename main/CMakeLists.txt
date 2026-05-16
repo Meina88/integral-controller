@@ -23,6 +23,7 @@ idf_component_register(
         "ui/fonts/inter_18.c"
         "ui/fonts/inter_24.c"
         "ui/fonts/inter_28.c"
+        "ui/fonts/fa_18.c"        
 
         "ui/screens/screen_historicos.c"
 
