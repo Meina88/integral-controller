@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"d:\\\\00_PROYECTOS\\\\rubber-srl\\\\codigo\\\\extrusion-controller\" -Recurse -File)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(xargs grep -l \"ui_manager\\\\|screen\\\\|header\\\\|bar\")",
+      "Bash(grep -r \"fa_18\\\\|0xf\\\\|\\\\\\\\\\\\\\\\u\" \"d:\\\\00_PROYECTOS\\\\rubber-srl\\\\codigo\\\\extrusion-controller\\\\main\\\\ui\" --include=\"*.c\" --include=\"*.h\")",
+      "Bash(grep -r \"\\\\\\\\\\\\\\\\u\\\\|0xf\\\\|icon\" \"d:\\\\00_PROYECTOS\\\\rubber-srl\\\\codigo\\\\extrusion-controller\\\\main\\\\ui\\\\screens\" --include=\"*.c\")"
+    ]
+  }
+}

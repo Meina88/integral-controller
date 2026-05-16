@@ -10,7 +10,9 @@
 #include "logic/active_profile.h"
 #include "screens/screen_config_wifi.h"
 #include "ui/fonts/fonts.h"
+#include "ui/fonts/fa_18.h"
 #include "ui/ui_theme.h"
+#include "comms/wifi/wifi_manager.h"
 
 // ─── Paleta ────────────────────────────────────────────────────
 #define C_BG_DARK      lv_color_hex(0x0D1117)  // fondo sidebar / statusbar
@@ -24,6 +26,23 @@
 #define C_TIME_TEXT    lv_color_hex(0xD1D5DB)  // texto hora (gris suave)
 
 typedef enum { STATUS_READY, STATUS_RECORDING, STATUS_ALARM } status_t;
+
+// Íconos WiFi (FontAwesome, fuente fa_18)
+#define WIFI_ICON_OK      "\xEF\x87\xAB"  // U+F1EB  fa-wifi
+#define WIFI_ICON_LOCK    "\xEF\x80\xA3"  // U+F023  fa-lock     (contraseña incorrecta)
+#define WIFI_ICON_EXCLAIM "\xEF\x81\xAA"  // U+F06A  fa-exclamation-circle  (sin AP)
+#define WIFI_ICON_WARN    "\xEF\x81\xB1"  // U+F071  fa-warning  (error genérico)
+#define WIFI_ICON_REFRESH "\xEF\x80\xA1"  // U+F021  fa-refresh  (reconectando)
+#define WIFI_ICON_OFF     "\xEF\x80\x91"  // U+F011  fa-power-off (sin config)
+
+typedef enum {
+    WIFI_UI_NONE,       // sin SSID configurado
+    WIFI_UI_CONNECTING, // tiene SSID, intentando conectar
+    WIFI_UI_AUTH_ERROR, // contraseña incorrecta
+    WIFI_UI_NO_AP,      // red no encontrada
+    WIFI_UI_ERROR,      // otro error
+    WIFI_UI_CONNECTED,  // conectado
+} wifi_ui_state_t;
 
 static lv_obj_t *content;
 static lv_obj_t *main_area;
@@ -42,9 +61,11 @@ static lv_obj_t *status_badge;
 static lv_obj_t *label_status;
 static lv_obj_t *label_profile;
 static lv_obj_t *btn_clear_profile;
-static lv_obj_t *label_time;
+static lv_obj_t *time_digits[8];  // ranuras fijas: [H][H][:][M][M][:][S][S]
+static lv_obj_t *label_wifi;
 
 static status_t s_status              = STATUS_READY;
+static int      s_wifi_state          = -1;
 static uint32_t s_alarm_phase_start   = 0;
 static bool     s_alarm_show_warning  = false;
 static int      active_tab            = 0;
@@ -295,20 +316,41 @@ void ui_start(void)
 
     lv_obj_add_flag(btn_clear_profile, LV_OBJ_FLAG_HIDDEN);
 
-    // ── derecha: hora en contenedor ancho fijo → no deforma el layout ──
+    // ── derecha: icono WiFi + hora en contenedor ancho fijo ──
     lv_obj_t *time_cont = make_invis(status_bar);
-    lv_obj_set_size(time_cont, 100, LV_PCT(100));
+    lv_obj_set_size(time_cont, 130, LV_PCT(100));
     lv_obj_set_layout(time_cont, LV_LAYOUT_FLEX);
     lv_obj_set_flex_flow(time_cont, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(time_cont,
         LV_FLEX_ALIGN_END,
         LV_FLEX_ALIGN_CENTER,
         LV_FLEX_ALIGN_CENTER);
+    lv_obj_set_style_pad_gap(time_cont, 8, 0);
 
-    label_time = lv_label_create(time_cont);
-    lv_label_set_text(label_time, "--:--:--");
-    lv_obj_set_style_text_color(label_time, C_TIME_TEXT, 0);
-    lv_obj_set_style_text_font(label_time, FONT_SMALL, 0);
+    // Cada posición del reloj tiene ancho fijo → los dígitos no desplazan el texto adyacente.
+    // adv_w en inter_18: '0'=181, '4'=184 (~11.5 px) → ranura 12 px; ':'=79 (~5 px) → ranura 5 px.
+    static const int8_t dw[8] = {12, 12, 5, 12, 12, 5, 12, 12};
+    lv_obj_t *digit_row = make_invis(time_cont);
+    lv_obj_set_size(digit_row, 82, LV_PCT(100));
+    lv_obj_set_layout(digit_row, LV_LAYOUT_FLEX);
+    lv_obj_set_flex_flow(digit_row, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(digit_row,
+        LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_set_style_pad_gap(digit_row, 0, 0);
+    for (int i = 0; i < 8; i++) {
+        time_digits[i] = lv_label_create(digit_row);
+        lv_obj_set_width(time_digits[i], dw[i]);
+        lv_label_set_long_mode(time_digits[i], LV_LABEL_LONG_CLIP);
+        lv_label_set_text(time_digits[i], i == 2 || i == 5 ? ":" : "-");
+        lv_obj_set_style_text_color(time_digits[i], C_TIME_TEXT, 0);
+        lv_obj_set_style_text_font(time_digits[i], FONT_SMALL, 0);
+        lv_obj_set_style_text_align(time_digits[i], LV_TEXT_ALIGN_CENTER, 0);
+    }
+
+    label_wifi = lv_label_create(time_cont);
+    lv_label_set_text(label_wifi, WIFI_ICON_OFF);
+    lv_obj_set_style_text_color(label_wifi, lv_color_hex(0x6B7280), 0);
+    lv_obj_set_style_text_font(label_wifi, &fa_18, 0);
 
     // =========================
     // MAIN AREA
@@ -411,9 +453,78 @@ void ui_start(void)
 // =========================
 static void update_time_label(void)
 {
+    static char prev[9] = "--------";
     char buf[16];
     rtc_get_time_string(buf);
-    lv_label_set_text(label_time, buf);
+    for (int i = 0; i < 8; i++) {
+        if (buf[i] != prev[i]) {
+            prev[i] = buf[i];
+            lv_label_set_text_fmt(time_digits[i], "%c", buf[i]);
+        }
+    }
+}
+
+// =========================
+// UPDATE WIFI ICON
+// =========================
+static void update_wifi_icon(void)
+{
+    wifi_ui_state_t state;
+
+    if (wifi_is_connected()) {
+        state = WIFI_UI_CONNECTED;
+    } else {
+        const char *err  = wifi_get_last_error();
+        const char *ssid = wifi_get_ssid();
+        if (strlen(err) > 0) {
+            if (strstr(err, "Password") || strstr(err, "password"))
+                state = WIFI_UI_AUTH_ERROR;
+            else if (strstr(err, "encontrada"))
+                state = WIFI_UI_NO_AP;
+            else
+                state = WIFI_UI_ERROR;
+        } else if (strlen(ssid) > 0) {
+            state = WIFI_UI_CONNECTING;
+        } else {
+            state = WIFI_UI_NONE;
+        }
+    }
+
+    if ((int)state == s_wifi_state) return;
+    s_wifi_state = (int)state;
+
+    const char *icon;
+    lv_color_t  color;
+
+    switch (state) {
+    case WIFI_UI_CONNECTED:
+        icon  = WIFI_ICON_OK;
+        color = lv_color_white(); 
+        break;
+    case WIFI_UI_AUTH_ERROR:
+        icon  = WIFI_ICON_LOCK;
+        color = lv_color_hex(0xF97316);  // naranja (contraseña)
+        break;
+    case WIFI_UI_NO_AP:
+        icon  = WIFI_ICON_EXCLAIM;
+        color = lv_color_hex(0xEF4444);  // rojo (red no encontrada)
+        break;
+    case WIFI_UI_ERROR:
+        icon  = WIFI_ICON_WARN;
+        color = lv_color_hex(0xEF4444);  // rojo (error genérico)
+        break;
+    case WIFI_UI_CONNECTING:
+        icon  = WIFI_ICON_REFRESH;
+        color = lv_color_hex(0xFBBF24);  // amarillo (reconectando)
+        break;
+    default:
+        icon  = WIFI_ICON_OFF;
+        color = lv_color_hex(0x6B7280);  // gris (sin config)
+        break;
+    }
+
+    lv_label_set_text(label_wifi, icon);
+    lv_obj_set_style_text_color(label_wifi, color, 0);
 }
 
 // =========================
@@ -504,4 +615,5 @@ void ui_update(void)
     screen_config_wifi_update();
     update_time_label();
     update_status_label();
+    update_wifi_icon();
 }
