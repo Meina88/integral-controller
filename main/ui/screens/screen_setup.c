@@ -169,6 +169,7 @@ static void action_select_cb(lv_event_t *e)
         if (next == lv_layer_top())
         {
             lv_obj_del(parent);
+            ui_navigate_to_extruir();
             return;
         }
         parent = next;

@@ -126,6 +126,11 @@ static void switch_tab(int tab)
     }
 }
 
+void ui_navigate_to_extruir(void)
+{
+    switch_tab(0);
+}
+
 // =========================
 // EVENTOS BOTONES
 // =========================
