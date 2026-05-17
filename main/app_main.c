@@ -55,7 +55,6 @@ void app_main(void)
     ESP_ERROR_CHECK(storage_nvs_init());
 
     alarm_config_init();
-    alarm_init();
 
     if (!storage_nvs_profiles_exist())
     {
@@ -82,6 +81,7 @@ void app_main(void)
     // DRIVERS
     // =========================
     digital_outputs_init();
+    alarm_init();
     rtc_hw_init();
 
     // rtc_set_manual_time();
