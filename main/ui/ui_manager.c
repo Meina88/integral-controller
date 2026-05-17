@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "logic/production.h"
+#include "logic/alarm.h"
 #include "drivers/rtc/rtc.h"
 #include "logic/active_profile.h"
 #include "screens/screen_config_wifi.h"
@@ -586,6 +587,7 @@ static void update_status_label(void)
         case STATUS_ALARM:
             lv_label_set_text(label_status, "Alarma");
             lv_obj_set_style_bg_color(status_badge, C_STATUS_ALARM, 0);
+            alarm_trigger_speed();
             s_alarm_phase_start  = lv_tick_get();
             s_alarm_show_warning = true;
             lv_label_set_text(label_profile, "Velocidad fuera de rango");

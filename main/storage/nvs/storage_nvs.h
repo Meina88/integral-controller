@@ -32,3 +32,9 @@ int  storage_nvs_load_theme(void);
 // =========================
 void storage_nvs_save_alarm(bool enabled, int threshold);
 void storage_nvs_load_alarm(bool *enabled, int *threshold);
+
+// =========================
+// PRE-CUT ALARM CONFIG
+// =========================
+void storage_nvs_save_pre_cut_alarm(bool enabled, int seconds);
+void storage_nvs_load_pre_cut_alarm(bool *enabled, int *seconds);

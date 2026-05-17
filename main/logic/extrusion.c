@@ -2,11 +2,12 @@
 #include "drivers/io/CH422G.h"
 #include "drivers/digital_outputs.h"
 #include "drivers/rtc/rtc.h"
+#include "logic/alarm.h"
+#include "logic/alarm_config.h"
 #include "lvgl.h"
 #include <stdio.h>
 #include <string.h>
 
-// 🔥 NUEVO
 #include "services/production_log.h"
 #include "logic/active_profile.h"
 
@@ -47,11 +48,7 @@ static char end_time_str[32];
 static bool relay_active = false;
 static uint32_t relay_start_time = 0;
 
-// relay 2 (no usado aún)
-static bool relay_2_pending = false;
-static bool relay_2_active = false;
-static uint32_t relay_2_delay_start = 0;
-static uint32_t relay_2_on_time = 0;
+static bool pre_cut_alarm_armed = false;
 
 static float last_cut_mm = 0.0f;
 static float cut_distance_mm = 0.0f;
@@ -81,14 +78,6 @@ void extrusion_start(void)
 void extrusion_stop(void)
 {
     running = false;
-
-    // relay_1 NO se apaga acá.
-    // El pulso temporizado se apaga solo en extrusion_process_tick().
-    relay_2_off();
-
-    relay_2_pending = false;
-    relay_2_active = false;
-
     speed_m_min = 0.0f;
 }
 
@@ -106,6 +95,7 @@ void recording_start(void)
     last_cut_mm = 0;
 
     target_reached = false;
+    pre_cut_alarm_armed = false;
 
     speed_sum = 0;
     speed_samples = 0;
@@ -115,6 +105,9 @@ void recording_start(void)
     // =========================
     // MARCA INICIAL
     // =========================
+    if (alarm_config_pre_cut_is_enabled())
+        alarm_trigger_immediate();
+
     relay_1_on();
 
     relay_active = true;
@@ -125,14 +118,7 @@ void recording_start(void)
 void recording_stop(void)
 {
     recording = false;
-
-    // relay_1 NO se apaga acá.
-    // Si hay un pulso activo, debe terminar su tiempo normal de 500 ms.
-    relay_2_off();
-
-    relay_2_pending = false;
-    relay_2_active = false;
-
+    pre_cut_alarm_armed = false;
     rtc_get_datetime_string(end_time_str);
 }
 
@@ -274,6 +260,7 @@ void extrusion_process_tick(void)
                     relay_start_time = now;
 
                     last_cut_mm = total_mm;
+                    pre_cut_alarm_armed = false;
                 }
 
                 // PROMEDIO
@@ -312,6 +299,28 @@ void extrusion_process_tick(void)
             speed_m_min = 0.0f;
         }
     }
+
+    // =========================
+    // ALARMA PRE-CORTE
+    // =========================
+    if (recording && cut_distance_mm > 0.0f && speed_m_min > 0.0f &&
+        alarm_config_pre_cut_is_enabled() && !pre_cut_alarm_armed)
+    {
+        float remaining_mm = cut_distance_mm - (total_mm - last_cut_mm);
+        float advance_mm   = (float)alarm_config_pre_cut_get_seconds()
+                             * (speed_m_min * 1000.0f / 60.0f);
+
+        if (remaining_mm > 0.0f && remaining_mm <= advance_mm)
+        {
+            alarm_trigger_immediate();
+            pre_cut_alarm_armed = true;
+        }
+    }
+
+    // =========================
+    // BUZZER TICK
+    // =========================
+    alarm_tick();
 }
 
 const char *extrusion_get_start_time(void)

@@ -11,6 +11,8 @@
 #define KEY_THEME           "ui_theme"
 #define KEY_ALARM_ENABLED   "alarm_en"
 #define KEY_ALARM_THRESHOLD "alarm_thr"
+#define KEY_PRECUT_ENABLED  "precut_en"
+#define KEY_PRECUT_SECONDS  "precut_sec"
 
 // =========================
 // INIT NVS
@@ -280,6 +282,36 @@ void storage_nvs_load_alarm(bool *enabled, int *threshold)
     nvs_close(handle);
     if (enabled)   *enabled   = (bool)en;
     if (threshold) *threshold = (int)thr;
+}
+
+// =========================
+// SAVE PRE-CUT ALARM CONFIG
+// =========================
+void storage_nvs_save_pre_cut_alarm(bool enabled, int seconds)
+{
+    nvs_handle_t handle;
+    if (nvs_open(NAMESPACE, NVS_READWRITE, &handle) != ESP_OK)
+        return;
+    nvs_set_i32(handle, KEY_PRECUT_ENABLED, (int32_t)enabled);
+    nvs_set_i32(handle, KEY_PRECUT_SECONDS, (int32_t)seconds);
+    nvs_commit(handle);
+    nvs_close(handle);
+}
+
+// =========================
+// LOAD PRE-CUT ALARM CONFIG
+// =========================
+void storage_nvs_load_pre_cut_alarm(bool *enabled, int *seconds)
+{
+    nvs_handle_t handle;
+    if (nvs_open(NAMESPACE, NVS_READONLY, &handle) != ESP_OK)
+        return;
+    int32_t en = 0, sec = 3;
+    nvs_get_i32(handle, KEY_PRECUT_ENABLED, &en);
+    nvs_get_i32(handle, KEY_PRECUT_SECONDS, &sec);
+    nvs_close(handle);
+    if (enabled) *enabled = (bool)en;
+    if (seconds) *seconds = (int)sec;
 }
 
 // =========================

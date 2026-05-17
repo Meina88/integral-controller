@@ -3,6 +3,8 @@
 #include "logic/active_profile.h"
 #include "drivers/rtc/rtc.h"
 #include "logic/profile.h"
+#include "logic/alarm.h"
+#include "logic/alarm_config.h"
 #include "services/production_log.h"
 #include "drivers/digital_outputs.h"
 #include "lvgl.h"
@@ -38,6 +40,9 @@ void production_finish(production_finish_reason_t reason)
     // =========================
     if (reason == PRODUCTION_FINISH_MANUAL)
     {
+        if (alarm_config_pre_cut_is_enabled())
+            alarm_trigger_immediate();
+
         relay_1_on();
 
         lv_delay_ms(500);
