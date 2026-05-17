@@ -13,6 +13,7 @@
 #include "ui/ui_theme.h"
 #include "drivers/rtc/rtc.h"
 #include "logic/alarm_config.h"
+#include "ui/components/numpad.h"
 
 #define GAUGE_SIZE 220
 #define SPEED_MAX 20
@@ -41,6 +42,7 @@ static lv_obj_t *label_btn;
 // ─── Corte ────────────────────────────────────────────────────
 static lv_obj_t *cut_container;
 static lv_obj_t *cut_buttons[MAX_CUT_OPTIONS];
+static lv_obj_t *btn_cut_otro;
 
 // ─── Cantidad objetivo ────────────────────────────────────────
 static lv_obj_t *btn_qty_minus;
@@ -221,6 +223,51 @@ static void cut_btn_event_cb(lv_event_t *e)
                                : ui_theme_get()->btn_grey;
         lv_obj_set_style_bg_color(cut_buttons[i], color, 0);
     }
+
+    if (btn_cut_otro && lv_obj_is_valid(btn_cut_otro))
+    {
+        lv_obj_set_style_bg_color(btn_cut_otro, ui_theme_get()->btn_grey, 0);
+        lv_obj_t *lbl = lv_obj_get_child(btn_cut_otro, 0);
+        if (lbl)
+            lv_label_set_text(lbl, "Otro");
+    }
+}
+
+// =========================
+// CORTE "OTRO" (PERSONALIZADO)
+// =========================
+static void btn_cut_otro_delete_cb(lv_event_t *e)
+{
+    btn_cut_otro = NULL;
+}
+
+static void cut_otro_numpad_cb(const char *value)
+{
+    float cut_m = atof(value);
+    if (cut_m <= 0.0f)
+        return;
+
+    extrusion_set_cut_distance_m(cut_m);
+
+    for (int i = 0; i < current_profile.cut_options_count; i++)
+        lv_obj_set_style_bg_color(cut_buttons[i], ui_theme_get()->btn_grey, 0);
+
+    if (btn_cut_otro && lv_obj_is_valid(btn_cut_otro))
+    {
+        lv_obj_set_style_bg_color(btn_cut_otro, ui_theme_get()->blue, 0);
+        lv_obj_t *lbl = lv_obj_get_child(btn_cut_otro, 0);
+        if (lbl)
+        {
+            char txt[16];
+            snprintf(txt, sizeof(txt), "%.0f m", cut_m);
+            lv_label_set_text(lbl, txt);
+        }
+    }
+}
+
+static void cut_otro_btn_cb(lv_event_t *e)
+{
+    numpad_open(NULL, cut_otro_numpad_cb);
 }
 
 // =========================
@@ -569,6 +616,20 @@ void screen_extruir_refresh_profile(void)
         lv_obj_set_style_text_font(label, FONT_SMALL, 0);
         lv_obj_center(label);
     }
+
+    btn_cut_otro = lv_btn_create(cut_container);
+    lv_obj_set_size(btn_cut_otro, 80, 48);
+    lv_obj_set_style_bg_color(btn_cut_otro, ui_theme_get()->btn_grey, 0);
+    lv_obj_set_style_bg_color(btn_cut_otro, ui_theme_get()->blue, LV_STATE_PRESSED);
+    lv_obj_set_style_border_width(btn_cut_otro, 0, 0);
+    lv_obj_set_style_shadow_width(btn_cut_otro, 0, 0);
+    lv_obj_add_event_cb(btn_cut_otro, cut_otro_btn_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(btn_cut_otro, btn_cut_otro_delete_cb, LV_EVENT_DELETE, NULL);
+
+    lv_obj_t *lbl_otro = lv_label_create(btn_cut_otro);
+    lv_label_set_text(lbl_otro, "Otro");
+    lv_obj_set_style_text_font(lbl_otro, FONT_SMALL, 0);
+    lv_obj_center(lbl_otro);
 }
 
 // =========================
