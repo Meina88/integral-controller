@@ -8,17 +8,17 @@
 #include <stdio.h>
 #include <string.h>
 
-#define C_BG      (ui_theme_get()->bg)
+#define C_BG (ui_theme_get()->bg)
 #define C_SURFACE (ui_theme_get()->surface)
 #define C_SURFACE2 (ui_theme_get()->surface2)
 #define C_PREVIEW (ui_theme_get()->preview)
-#define C_BORDER  (ui_theme_get()->border)
+#define C_BORDER (ui_theme_get()->border)
 #define C_PRESSED (ui_theme_get()->pressed)
-#define C_MUTED   (ui_theme_get()->muted)
-#define C_SUBTLE  (ui_theme_get()->subtle)
-#define C_BLUE    (ui_theme_get()->blue)
-#define C_GREEN   (ui_theme_get()->green)
-#define C_RED     (ui_theme_get()->red)
+#define C_MUTED (ui_theme_get()->muted)
+#define C_SUBTLE (ui_theme_get()->subtle)
+#define C_BLUE (ui_theme_get()->blue)
+#define C_GREEN (ui_theme_get()->green)
+#define C_RED (ui_theme_get()->red)
 
 static lv_obj_t *root;
 static lv_obj_t *kb_panel;
@@ -41,6 +41,28 @@ static bool wifi_error_visible = false;
 
 static void load_wifi_list(void);
 
+static lv_obj_t *active_ta = NULL;
+static char kb_original_text[96] = {0};
+
+static void close_keyboard(bool save)
+{
+    if (!kb_panel || !lv_obj_is_valid(kb_panel))
+        return;
+
+    if (!save && active_ta && lv_obj_is_valid(active_ta))
+    {
+        lv_textarea_set_text(active_ta, kb_original_text);
+    }
+
+    lv_obj_add_flag(kb_panel, LV_OBJ_FLAG_HIDDEN);
+
+    if (kb && lv_obj_is_valid(kb))
+        lv_keyboard_set_textarea(kb, NULL);
+
+    active_ta = NULL;
+    kb_original_text[0] = '\0';
+}
+
 // =========================
 // KEYBOARD
 // =========================
@@ -49,34 +71,26 @@ static void load_wifi_list(void);
 // Nulls all overlay statics so dangling-pointer callbacks bail out safely.
 static void kb_panel_delete_cb(lv_event_t *e)
 {
-    kb_panel          = NULL;
-    kb                = NULL;
-    preview_name_lbl  = NULL;
+    kb_panel = NULL;
+    kb = NULL;
+    preview_name_lbl = NULL;
     preview_value_lbl = NULL;
 }
 
 static void kb_event_cb(lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
-    if (code == LV_EVENT_READY || code == LV_EVENT_CANCEL)
-    {
-        if (!kb_panel || !lv_obj_is_valid(kb_panel))
-            return;
-        lv_obj_add_flag(kb_panel, LV_OBJ_FLAG_HIDDEN);
-        lv_keyboard_set_textarea(kb, NULL);
-    }
+
+    if (code == LV_EVENT_READY)
+        close_keyboard(true);
+    else if (code == LV_EVENT_CANCEL)
+        close_keyboard(false);
 }
 
 static void kb_overlay_click_cb(lv_event_t *e)
 {
-    if (!kb_panel || !lv_obj_is_valid(kb_panel))
-        return;
     if (lv_event_get_target(e) == kb_panel)
-    {
-        lv_obj_add_flag(kb_panel, LV_OBJ_FLAG_HIDDEN);
-        if (kb && lv_obj_is_valid(kb))
-            lv_keyboard_set_textarea(kb, NULL);
-    }
+        close_keyboard(false);
 }
 
 static void ta_changed_cb(lv_event_t *e)
@@ -94,17 +108,26 @@ static void ta_changed_cb(lv_event_t *e)
 
 static void ta_click_cb(lv_event_t *e)
 {
-    if (!kb_panel          || !lv_obj_is_valid(kb_panel))
+    if (!kb_panel || !lv_obj_is_valid(kb_panel))
         return;
-    if (!kb                || !lv_obj_is_valid(kb))
+    if (!kb || !lv_obj_is_valid(kb))
         return;
-    if (!preview_name_lbl  || !lv_obj_is_valid(preview_name_lbl))
+    if (!preview_name_lbl || !lv_obj_is_valid(preview_name_lbl))
         return;
     if (!preview_value_lbl || !lv_obj_is_valid(preview_value_lbl))
         return;
 
     lv_obj_t *ta = lv_event_get_target(e);
     const char *name = (const char *)lv_event_get_user_data(e);
+
+    active_ta = ta;
+
+    strncpy(
+        kb_original_text,
+        lv_textarea_get_text(ta),
+        sizeof(kb_original_text) - 1);
+
+    kb_original_text[sizeof(kb_original_text) - 1] = '\0';
 
     lv_keyboard_set_textarea(kb, ta);
     lv_label_set_text(preview_name_lbl, name ? name : "");
