@@ -16,6 +16,8 @@ static bool connection_error_reported = false;
 static char ip_string[32] = "0.0.0.0";
 #define MAX_WIFI_SCAN_RESULTS 20
 static char wifi_last_error[64] = "";
+static uint8_t connect_attempt = 0;
+#define WIFI_ERROR_MIN_ATTEMPTS 3
 
 static wifi_ap_record_t scan_results[MAX_WIFI_SCAN_RESULTS];
 
@@ -27,6 +29,7 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
     if (event_base == WIFI_EVENT &&
         event_id == WIFI_EVENT_STA_START)
     {
+        connect_attempt = 0;
         if (strlen(wifi_ssid) > 0)
         {
             esp_wifi_connect();
@@ -39,12 +42,15 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
             (wifi_event_sta_disconnected_t *)event_data;
 
         wifi_connected = false;
-
         strcpy(ip_string, "0.0.0.0");
+        connect_attempt++;
 
         if (reconnect_enabled)
         {
-            if (!connection_error_reported)
+            // Solo reportar error tras WIFI_ERROR_MIN_ATTEMPTS fallos consecutivos,
+            // para evitar falsos errores durante el proceso normal de conexión.
+            if (!connection_error_reported &&
+                connect_attempt >= WIFI_ERROR_MIN_ATTEMPTS)
             {
                 connection_error_reported = true;
 
@@ -53,37 +59,23 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
                 case WIFI_REASON_AUTH_FAIL:
                 case WIFI_REASON_4WAY_HANDSHAKE_TIMEOUT:
                 case WIFI_REASON_HANDSHAKE_TIMEOUT:
-
-                    snprintf(
-                        wifi_last_error,
-                        sizeof(wifi_last_error),
-                        "Password WiFi incorrecta");
-
+                    snprintf(wifi_last_error, sizeof(wifi_last_error),
+                             "Password WiFi incorrecta");
                     break;
 
                 case WIFI_REASON_NO_AP_FOUND:
-
-                    snprintf(
-                        wifi_last_error,
-                        sizeof(wifi_last_error),
-                        "Red WiFi no encontrada");
-
+                    snprintf(wifi_last_error, sizeof(wifi_last_error),
+                             "Red WiFi no encontrada");
                     break;
 
                 default:
-
-                    snprintf(
-                        wifi_last_error,
-                        sizeof(wifi_last_error),
-                        "Error WiFi (%d)",
-                        disconn->reason);
-
+                    snprintf(wifi_last_error, sizeof(wifi_last_error),
+                             "Error WiFi (%d)", disconn->reason);
                     break;
                 }
             }
 
-            ESP_LOGI(TAG, "Reconnecting...");
-
+            ESP_LOGI(TAG, "Reconnecting... (attempt %d)", connect_attempt);
             esp_wifi_connect();
         }
     }
@@ -94,9 +86,8 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
             (ip_event_got_ip_t *)event_data;
 
         wifi_connected = true;
-
+        connect_attempt = 0;
         connection_error_reported = false;
-
         wifi_clear_last_error();
 
         snprintf(ip_string,
@@ -216,7 +207,7 @@ void wifi_connect(const char *ssid,
             sizeof(wifi_config.sta.password));
 
     reconnect_enabled = true;
-
+    connect_attempt = 0;
     connection_error_reported = false;
     wifi_clear_last_error();
 

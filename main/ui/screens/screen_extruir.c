@@ -449,7 +449,7 @@ lv_obj_t *screen_extruir_create(lv_obj_t *parent)
     lv_obj_clear_flag(right_col, LV_OBJ_FLAG_SCROLLABLE);
 
     // ─── Sección Corte ────────────────────────────────────────────
-    make_section_label(right_col, "Corte:");
+    make_section_label(right_col, "Longitud de corte:");
 
     cut_container = lv_obj_create(right_col);
     lv_obj_set_size(cut_container, LV_PCT(100), LV_SIZE_CONTENT);
@@ -467,7 +467,7 @@ lv_obj_t *screen_extruir_create(lv_obj_t *parent)
     lv_obj_clear_flag(cut_container, LV_OBJ_FLAG_SCROLLABLE);
 
     // ─── Sección Cantidad objetivo ────────────────────────────────
-    make_section_label(right_col, "Cantidad objetivo:");
+    make_section_label(right_col, "Cantidad:");
 
     // Fila: [número grande]  [▲][▼]  (botones lado a lado)
     lv_obj_t *qty_row = lv_obj_create(right_col);

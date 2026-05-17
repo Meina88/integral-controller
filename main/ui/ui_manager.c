@@ -307,16 +307,20 @@ void ui_start(void)
     lv_obj_set_style_text_font(label_profile, FONT_SMALL, 0);
 
     btn_clear_profile = lv_btn_create(center_cont);
-    lv_obj_set_size(btn_clear_profile, 30, 30);
-    lv_obj_set_style_radius(btn_clear_profile, 15, 0);
-    lv_obj_set_style_bg_color(btn_clear_profile, lv_color_hex(0x374151), 0);
+    lv_obj_set_size(btn_clear_profile, 22, 22);
+    lv_obj_set_style_radius(btn_clear_profile, 4, 0);
+    lv_obj_set_style_bg_opa(btn_clear_profile, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_bg_color(btn_clear_profile, lv_color_white(), LV_STATE_PRESSED);
+    lv_obj_set_style_bg_opa(btn_clear_profile, LV_OPA_20, LV_STATE_PRESSED);
     lv_obj_set_style_shadow_width(btn_clear_profile, 0, 0);
+    lv_obj_set_style_border_width(btn_clear_profile, 0, 0);
     lv_obj_set_style_pad_all(btn_clear_profile, 0, 0);
     lv_obj_add_event_cb(btn_clear_profile, clear_profile_cb, LV_EVENT_CLICKED, NULL);
 
     lv_obj_t *lbl_x = lv_label_create(btn_clear_profile);
-    lv_label_set_text(lbl_x, "X");
+    lv_label_set_text(lbl_x, "×");
     lv_obj_set_style_text_font(lbl_x, FONT_SMALL, 0);
+    lv_obj_set_style_text_color(lbl_x, ui_theme_get()->subtle, 0);
     lv_obj_center(lbl_x);
 
     lv_obj_add_flag(btn_clear_profile, LV_OBJ_FLAG_HIDDEN);
