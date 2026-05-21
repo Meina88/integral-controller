@@ -14,9 +14,10 @@ static bool wifi_connected = false;
 static bool reconnect_enabled = true;
 static bool connection_error_reported = false;
 static char ip_string[32] = "0.0.0.0";
-#define MAX_WIFI_SCAN_RESULTS 20
 static char wifi_last_error[64] = "";
 static uint8_t connect_attempt = 0;
+static wifi_state_t s_wifi_state = WIFI_STATE_IDLE;
+#define MAX_WIFI_SCAN_RESULTS 20
 #define WIFI_ERROR_MIN_ATTEMPTS 3
 
 static wifi_ap_record_t scan_results[MAX_WIFI_SCAN_RESULTS];
@@ -32,6 +33,7 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
         connect_attempt = 0;
         if (strlen(wifi_ssid) > 0)
         {
+            s_wifi_state = WIFI_STATE_CONNECTING;
             esp_wifi_connect();
         }
     }
@@ -47,8 +49,8 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
 
         if (reconnect_enabled)
         {
-            // Solo reportar error tras WIFI_ERROR_MIN_ATTEMPTS fallos consecutivos,
-            // para evitar falsos errores durante el proceso normal de conexión.
+            // Reportar error solo tras WIFI_ERROR_MIN_ATTEMPTS fallos consecutivos
+            // para no mostrar falsos positivos durante el proceso normal de asociación.
             if (!connection_error_reported &&
                 connect_attempt >= WIFI_ERROR_MIN_ATTEMPTS)
             {
@@ -59,24 +61,38 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
                 case WIFI_REASON_AUTH_FAIL:
                 case WIFI_REASON_4WAY_HANDSHAKE_TIMEOUT:
                 case WIFI_REASON_HANDSHAKE_TIMEOUT:
+                    s_wifi_state = WIFI_STATE_AUTH_FAIL;
                     snprintf(wifi_last_error, sizeof(wifi_last_error),
-                             "Password WiFi incorrecta");
+                             "Contrasena incorrecta");
                     break;
 
                 case WIFI_REASON_NO_AP_FOUND:
+                    s_wifi_state = WIFI_STATE_NO_AP;
                     snprintf(wifi_last_error, sizeof(wifi_last_error),
-                             "Red WiFi no encontrada");
+                             "Red no encontrada");
                     break;
 
                 default:
+                    s_wifi_state = WIFI_STATE_ERROR;
                     snprintf(wifi_last_error, sizeof(wifi_last_error),
                              "Error WiFi (%d)", disconn->reason);
                     break;
                 }
+
+                ESP_LOGW(TAG, "WiFi error after %d attempts: %s",
+                         connect_attempt, wifi_last_error);
+            }
+            else if (!connection_error_reported)
+            {
+                s_wifi_state = WIFI_STATE_CONNECTING;
             }
 
-            ESP_LOGI(TAG, "Reconnecting... (attempt %d)", connect_attempt);
             esp_wifi_connect();
+        }
+        else
+        {
+            // Desconexión manual: no reconectar, marcar como desconectado.
+            s_wifi_state = WIFI_STATE_DISCONNECTED;
         }
     }
     else if (event_base == IP_EVENT &&
@@ -88,6 +104,7 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
         wifi_connected = true;
         connect_attempt = 0;
         connection_error_reported = false;
+        s_wifi_state = WIFI_STATE_CONNECTED;
         wifi_clear_last_error();
 
         snprintf(ip_string,
@@ -95,7 +112,7 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
                  IPSTR,
                  IP2STR(&event->ip_info.ip));
 
-        ESP_LOGI(TAG, "IP: %s", ip_string);
+        ESP_LOGI(TAG, "Connected — IP: %s", ip_string);
     }
 }
 
@@ -128,11 +145,11 @@ void wifi_init_sta(void)
 
     esp_wifi_set_mode(WIFI_MODE_STA);
 
-    bool has_credentials =
-        storage_nvs_wifi_exists();
+    bool has_credentials = storage_nvs_wifi_exists();
 
     if (has_credentials)
     {
+        s_wifi_state = WIFI_STATE_CONNECTING;
         esp_err_t err =
             storage_nvs_load_wifi(
                 wifi_ssid,
@@ -209,6 +226,7 @@ void wifi_connect(const char *ssid,
     reconnect_enabled = true;
     connect_attempt = 0;
     connection_error_reported = false;
+    s_wifi_state = WIFI_STATE_CONNECTING;
     wifi_clear_last_error();
 
     esp_wifi_disconnect();
@@ -230,12 +248,12 @@ void wifi_connect(const char *ssid,
 void wifi_disconnect(void)
 {
     reconnect_enabled = false;
+    wifi_connected = false;
+    s_wifi_state = WIFI_STATE_DISCONNECTED;
+    strcpy(ip_string, "0.0.0.0");
+    wifi_clear_last_error();
 
     esp_wifi_disconnect();
-
-    wifi_connected = false;
-
-    strcpy(ip_string, "0.0.0.0");
 }
 
 // =========================
@@ -244,6 +262,11 @@ void wifi_disconnect(void)
 bool wifi_is_connected(void)
 {
     return wifi_connected;
+}
+
+wifi_state_t wifi_get_state(void)
+{
+    return s_wifi_state;
 }
 
 const char *wifi_get_ip_string(void)

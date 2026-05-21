@@ -85,7 +85,7 @@ void ui_set_active_profile(const char *code)
     }
     else
     {
-        snprintf(buf, sizeof(buf), "Sin perfil");
+        snprintf(buf, sizeof(buf), "Seleccione un perfil");
         lv_obj_add_flag(btn_clear_profile, LV_OBJ_FLAG_HIDDEN);
     }
 
@@ -130,6 +130,11 @@ static void switch_tab(int tab)
 void ui_navigate_to_extruir(void)
 {
     switch_tab(0);
+}
+
+void ui_navigate_to_profiles(void)
+{
+    switch_tab(1);
 }
 
 // =========================
@@ -481,23 +486,14 @@ static void update_wifi_icon(void)
 {
     wifi_ui_state_t state;
 
-    if (wifi_is_connected()) {
-        state = WIFI_UI_CONNECTED;
-    } else {
-        const char *err  = wifi_get_last_error();
-        const char *ssid = wifi_get_ssid();
-        if (strlen(err) > 0) {
-            if (strstr(err, "Password") || strstr(err, "password"))
-                state = WIFI_UI_AUTH_ERROR;
-            else if (strstr(err, "encontrada"))
-                state = WIFI_UI_NO_AP;
-            else
-                state = WIFI_UI_ERROR;
-        } else if (strlen(ssid) > 0) {
-            state = WIFI_UI_CONNECTING;
-        } else {
-            state = WIFI_UI_NONE;
-        }
+    switch (wifi_get_state()) {
+    case WIFI_STATE_CONNECTED:    state = WIFI_UI_CONNECTED;  break;
+    case WIFI_STATE_AUTH_FAIL:    state = WIFI_UI_AUTH_ERROR; break;
+    case WIFI_STATE_NO_AP:        state = WIFI_UI_NO_AP;      break;
+    case WIFI_STATE_ERROR:        state = WIFI_UI_ERROR;      break;
+    case WIFI_STATE_CONNECTING:   state = WIFI_UI_CONNECTING; break;
+    case WIFI_STATE_DISCONNECTED: state = WIFI_UI_NONE;       break;
+    default:                      state = WIFI_UI_NONE;       break;
     }
 
     if ((int)state == s_wifi_state) return;
@@ -623,7 +619,8 @@ static void update_status_label(void)
 void ui_update(void)
 {
     screen_extruir_update();
-    screen_config_wifi_update();
+    if (active_tab == 2)
+        screen_config_wifi_update();
     update_time_label();
     update_status_label();
     update_wifi_icon();

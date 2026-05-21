@@ -37,7 +37,6 @@ static lv_obj_t *status_dot;
 static char ssid_buffer[33] = {0};
 static char pass_buffer[65] = {0};
 static bool wifi_scan_loaded = false;
-static bool wifi_error_visible = false;
 
 static void load_wifi_list(void);
 
@@ -138,11 +137,6 @@ static void ta_click_cb(lv_event_t *e)
 // =========================
 // WIFI EVENTS
 // =========================
-static void wifi_msgbox_event_cb(lv_event_t *e)
-{
-    wifi_error_visible = false;
-}
-
 static void wifi_network_event_cb(lv_event_t *e)
 {
     const char *ssid = (const char *)lv_event_get_user_data(e);
@@ -356,11 +350,6 @@ lv_obj_t *screen_config_wifi_create(lv_obj_t *parent)
     lv_obj_set_flex_flow(right, LV_FLEX_FLOW_COLUMN);
     lv_obj_clear_flag(right, LV_OBJ_FLAG_SCROLLABLE);
 
-    lv_obj_t *cred_lbl = lv_label_create(right);
-    lv_label_set_text(cred_lbl, "Credenciales");
-    lv_obj_set_style_text_font(cred_lbl, FONT_SMALL, 0);
-    lv_obj_set_style_text_color(cred_lbl, C_MUTED, 0);
-
     storage_nvs_load_wifi(ssid_buffer, sizeof(ssid_buffer),
                           pass_buffer, sizeof(pass_buffer));
 
@@ -533,33 +522,71 @@ void screen_config_wifi_update(void)
         load_wifi_list();
     }
 
-    // Guard: objects may be temporarily NULL between lv_obj_clean() and screen recreate
+    // Guard: objects may be NULL during screen rebuild
     if (!label_btn_connect || !lv_obj_is_valid(label_btn_connect))
         return;
 
-    bool connected = wifi_is_connected();
+    wifi_state_t state = wifi_get_state();
+    bool connected = (state == WIFI_STATE_CONNECTED);
 
+    // Botón Conectar / Desconectar
     lv_label_set_text(label_btn_connect, connected ? "Desconectar" : "Conectar");
-    lv_label_set_text(label_status, connected ? "Conectado" : "Desconectado");
-    lv_obj_set_style_bg_color(status_dot, connected ? C_GREEN : C_RED, 0);
-    lv_obj_set_style_text_color(label_status, connected ? C_GREEN : C_SUBTLE, 0);
+
+    // Punto de estado + texto inline (sin modales)
+    const char *status_text;
+    lv_color_t  dot_color;
+    lv_color_t  text_color;
+
+    switch (state)
+    {
+    case WIFI_STATE_CONNECTED:
+        status_text = "Conectado";
+        dot_color   = C_GREEN;
+        text_color  = C_GREEN;
+        break;
+
+    case WIFI_STATE_DISCONNECTED:
+        status_text = "Desconectado";
+        dot_color   = C_MUTED;
+        text_color  = C_SUBTLE;
+        break;
+
+    case WIFI_STATE_CONNECTING:
+        status_text = "Conectando...";
+        dot_color   = C_BLUE;
+        text_color  = C_SUBTLE;
+        break;
+
+    case WIFI_STATE_AUTH_FAIL:
+        status_text = "Contrasena incorrecta";
+        dot_color   = C_RED;
+        text_color  = C_RED;
+        break;
+
+    case WIFI_STATE_NO_AP:
+        status_text = "Red no encontrada";
+        dot_color   = C_RED;
+        text_color  = C_RED;
+        break;
+
+    case WIFI_STATE_ERROR:
+        status_text = wifi_get_last_error();
+        dot_color   = C_RED;
+        text_color  = C_RED;
+        break;
+
+    default:  // WIFI_STATE_IDLE
+        status_text = "Sin configurar";
+        dot_color   = C_MUTED;
+        text_color  = C_MUTED;
+        break;
+    }
+
+    lv_label_set_text(label_status, status_text);
+    lv_obj_set_style_bg_color(status_dot, dot_color, 0);
+    lv_obj_set_style_text_color(label_status, text_color, 0);
 
     char ip_buf[32];
     snprintf(ip_buf, sizeof(ip_buf), "IP: %s", wifi_get_ip_string());
     lv_label_set_text(label_ip, ip_buf);
-
-    const char *err = wifi_get_last_error();
-    if (!wifi_error_visible && err && strlen(err) > 0)
-    {
-        wifi_error_visible = true;
-        lv_obj_t *mbox = lv_msgbox_create(NULL);
-        lv_msgbox_add_title(mbox, "WiFi");
-        lv_msgbox_add_text(mbox, err);
-        lv_msgbox_add_close_button(mbox);
-        lv_obj_center(mbox);
-        lv_obj_set_style_shadow_width(mbox, 0, 0);
-        lv_obj_set_style_radius(mbox, 8, 0);
-        wifi_clear_last_error();
-        lv_obj_add_event_cb(mbox, wifi_msgbox_event_cb, LV_EVENT_DELETE, NULL);
-    }
 }

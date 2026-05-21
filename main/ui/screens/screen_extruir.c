@@ -14,6 +14,7 @@
 #include "drivers/rtc/rtc.h"
 #include "logic/alarm_config.h"
 #include "ui/components/numpad.h"
+#include "ui/ui_manager.h"
 
 #define GAUGE_SIZE 220
 #define SPEED_MAX 20
@@ -170,7 +171,7 @@ static void qty_plus_event_cb(lv_event_t *e)
 }
 
 // =========================
-// BOTÓN GRABAR
+// BOTÓN GRABAR / SELECCIONAR PERFIL
 // =========================
 static void btn_event_cb(lv_event_t *e)
 {
@@ -179,7 +180,7 @@ static void btn_event_cb(lv_event_t *e)
         const char *profile = active_profile_get();
         if (!profile || strlen(profile) == 0)
         {
-            show_error_modal("Seleccione un perfil para grabar");
+            ui_navigate_to_profiles();
             return;
         }
 
@@ -568,9 +569,21 @@ void screen_extruir_refresh_profile(void)
         lv_label_set_text(label_target_speed, "Objetivo: --");
         lv_scale_section_set_range(section_target, 0, 0);
 
+        if (!recording_ui)
+        {
+            lv_label_set_text(label_btn, "Seleccionar perfil");
+            lv_obj_set_style_bg_color(btn_record, ui_theme_get()->blue, 0);
+        }
+
         if (cut_container)
             lv_obj_clean(cut_container);
         return;
+    }
+
+    if (!recording_ui)
+    {
+        lv_label_set_text(label_btn, "Grabar");
+        lv_obj_set_style_bg_color(btn_record, lv_palette_main(LV_PALETTE_GREEN), 0);
     }
 
     if (!profile_get_by_code(profile_code, &current_profile))
