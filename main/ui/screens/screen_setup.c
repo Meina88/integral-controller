@@ -34,6 +34,7 @@ static void search_profiles(void);
 static void action_cancel_cb(lv_event_t *e);
 static void action_select_cb(lv_event_t *e);
 static void result_btn_cb(lv_event_t *e);
+static void refresh_btn_cb(lv_event_t *e);
 static void show_results(const char results[][32], int count);
 static void numpad_done_cb(const char *value);
 
@@ -284,13 +285,17 @@ static void show_profile_details_modal(const char *code)
     lv_obj_set_flex_align(right, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
     lv_obj_clear_flag(right, LV_OBJ_FLAG_SCROLLABLE);
 
+    const char *img_name = (p.image[0] != '\0') ? p.image : NULL;
+    char img_name_buf[48];
+    if (!img_name) {
+        snprintf(img_name_buf, sizeof(img_name_buf), "%s.png", p.code);
+        img_name = img_name_buf;
+    }
+
     char img_path[128];
     char real_path[128];
-    snprintf(img_path, sizeof(img_path), "S:/profiles/%s", p.image);
-    snprintf(real_path, sizeof(real_path), "/sdcard/profiles/%s", p.image);
-
-    printf("REAL: %s\n", real_path);
-    printf("LVGL: %s\n", img_path);
+    snprintf(img_path, sizeof(img_path), "S:/profiles/%s", img_name);
+    snprintf(real_path, sizeof(real_path), "/sdcard/profiles/%s", img_name);
 
     FILE *f = fopen(real_path, "r");
     if (f)
@@ -413,8 +418,8 @@ static void search_profiles(void)
 {
     const char *txt = lv_textarea_get_text(ta_search);
 
-    char results[10][32];
-    int count = profile_search(txt, results, 10);
+    char results[60][32];
+    int count = profile_search(txt, results, 60);
 
     show_results(results, count);
 }
@@ -431,6 +436,12 @@ static void numpad_done_cb(const char *value)
     else
         lv_label_set_text_fmt(label_search_text, "\"%s\"", value);
 
+    search_profiles();
+}
+
+static void refresh_btn_cb(lv_event_t *e)
+{
+    (void)e;
     search_profiles();
 }
 
@@ -461,9 +472,21 @@ lv_obj_t *screen_setup_create(lv_obj_t *parent)
     lv_obj_add_flag(ta_search, LV_OBJ_FLAG_HIDDEN | LV_OBJ_FLAG_FLOATING);
     lv_textarea_set_placeholder_text(ta_search, "");
 
-    // Search bar pill
-    lv_obj_t *search_bar = lv_obj_create(root);
-    lv_obj_set_width(search_bar, LV_PCT(100));
+    // Top row: search bar (flex-grow) + refresh button, same height
+    lv_obj_t *top_row = lv_obj_create(root);
+    lv_obj_set_width(top_row, LV_PCT(100));
+    lv_obj_set_height(top_row, 52);
+    lv_obj_set_style_bg_opa(top_row, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_border_width(top_row, 0, 0);
+    lv_obj_set_style_pad_all(top_row, 0, 0);
+    lv_obj_set_style_pad_gap(top_row, 8, 0);
+    lv_obj_set_flex_flow(top_row, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(top_row, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_clear_flag(top_row, LV_OBJ_FLAG_SCROLLABLE);
+
+    // Search bar pill (grows to fill space inside top_row)
+    lv_obj_t *search_bar = lv_obj_create(top_row);
+    lv_obj_set_flex_grow(search_bar, 1);
     lv_obj_set_height(search_bar, 52);
     lv_obj_set_style_bg_color(search_bar, C_SURFACE, 0);
     lv_obj_set_style_bg_opa(search_bar, LV_OPA_COVER, 0);
@@ -504,7 +527,26 @@ lv_obj_t *screen_setup_create(lv_obj_t *parent)
     lv_obj_set_style_text_color(label_search_text, C_SUBTLE, 0);
     lv_obj_set_flex_grow(label_search_text, 1);
 
-    // Results count
+    // Refresh button (inside top_row, same height as search bar)
+    lv_obj_t *btn_refresh = lv_btn_create(top_row);
+    lv_obj_set_size(btn_refresh, 52, 52);
+    lv_obj_set_style_bg_color(btn_refresh, C_SURFACE, 0);
+    lv_obj_set_style_bg_opa(btn_refresh, LV_OPA_COVER, 0);
+    lv_obj_set_style_bg_color(btn_refresh, C_PRESSED, LV_STATE_PRESSED);
+    lv_obj_set_style_bg_opa(btn_refresh, LV_OPA_COVER, LV_STATE_PRESSED);
+    lv_obj_set_style_border_color(btn_refresh, C_BORDER, 0);
+    lv_obj_set_style_border_width(btn_refresh, 1, 0);
+    lv_obj_set_style_shadow_width(btn_refresh, 0, 0);
+    lv_obj_set_style_radius(btn_refresh, 26, 0);
+    lv_obj_add_event_cb(btn_refresh, refresh_btn_cb, LV_EVENT_CLICKED, NULL);
+
+    lv_obj_t *lbl_refresh = lv_label_create(btn_refresh);
+    lv_label_set_text(lbl_refresh, "\xEF\x80\xA1"); /* fa-refresh U+F021 */
+    lv_obj_set_style_text_font(lbl_refresh, &fa_18, 0);
+    lv_obj_set_style_text_color(lbl_refresh, C_MUTED, 0);
+    lv_obj_center(lbl_refresh);
+
+    // Profile count
     label_count = lv_label_create(root);
     lv_label_set_text(label_count, "");
     lv_obj_set_style_text_font(label_count, FONT_SMALL, 0);

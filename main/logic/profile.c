@@ -175,12 +175,13 @@ if (files)
     return true;
 }
 
-#define MAX_FILES 30
-#define MAX_RESULTS 10
+#define MAX_FILES 120
 
 int profile_search(const char *filter, char results[][32], int max)
 {
-    char files[MAX_FILES][64];
+    char (*files)[64] = malloc(MAX_FILES * sizeof(*files));
+    if (!files)
+        return 0;
 
     int count = sd_list_files_in_dir(PROFILE_DIR, files, MAX_FILES);
 
@@ -189,7 +190,7 @@ int profile_search(const char *filter, char results[][32], int max)
 
     int found = 0;
 
-    for (int i = 0; i < count && found < max && found < MAX_RESULTS; i++)
+    for (int i = 0; i < count && found < max; i++)
     {
         if (!strstr(files[i], ".json"))
             continue;
@@ -216,6 +217,7 @@ int profile_search(const char *filter, char results[][32], int max)
         }
     }
 
+    free(files);
     return found;
 }
 

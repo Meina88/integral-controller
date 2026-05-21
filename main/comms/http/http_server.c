@@ -94,6 +94,9 @@ static const char HTML_HEAD[] =
 ".bd{background:rgba(248,81,73,.15);color:var(--red);border:1px solid rgba(248,81,73,.3)}.bd:hover{background:rgba(248,81,73,.25)}"
 ".bgh{background:transparent;color:var(--mut);border:1px solid var(--brd)}.bgh:hover{color:var(--txt);border-color:var(--grn)}"
 ".br{display:flex;gap:8px;margin-top:12px}"
+".pimg{max-width:100%;max-height:180px;object-fit:contain;border-radius:6px;border:1px solid var(--brd);background:var(--card2);display:block;margin:0 auto 8px}"
+".fup{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px}"
+"input[type=file]{font-size:12px;color:var(--mut);flex:1;min-width:0}"
 ".tabs{display:flex;border-bottom:1px solid var(--brd);margin-bottom:10px}"
 ".tab{padding:7px 14px;cursor:pointer;font-size:12px;color:var(--mut);border-bottom:2px solid transparent}"
 ".tab.act{color:var(--grn);border-bottom-color:var(--grn)}"
@@ -216,12 +219,13 @@ static const char HTML_BODY[] =
 "          <button class='btn bgh' onclick='loadProfs()'>&#8635;</button>"
 "        </div>"
 "        <input class='sbi' id='psrch' placeholder='Buscar...' oninput='filterProfs()'/>"
+"        <div id='pcount' style='font-size:11px;color:var(--mut);padding:2px 2px 6px'></div>"
 "        <div class='pl' id='plist'></div>"
 "      </div>"
 "      <div class='ple card'>"
 "        <div id='pempty' style='display:flex;align-items:center;justify-content:center;height:200px;color:var(--mut);font-size:13px'>Selecciona un perfil para editar</div>"
 "        <div id='pform' style='display:none'>"
-"          <div style='display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px'>"
+"          <div style='display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px'>"
 "            <div style='font-size:15px;font-weight:600' id='pfmtitle'>Nuevo perfil</div>"
 "            <div class='br' style='margin:0'>"
 "              <button class='btn bgh' onclick='cancelEdit()'>Cancelar</button>"
@@ -229,35 +233,49 @@ static const char HTML_BODY[] =
 "              <button class='btn bp' onclick='saveProf()'>Guardar</button>"
 "            </div>"
 "          </div>"
-"          <div class='fsec'>General</div>"
-"          <div class='fg'>"
-"            <div class='fgs'><label>Codigo (ID)</label><input id='f_code' placeholder='ej: 1000.5000'/></div>"
-"            <div class='fgs'><label>Nombre comercial</label><input id='f_name' placeholder='ej: Manguera 10mm'/></div>"
-"          </div>"
-"          <div class='fsec'>Geometria</div>"
-"          <div class='fg'>"
-"            <div class='fgs'><label>Matriz</label><input id='f_matrix' placeholder='5000'/></div>"
-"            <div class='fgs'><label>Bocas</label><input id='f_bocas' type='number' min='1' value='1'/></div>"
-"            <div class='fgs'><label>Area (mm&sup2;)</label><input id='f_area' type='number' step='0.01' value='0'/></div>"
-"          </div>"
-"          <div class='fsec'>Proceso</div>"
-"          <div class='fg'>"
-"            <div class='fgs'><label>Husillo (%)</label><input id='f_screw' type='number' min='0' max='100' value='25'/></div>"
-"            <div class='fgs'><label>RPM VFD objetivo</label><input id='f_vfd' type='number' value='450'/></div>"
-"            <div class='fgs'><label>Vel. correa obj. (m/min)</label><input id='f_belt' type='number' step='0.1' value='8.0'/></div>"
-"          </div>"
-"          <div class='fsec'>Produccion</div>"
-"          <div class='fg'>"
-"            <div class='fgs'><label>Opciones de corte (m, separar con coma)</label><input id='f_cuts' placeholder='50, 100, 200'/></div>"
-"            <div class='fgs'><label>Corte por defecto (m)</label><input id='f_defcut' type='number' step='0.5' value='50'/></div>"
-"            <div class='fgs'><label>Permitir valor personalizado</label>"
-"              <select id='f_custom'><option value='true'>Si</option><option value='false'>No</option></select>"
+"          <div style='display:flex;gap:20px;align-items:flex-start'>"
+"            <div style='flex:3;min-width:0'>"
+"              <div class='fsec'>General</div>"
+"              <div class='fg'>"
+"                <div class='fgs'><label>Codigo (ID)</label><input id='f_code' placeholder='ej: 1000.5000'/></div>"
+"                <div class='fgs'><label>Nombre comercial</label><input id='f_name' placeholder='ej: Manguera 10mm'/></div>"
+"              </div>"
+"              <div class='fsec'>Geometria</div>"
+"              <div class='fg'>"
+"                <div class='fgs'><label>Matriz</label><input id='f_matrix' placeholder='5000'/></div>"
+"                <div class='fgs'><label>Bocas</label><input id='f_bocas' type='number' min='1' value='1'/></div>"
+"                <div class='fgs'><label>Area (mm&sup2;)</label><input id='f_area' type='number' step='0.01' value='0'/></div>"
+"              </div>"
+"              <div class='fsec'>Proceso</div>"
+"              <div class='fg'>"
+"                <div class='fgs'><label>Husillo (%)</label><input id='f_screw' type='number' min='0' max='100' value='25'/></div>"
+"                <div class='fgs'><label>RPM VFD objetivo</label><input id='f_vfd' type='number' value='450'/></div>"
+"                <div class='fgs'><label>Vel. correa obj. (m/min)</label><input id='f_belt' type='number' step='0.1' value='8.0'/></div>"
+"              </div>"
+"              <div class='fsec'>Produccion</div>"
+"              <div class='fg'>"
+"                <div class='fgs'><label>Opciones de corte (m, separar con coma)</label><input id='f_cuts' placeholder='50, 100, 200'/></div>"
+"                <div class='fgs'><label>Corte por defecto (m)</label><input id='f_defcut' type='number' step='0.5' value='50'/></div>"
+"                <div class='fgs'><label>Permitir valor personalizado</label>"
+"                  <select id='f_custom'><option value='true'>Si</option><option value='false'>No</option></select>"
+"                </div>"
+"              </div>"
+"              <div class='fsec'>Ingenieria</div>"
+"              <div class='fg'>"
+"                <div class='fgs'><label>Densidad teorica (gr/m)</label><input id='f_tden' type='number' step='0.01' value='0.20'/></div>"
+"                <div class='fgs'><label>Densidad real (gr/m)</label><input id='f_rden' type='number' step='0.01' value='0.20'/></div>"
+"              </div>"
 "            </div>"
-"          </div>"
-"          <div class='fsec'>Ingenieria</div>"
-"          <div class='fg'>"
-"            <div class='fgs'><label>Densidad teorica (gr/m)</label><input id='f_tden' type='number' step='0.01' value='0.20'/></div>"
-"            <div class='fgs'><label>Densidad real (gr/m)</label><input id='f_rden' type='number' step='0.01' value='0.20'/></div>"
+"            <div style='flex:2;min-width:220px;position:sticky;top:0'>"
+"              <div class='fsec'>Imagen del perfil</div>"
+"              <img id='profimg' class='pimg' alt='' style='display:none'>"
+"              <div id='no-img-lbl' style='height:160px;display:flex;align-items:center;justify-content:center;background:var(--card2);border:1px solid var(--brd);border-radius:6px;color:var(--mut);font-size:12px;margin-bottom:8px'>Sin imagen</div>"
+"              <div class='fup'>"
+"                <input type='file' id='f_img' accept='image/png,image/jpeg'>"
+"                <button class='btn bp' onclick='uploadImg()'>Subir</button>"
+"                <button class='btn bd' id='btn-del-img' onclick='delImg()' style='display:none'>Eliminar</button>"
+"              </div>"
+"            </div>"
 "          </div>"
 "        </div>"
 "      </div>"
@@ -538,6 +556,8 @@ static const char HTML_JS[] =
 "}"
 "function renderList(codes){"
 "  const el=document.getElementById('plist');el.innerHTML='';"
+"  const cnt=document.getElementById('pcount'),total=allCodes.length,shown=codes.length;"
+"  if(cnt){if(shown===total)cnt.textContent=total===1?'1 perfil':total+' perfiles';else cnt.textContent=shown+' de '+total+' perfiles';}"
 "  if(!codes.length){el.innerHTML='<div style=\"color:var(--mut);font-size:12px;padding:8px\">Sin perfiles</div>';return;}"
 "  codes.forEach(c=>{"
 "    const d=document.createElement('div');"
@@ -560,6 +580,7 @@ static const char HTML_JS[] =
 "    const data=await r.json();"
 "    curCode=code;isNew=false;"
 "    fillForm(code,data);"
+"    loadProfileImage();"
 "  }catch(e){console.error(e);}"
 "}"
 "function fillForm(code,d){"
@@ -601,12 +622,47 @@ static const char HTML_JS[] =
 "  document.getElementById('pempty').style.display='none';"
 "  document.getElementById('pform').style.display='';"
 "  document.querySelectorAll('.pi').forEach(e=>e.classList.remove('sel'));"
+"  clearProfileImage();"
 "}"
 "function cancelEdit(){"
 "  curCode=null;isNew=false;"
 "  document.getElementById('pempty').style.display='';"
 "  document.getElementById('pform').style.display='none';"
 "  document.querySelectorAll('.pi').forEach(e=>e.classList.remove('sel'));"
+"  clearProfileImage();"
+"}"
+"function clearProfileImage(){"
+"  const img=document.getElementById('profimg'),ph=document.getElementById('no-img-lbl');"
+"  img.style.display='none';img.src='';"
+"  if(ph)ph.style.display='';"
+"  document.getElementById('btn-del-img').style.display='none';"
+"  document.getElementById('f_img').value='';"
+"}"
+"function loadProfileImage(){"
+"  if(!curCode){clearProfileImage();return;}"
+"  const img=document.getElementById('profimg'),ph=document.getElementById('no-img-lbl');"
+"  img.src='/api/profile/image?code='+encodeURIComponent(curCode)+'&_='+Date.now();"
+"  img.onload=()=>{img.style.display='block';if(ph)ph.style.display='none';document.getElementById('btn-del-img').style.display='';};"
+"  img.onerror=()=>{img.style.display='none';if(ph)ph.style.display='';document.getElementById('btn-del-img').style.display='none';};"
+"}"
+"async function uploadImg(){"
+"  const file=document.getElementById('f_img').files[0];"
+"  if(!file){alert('Seleccione una imagen (PNG o JPG)');return;}"
+"  if(!curCode){alert('Guarde el perfil primero');return;}"
+"  if(file.size>512*1024){alert('Imagen demasiado grande (maximo 512 KB)');return;}"
+"  try{"
+"    const r=await fetch('/api/profile/image?code='+encodeURIComponent(curCode),{method:'POST',body:file,headers:{'Content-Type':file.type||'image/png'}});"
+"    if(r.ok){document.getElementById('f_img').value='';loadProfileImage();}"
+"    else alert('Error al subir imagen: '+r.status);"
+"  }catch(e){alert('Error: '+e);}"
+"}"
+"async function delImg(){"
+"  if(!curCode||!confirm('Eliminar imagen del perfil '+curCode+'?'))return;"
+"  try{"
+"    const r=await fetch('/api/profile/image?code='+encodeURIComponent(curCode),{method:'DELETE'});"
+"    if(r.ok)clearProfileImage();"
+"    else alert('No se pudo eliminar la imagen');"
+"  }catch(e){}"
 "}"
 "function buildJSON(code){"
 "  const cuts=document.getElementById('f_cuts').value.split(',').map(s=>parseFloat(s.trim())).filter(v=>!isNaN(v));"
@@ -616,7 +672,7 @@ static const char HTML_JS[] =
 "    production:{cut_options_m:cuts,default_cut_m:parseFloat(document.getElementById('f_defcut').value),allow_custom:document.getElementById('f_custom').value==='true'},"
 "    process:{screw:parseInt(document.getElementById('f_screw').value),target_speed_vfd_rpm:parseInt(document.getElementById('f_vfd').value),target_speed_belt_m_min:parseFloat(document.getElementById('f_belt').value)},"
 "    engineering:{theoretical_density_gr_m:parseFloat(document.getElementById('f_tden').value),real_density_gr_m:parseFloat(document.getElementById('f_rden').value)},"
-"    files:{image:''}"
+"    files:{image:code+'.png'}"
 "  },null,2);"
 "}"
 "async function saveProf(){"
@@ -624,7 +680,13 @@ static const char HTML_JS[] =
 "  if(!code){alert('El codigo es requerido');return;}"
 "  try{"
 "    const r=await fetch('/api/profile?code='+encodeURIComponent(code),{method:'POST',body:buildJSON(code),headers:{'Content-Type':'application/json'}});"
-"    if(r.ok){alert('Perfil guardado');curCode=code;isNew=false;loadProfs();}"
+"    if(r.ok){"
+"      curCode=code;isNew=false;"
+"      document.getElementById('f_code').readOnly=true;"
+"      document.getElementById('pfmtitle').textContent='Editando: '+code;"
+"      document.getElementById('bdel').style.display='';"
+"      loadProfs();"
+"    }"
 "    else alert('Error al guardar: '+r.status);"
 "  }catch(e){alert('Error: '+e);}"
 "}"
@@ -844,8 +906,8 @@ static esp_err_t status_handler(httpd_req_t *req)
 // =============================================================
 static esp_err_t profiles_list_handler(httpd_req_t *req)
 {
-    char results[30][32];
-    int count = profile_search(NULL, results, 30);
+    char results[60][32];
+    int count = profile_search(NULL, results, 60);
 
     int json_size = count * 38 + 8;
     char *json = malloc(json_size);
@@ -955,6 +1017,10 @@ static esp_err_t profile_delete_handler(httpd_req_t *req)
     if (!profile_delete(code))
         return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "No se pudo eliminar");
 
+    char imgpath[160];
+    snprintf(imgpath, sizeof(imgpath), "/sdcard/profiles/%s.png", code);
+    remove(imgpath);
+
     httpd_resp_sendstr(req, "Deleted");
     return ESP_OK;
 }
@@ -986,6 +1052,97 @@ static esp_err_t logs_handler(httpd_req_t *req)
     httpd_resp_set_type(req, "text/csv");
     httpd_resp_send(req, buf, HTTPD_RESP_USE_STRLEN);
     free(buf);
+    return ESP_OK;
+}
+
+// =============================================================
+// /api/profile/image  GET / POST / DELETE
+// =============================================================
+static esp_err_t profile_image_get_handler(httpd_req_t *req)
+{
+    char query[128], code[64], filepath[160];
+
+    if (httpd_req_get_url_query_str(req, query, sizeof(query)) != ESP_OK)
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Falta query");
+    if (httpd_query_key_value(query, "code", code, sizeof(code)) != ESP_OK)
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Falta code");
+
+    snprintf(filepath, sizeof(filepath), "/sdcard/profiles/%s.png", code);
+
+    FILE *f = fopen(filepath, "rb");
+    if (!f)
+        return httpd_resp_send_err(req, HTTPD_404_NOT_FOUND, "Imagen no encontrada");
+
+    httpd_resp_set_type(req, "image/png");
+    httpd_resp_set_hdr(req, "Cache-Control", "max-age=30");
+
+    char chunk[1024];
+    size_t n;
+    while ((n = fread(chunk, 1, sizeof(chunk), f)) > 0)
+        httpd_resp_send_chunk(req, chunk, n);
+
+    fclose(f);
+    httpd_resp_send_chunk(req, NULL, 0);
+    return ESP_OK;
+}
+
+static esp_err_t profile_image_upload_handler(httpd_req_t *req)
+{
+    char query[128], code[64], filepath[160];
+
+    if (httpd_req_get_url_query_str(req, query, sizeof(query)) != ESP_OK)
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Falta query");
+    if (httpd_query_key_value(query, "code", code, sizeof(code)) != ESP_OK)
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Falta code");
+
+    int total = req->content_len;
+    if (total <= 0 || total > 512 * 1024)
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Tamaño invalido (max 512 KB)");
+
+    snprintf(filepath, sizeof(filepath), "/sdcard/profiles/%s.png", code);
+
+    FILE *f = fopen(filepath, "wb");
+    if (!f)
+        return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Error al crear imagen");
+
+    char buf[512];
+    int remaining = total;
+    bool ok = true;
+
+    while (remaining > 0) {
+        int n = httpd_req_recv(req, buf,
+                               (remaining < (int)sizeof(buf)) ? remaining : (int)sizeof(buf));
+        if (n <= 0) { ok = false; break; }
+        fwrite(buf, 1, n, f);
+        remaining -= n;
+    }
+    fclose(f);
+
+    if (!ok) {
+        remove(filepath);
+        return ESP_FAIL;
+    }
+
+    ESP_LOGI(TAG, "Imagen guardada: %s (%d bytes)", filepath, total);
+    httpd_resp_sendstr(req, "OK");
+    return ESP_OK;
+}
+
+static esp_err_t profile_image_delete_handler(httpd_req_t *req)
+{
+    char query[128], code[64], filepath[160];
+
+    if (httpd_req_get_url_query_str(req, query, sizeof(query)) != ESP_OK)
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Falta query");
+    if (httpd_query_key_value(query, "code", code, sizeof(code)) != ESP_OK)
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Falta code");
+
+    snprintf(filepath, sizeof(filepath), "/sdcard/profiles/%s.png", code);
+
+    if (remove(filepath) != 0)
+        return httpd_resp_send_err(req, HTTPD_404_NOT_FOUND, "Imagen no encontrada");
+
+    httpd_resp_sendstr(req, "Deleted");
     return ESP_OK;
 }
 
@@ -1058,7 +1215,7 @@ static esp_err_t root_get_handler(httpd_req_t *req)
 void start_http_server(void)
 {
     httpd_config_t config  = HTTPD_DEFAULT_CONFIG();
-    config.max_uri_handlers = 12;
+    config.max_uri_handlers = 16;
     config.stack_size       = 8192;
 
     httpd_handle_t server = NULL;
@@ -1075,7 +1232,10 @@ void start_http_server(void)
         { .uri = "/api/profile",  .method = HTTP_POST,   .handler = profile_save_handler },
         { .uri = "/api/profile",  .method = HTTP_DELETE, .handler = profile_delete_handler },
         { .uri = "/api/logs",     .method = HTTP_GET,    .handler = logs_handler         },
-        { .uri = "/api/logs/all", .method = HTTP_GET,    .handler = logs_all_handler     },
+        { .uri = "/api/logs/all",     .method = HTTP_GET,    .handler = logs_all_handler            },
+        { .uri = "/api/profile/image", .method = HTTP_GET,    .handler = profile_image_get_handler    },
+        { .uri = "/api/profile/image", .method = HTTP_POST,   .handler = profile_image_upload_handler },
+        { .uri = "/api/profile/image", .method = HTTP_DELETE, .handler = profile_image_delete_handler },
     };
 
     for (int i = 0; i < (int)(sizeof(routes) / sizeof(routes[0])); i++)
