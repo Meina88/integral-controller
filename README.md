@@ -1,79 +1,137 @@
-| Supported Targets | ESP32-S3 |
-| ----------------- | -------- |
+# Extrusion Controller
 
-| Supported LCD Controller    | ST7701 |
-| ----------------------------| -------|
+Embedded industrial control system based on ESP32-S3 for real-time extrusion process automation, monitoring and production logging.  
+In this particular application, the system was developed for rubber profile extrusion lines.
 
-| Supported Touch Controller  |  GT911 |
-| ----------------------------| -------|
+The controller is designed to operate directly in industrial environments with an integrated touchscreen interface, local storage, WiFi connectivity and OTA firmware updates.
 
-# RGB Avoid Tearing Example
+---
 
-[esp_lcd](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/lcd.html) provides several panel drivers out-of box, e.g. ST7789, SSD1306, NT35510. However, there're a lot of other panels on the market, it's beyond `esp_lcd` component's responsibility to include them all.
+# Main Features
 
-`esp_lcd` allows user to add their own panel drivers in the project scope (i.e. panel driver can live outside of esp-idf), so that the upper layer code like LVGL porting code can be reused without any modifications, as long as user-implemented panel driver follows the interface defined in the `esp_lcd` component.
+- Industrial touchscreen HMI interface
+- Real-time extrusion speed measurement
+- Produced length calculation
+- Automatic relay actuation for profile marking or cutting
+- Production profile management
+- Production history logging to SD card
+- Integrated HTTP API
+- Remote WiFi dashboard for real-time production statistics
+- HTTPS OTA firmware updates
+- Automatic firmware rollback
+- Scalable modular architecture
+- ESP-IDF based firmware
 
-This example demonstrates how to avoid tearing when using LVGL with RGB interface screens in an esp-idf project. The example will use the LVGL library to draw a stylish music player.
+---
 
-This example uses the [esp_timer](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/esp_timer.html) to generate the ticks needed by LVGL and uses a dedicated task to run the `lv_timer_handler()`. Since the LVGL APIs are not thread-safe, this example uses a mutex which be invoked before the call of `lv_timer_handler()` and released after it. The same mutex needs to be used in other tasks and threads around every LVGL (lv_...) related function call and code. For more porting guides, please refer to [LVGL porting doc](https://docs.lvgl.io/master/porting/index.html).
+# Industrial Application
 
-## How to use the example
+The system was designed to automate the extrusion process of rubber profiles.
 
-## ESP-IDF Required
+The controller:
 
-### Hardware Required
+- Detects material linear movement using an inductive sensor mounted on a toothed wheel
+- Calculates linear speed and production metrics
+- Automatically actuates a relay for paint marking or automatic cutting systems
+- Provides alarm and warning management
+- Stores production history logs
+- Allows complete configuration per extrusion profile
 
-* An ESP32-S3R8 development board
-* A ST7701 LCD panel, with RGB interface
-* An USB cable for power supply and programming
+---
 
-### Hardware Connection
+# Controller Hardware
 
-The connection between ESP Board and the LCD is as follows:
+- ESP32-S3
+- 800x480 RGB touchscreen display
+- LVGL graphics framework
+- Integrated WiFi
+- SD Card
+- RTC
+- Relay outputs
+- 24V opto-isolated inputs and outputs
+- Conducted EMI noise filtering at control cabinet power input
 
+---
+
+# Production Features
+
+- Instantaneous speed
+- Average speed
+- Produced meters
+- Produced kilograms
+- Cut quantity
+- Daily, weekly, monthly and yearly production history
+- Editable extrusion profiles
+- Process parameters
+- Runtime and downtime statistics
+
+---
+
+# Graphical User Interface
+
+The UI was developed using:
+
+- LVGL
+- Modern industrial HMI design
+- Modular architecture
+- Reusable components
+- Touchscreen navigation
+
+---
+
+# Build
+
+## Requirements
+
+- ESP-IDF v5.5.x
+- Python
+- Ninja
+- Xtensa Toolchain
+
+---
+
+## Compile
+
+```bash
+idf.py build
 ```
-       ESP Board                           RGB  Panel
-+-----------------------+              +-------------------+
-|                   GND +--------------+GND                |
-|                       |              |                   |
-|                   3V3 +--------------+VCC                |
-|                       |              |                   |
-|                   PCLK+--------------+PCLK               |
-|                       |              |                   |
-|             DATA[15:0]+--------------+DATA[15:0]         |
-|                       |              |                   |
-|                  HSYNC+--------------+HSYNC              |
-|                       |              |                   |
-|                  VSYNC+--------------+VSYNC              |
-|                       |              |                   |
-|                     DE+--------------+DE                 |
-|                       |              |                   |
-|               BK_LIGHT+--------------+BLK                |
-+-----------------------+              |                   |
-                               3V3-----+DISP_EN            |
-                                       |                   |
-                                       +-------------------+
+
+---
+
+## Flash
+
+```bash
+idf.py flash monitor
 ```
 
-* The LCD parameters and GPIO number used by this example can be changed in [example_rgb_avoid_tearing.c](main/example_rgb_avoid_tearing.c). Especially, please pay attention to the **vendor specific initialization**, it can be different between manufacturers and should consult the LCD supplier for initialization sequence code.
-* The LVGL parameters can be changed not only through `menuconfig` but also directly in `lvgl_conf.h`
+---
 
-### Configure the Project
+# OTA Firmware
 
-Run `idf.py menuconfig` and navigate to `Example Configuration` menu.
+Firmware distribution is handled through:
 
-### Build and Flash
+https://github.com/Meina88/integral-controller/releases
 
-Run `idf.py set-target esp32s3` to select the target chip.
+---
 
-Run `idf.py -p PORT build flash monitor` to build, flash and monitor the project. A fancy animation will show up on the LCD as expected.
+# Development
 
-The first time you run `idf.py` for the example will cost extra time as the build system needs to address the component dependencies and downloads the missing components from registry into `managed_components` folder.
+Project developed by:
 
-(To exit the serial monitor, type ``Ctrl-]``.)
+## Pablo Meinardo
 
-See the [Getting Started Guide](https://docs.espressif.com/projects/esp-idf/en/latest/get-started/index.html) for full steps to configure and use ESP-IDF to build projects.
+- Mechanical Engineer — UNRC
+- Instructional Design Diploma — UTN
+- Industry 4.0 Diploma — UNSAM
 
-## Troubleshooting
+---
 
-For any technical queries, please open an [issue](https://github.com/espressif/esp-iot-solution/issues) on GitHub. We will get back to you soon.
+# Disclaimer
+
+This project was originally developed for private industrial applications related to rubber profile extrusion systems.
+
+The author does not guarantee the suitability of this software or hardware for critical, safety-related or commercial production environments.
+
+The use of this firmware, hardware, documentation or overall system architecture is entirely at the end user's own risk and responsibility.
+
+This repository may contain experimental code, work-in-progress features and incompatible changes between versions.
