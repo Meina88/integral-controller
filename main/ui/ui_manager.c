@@ -620,7 +620,7 @@ void ui_update(void)
 {
     screen_extruir_update();
     if (active_tab == 2)
-        screen_config_wifi_update();
+        screen_config_update();
     update_time_label();
     update_status_label();
     update_wifi_icon();

@@ -20,6 +20,7 @@ idf_component_register(
         "ui/screens/screen_config_datetime.c"
         "ui/screens/screen_config_wifi.c"
         "ui/screens/screen_config_machine.c"
+        "ui/screens/screen_config_system.c"
         "ui/fonts/inter_18.c"
         "ui/fonts/inter_24.c"
         "ui/fonts/inter_28.c"
@@ -79,6 +80,7 @@ idf_component_register(
         # =========================
         "comms/wifi/wifi_manager.c"
         "comms/http/http_server.c"
+        "comms/ota/ota_manager.c"
 
     INCLUDE_DIRS
         "."
@@ -103,6 +105,7 @@ idf_component_register(
         # COMMS
         "comms/wifi"
         "comms/http"
+        "comms/ota"
 
         # CORE
         "logic"
@@ -116,12 +119,17 @@ idf_component_register(
         esp_netif
         nvs_flash
         esp_http_server
+        esp_http_client
+        esp_https_ota
+        app_update
         console
         fatfs
         vfs
         esp_timer
         lvgl
         cjson
+    PRIV_REQUIRES
+        mbedtls
 )
 
 # =========================

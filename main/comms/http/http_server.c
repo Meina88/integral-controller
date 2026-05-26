@@ -12,8 +12,21 @@
 #include "logic/profile.h"
 #include "logic/active_profile.h"
 #include "comms/wifi/wifi_manager.h"
+#include "comms/ota/ota_manager.h"
 
 static const char *TAG = "http";
+
+static const char *ota_state_to_str(ota_state_t state)
+{
+    switch (state) {
+    case OTA_STATE_IDLE:        return "idle";
+    case OTA_STATE_CHECKING:    return "checking";
+    case OTA_STATE_DOWNLOADING: return "downloading";
+    case OTA_STATE_SUCCESS:     return "success";
+    case OTA_STATE_ERROR:       return "error";
+    default:                    return "unknown";
+    }
+}
 
 // =============================================================
 // HTML  (3 chunks sent via httpd_resp_sendstr_chunk)
@@ -1199,6 +1212,66 @@ static esp_err_t logs_all_handler(httpd_req_t *req)
 // =============================================================
 // /   — dashboard HTML (3 chunks)
 // =============================================================
+static esp_err_t ota_status_handler(httpd_req_t *req)
+{
+    ota_status_t st;
+    ota_get_status(&st);
+
+    char json[1024];
+    snprintf(json, sizeof(json),
+        "{"
+        "\"current_version\":\"%s\","
+        "\"available_version\":\"%s\","
+        "\"update_available\":%s,"
+        "\"state\":\"%s\","
+        "\"progress\":%d,"
+        "\"busy\":%s,"
+        "\"last_error\":\"%s\""
+        "}",
+        st.current_version,
+        st.available_version,
+        st.update_available ? "true" : "false",
+        ota_state_to_str(st.state),
+        st.progress,
+        st.busy ? "true" : "false",
+        st.last_error);
+
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_set_hdr(req, "Cache-Control", "no-cache");
+    httpd_resp_send(req, json, HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+}
+
+static esp_err_t ota_check_handler(httpd_req_t *req)
+{
+    esp_err_t err = ota_check_for_update();
+    if (err == ESP_ERR_INVALID_STATE) {
+        return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "OTA busy");
+    }
+    if (err != ESP_OK) {
+        return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "check failed");
+    }
+
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_sendstr(req, "{\"ok\":true,\"message\":\"check started\"}");
+    return ESP_OK;
+}
+
+static esp_err_t ota_start_handler(httpd_req_t *req)
+{
+    esp_err_t err = ota_start_update();
+    if (err == ESP_ERR_INVALID_STATE) {
+        return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "OTA busy");
+    }
+    if (err != ESP_OK) {
+        return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "start failed");
+    }
+
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_sendstr(req, "{\"ok\":true,\"message\":\"update started\"}");
+    return ESP_OK;
+}
+
 static esp_err_t root_get_handler(httpd_req_t *req)
 {
     httpd_resp_set_type(req, "text/html");
@@ -1215,7 +1288,7 @@ static esp_err_t root_get_handler(httpd_req_t *req)
 void start_http_server(void)
 {
     httpd_config_t config  = HTTPD_DEFAULT_CONFIG();
-    config.max_uri_handlers = 16;
+    config.max_uri_handlers = 24;
     config.stack_size       = 8192;
 
     httpd_handle_t server = NULL;
@@ -1236,6 +1309,9 @@ void start_http_server(void)
         { .uri = "/api/profile/image", .method = HTTP_GET,    .handler = profile_image_get_handler    },
         { .uri = "/api/profile/image", .method = HTTP_POST,   .handler = profile_image_upload_handler },
         { .uri = "/api/profile/image", .method = HTTP_DELETE, .handler = profile_image_delete_handler },
+        { .uri = "/api/ota/status", .method = HTTP_GET, .handler = ota_status_handler },
+        { .uri = "/api/ota/check",  .method = HTTP_POST, .handler = ota_check_handler },
+        { .uri = "/api/ota/start",  .method = HTTP_POST, .handler = ota_start_handler },
     };
 
     for (int i = 0; i < (int)(sizeof(routes) / sizeof(routes[0])); i++)

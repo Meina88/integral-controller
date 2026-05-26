@@ -2,6 +2,7 @@
 #include "screen_config_datetime.h"
 #include "screen_config_wifi.h"
 #include "screen_config_machine.h"
+#include "screen_config_system.h"
 #include "ui/fonts/fonts.h"
 #include "ui/ui_theme.h"
 #include "lvgl.h"
@@ -19,20 +20,26 @@ static lv_obj_t *content;
 static lv_obj_t *screen_datetime;
 static lv_obj_t *screen_wifi;
 static lv_obj_t *screen_machine;
-static lv_obj_t *tab_btns[3];
-static lv_obj_t *tab_lbls[3];
+static lv_obj_t *screen_system;
+static lv_obj_t *tab_btns[4];
+static lv_obj_t *tab_lbls[4];
+static int active_tab = 0;
 
 static void switch_tab(int id)
 {
+    active_tab = id;
+
     lv_obj_add_flag(screen_datetime, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(screen_wifi,     LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(screen_machine,  LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(screen_system,   LV_OBJ_FLAG_HIDDEN);
 
     if (id == 0) lv_obj_clear_flag(screen_datetime, LV_OBJ_FLAG_HIDDEN);
     if (id == 1) lv_obj_clear_flag(screen_wifi,     LV_OBJ_FLAG_HIDDEN);
     if (id == 2) lv_obj_clear_flag(screen_machine,  LV_OBJ_FLAG_HIDDEN);
+    if (id == 3) lv_obj_clear_flag(screen_system,   LV_OBJ_FLAG_HIDDEN);
 
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 4; i++)
     {
         if (i == id)
         {
@@ -84,9 +91,9 @@ lv_obj_t *screen_config_create(lv_obj_t *parent)
     lv_obj_set_flex_flow(tabbar, LV_FLEX_FLOW_ROW);
     lv_obj_clear_flag(tabbar, LV_OBJ_FLAG_SCROLLABLE);
 
-    const char *tab_names[] = {"Fecha/Hora", "WiFi", "Maquina"};
+    const char *tab_names[] = {"Fecha/Hora", "WiFi", "Maquina", "Sistema"};
 
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 4; i++)
     {
         lv_obj_t *btn = lv_btn_create(tabbar);
         lv_obj_set_flex_grow(btn, 1);
@@ -134,6 +141,7 @@ lv_obj_t *screen_config_create(lv_obj_t *parent)
     screen_datetime = screen_config_datetime_create(content);
     screen_wifi     = screen_config_wifi_create(content);
     screen_machine  = screen_config_machine_create(content);
+    screen_system   = screen_config_system_create(content);
 
     switch_tab(0);
 
@@ -142,6 +150,10 @@ lv_obj_t *screen_config_create(lv_obj_t *parent)
 
 void screen_config_update(void)
 {
+    if (active_tab == 1)
+        screen_config_wifi_update();
+    else if (active_tab == 3)
+        screen_config_system_update();
 }
 
 void screen_config_show_machine(void)

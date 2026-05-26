@@ -9,6 +9,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include <stdio.h>
+#include <stdbool.h>
 
 #include "digital_outputs.h"
 #include "drivers/rtc/rtc.h"
@@ -16,6 +17,7 @@
 
 #include "wifi_manager.h"
 #include "http_server.h"
+#include "comms/ota/ota_manager.h"
 
 #include "nvs_flash.h"
 #include "storage/nvs/storage_nvs.h"
@@ -48,6 +50,7 @@ void app_main(void)
     // NVS BASE (ESP-IDF)
     // =========================
     ESP_ERROR_CHECK(nvs_flash_init());
+    ota_manager_init();
 
     // =========================
     // STORAGE NVS (PERFILES)
@@ -65,6 +68,11 @@ void app_main(void)
     {
         printf("Perfiles encontrados en NVS\n");
     }
+
+    // Self-test hook for rollback flow recommended by Espressif.
+    // Replace with real diagnostics when available.
+    bool diagnostics_ok = true;
+    ESP_ERROR_CHECK(ota_mark_running_image_validity(diagnostics_ok));
 
     // =========================
     // LOW LEVEL HW
