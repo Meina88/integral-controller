@@ -6,6 +6,7 @@ static int  s_threshold = 10;
 
 static bool s_pre_cut_enabled = false;
 static int  s_pre_cut_seconds = 3;
+static bool s_marking_relay_enabled = true;
 
 void alarm_config_init(void)
 {
@@ -16,6 +17,8 @@ void alarm_config_init(void)
     storage_nvs_load_pre_cut_alarm(&s_pre_cut_enabled, &s_pre_cut_seconds);
     if (s_pre_cut_seconds < 1)  s_pre_cut_seconds = 1;
     if (s_pre_cut_seconds > 30) s_pre_cut_seconds = 30;
+
+    storage_nvs_load_marking_relay_enabled(&s_marking_relay_enabled);
 }
 
 bool alarm_config_is_enabled(void)    { return s_enabled; }
@@ -36,4 +39,15 @@ void alarm_config_pre_cut_set(bool enabled, int seconds)
     s_pre_cut_enabled = enabled;
     s_pre_cut_seconds = seconds;
     storage_nvs_save_pre_cut_alarm(enabled, seconds);
+}
+
+bool alarm_config_marking_relay_is_enabled(void)
+{
+    return s_marking_relay_enabled;
+}
+
+void alarm_config_marking_relay_set(bool enabled)
+{
+    s_marking_relay_enabled = enabled;
+    storage_nvs_save_marking_relay_enabled(enabled);
 }

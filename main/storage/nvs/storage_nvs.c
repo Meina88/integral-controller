@@ -13,6 +13,7 @@
 #define KEY_ALARM_THRESHOLD "alarm_thr"
 #define KEY_PRECUT_ENABLED  "precut_en"
 #define KEY_PRECUT_SECONDS  "precut_sec"
+#define KEY_MARK_RELAY_EN   "mark_rel_en"
 
 // =========================
 // INIT NVS
@@ -312,6 +313,33 @@ void storage_nvs_load_pre_cut_alarm(bool *enabled, int *seconds)
     nvs_close(handle);
     if (enabled) *enabled = (bool)en;
     if (seconds) *seconds = (int)sec;
+}
+
+// =========================
+// SAVE MARKING RELAY CONFIG
+// =========================
+void storage_nvs_save_marking_relay_enabled(bool enabled)
+{
+    nvs_handle_t handle;
+    if (nvs_open(NAMESPACE, NVS_READWRITE, &handle) != ESP_OK)
+        return;
+    nvs_set_i32(handle, KEY_MARK_RELAY_EN, (int32_t)enabled);
+    nvs_commit(handle);
+    nvs_close(handle);
+}
+
+// =========================
+// LOAD MARKING RELAY CONFIG
+// =========================
+void storage_nvs_load_marking_relay_enabled(bool *enabled)
+{
+    nvs_handle_t handle;
+    if (nvs_open(NAMESPACE, NVS_READONLY, &handle) != ESP_OK)
+        return;
+    int32_t en = 1; // por defecto habilitado
+    nvs_get_i32(handle, KEY_MARK_RELAY_EN, &en);
+    nvs_close(handle);
+    if (enabled) *enabled = (bool)en;
 }
 
 // =========================

@@ -38,3 +38,9 @@ void storage_nvs_load_alarm(bool *enabled, int *threshold);
 // =========================
 void storage_nvs_save_pre_cut_alarm(bool enabled, int seconds);
 void storage_nvs_load_pre_cut_alarm(bool *enabled, int *seconds);
+
+// =========================
+// MARKING RELAY CONFIG
+// =========================
+void storage_nvs_save_marking_relay_enabled(bool enabled);
+void storage_nvs_load_marking_relay_enabled(bool *enabled);

@@ -400,7 +400,7 @@ void ui_start(void)
     lv_obj_set_style_pad_gap(sidebar, 0, 0);
 
     // pestañas
-    const char *names[]       = {"Extruir", "Perfiles", "Config", "Archivos"};
+    const char *names[]       = {"Extrudir", "Perfiles", "Ajustes", "Archivos"};
     lv_event_cb_t callbacks[] = {
         tab_extruir_cb,
         tab_setup_cb,

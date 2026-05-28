@@ -37,7 +37,7 @@ static const char HTML_HEAD[] =
 "<html lang='es'><head>"
 "<meta charset='UTF-8'>"
 "<meta name='viewport' content='width=device-width,initial-scale=1'>"
-"<title>DeepMove Controller</title>"
+"<title>ExtrUX Controller</title>"
 "<style>"
 ":root{--bg:#0d1117;--sb:#010409;--card:#161b22;--card2:#1c2128;--brd:#30363d;"
 "--txt:#e6edf3;--mut:#8b949e;--grn:#00e676;--grn2:rgba(0,230,118,.08);--grn3:rgba(0,230,118,.18);"
@@ -149,7 +149,7 @@ static const char HTML_HEAD[] =
 static const char HTML_BODY[] =
 "<body>"
 "<div class='sb'>"
-"  <div class='logo'><h1>&#9654; DeepMove</h1><p>CONTROLLER</p></div>"
+"  <div class='logo'><h1>&#9654; ExtrUX</h1><p>CONTROLLER</p></div>"
 "  <nav>"
 "    <div class='ns'>Produccion</div>"
 "    <div class='ni act' data-view='dashboard' onclick='nav(this)'>&#9632;&nbsp; Dashboard</div>"

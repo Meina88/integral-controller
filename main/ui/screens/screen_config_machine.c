@@ -21,6 +21,10 @@ static lv_obj_t *lbl_precut_on;
 static lv_obj_t *lbl_precut_off;
 static lv_obj_t *precut_sec_row;
 static lv_obj_t *label_precut_sec_val;
+static lv_obj_t *btn_mark_relay_on;
+static lv_obj_t *btn_mark_relay_off;
+static lv_obj_t *lbl_mark_relay_on;
+static lv_obj_t *lbl_mark_relay_off;
 
 // =========================
 // HELPERS
@@ -138,6 +142,27 @@ static void precut_plus_cb(lv_event_t *e)
     char buf[16];
     snprintf(buf, sizeof(buf), "%d s", s + 1);
     lv_label_set_text(label_precut_sec_val, buf);
+}
+
+static void update_mark_relay_buttons(bool enabled)
+{
+    const ui_theme_t *th = ui_theme_get();
+    lv_obj_set_style_bg_color(btn_mark_relay_on, enabled ? th->blue : th->pressed, 0);
+    lv_obj_set_style_bg_color(btn_mark_relay_off, !enabled ? th->blue : th->pressed, 0);
+    lv_obj_set_style_text_color(lbl_mark_relay_on, enabled ? lv_color_white() : th->subtle, 0);
+    lv_obj_set_style_text_color(lbl_mark_relay_off, !enabled ? lv_color_white() : th->subtle, 0);
+}
+
+static void mark_relay_on_cb(lv_event_t *e)
+{
+    alarm_config_marking_relay_set(true);
+    update_mark_relay_buttons(true);
+}
+
+static void mark_relay_off_cb(lv_event_t *e)
+{
+    alarm_config_marking_relay_set(false);
+    update_mark_relay_buttons(false);
 }
 
 // =========================
@@ -454,6 +479,61 @@ lv_obj_t *screen_config_machine_create(lv_obj_t *parent)
     lv_label_set_text(lbl_sp, "▲");
     lv_obj_set_style_text_font(lbl_sp, FONT_SMALL, 0);
     lv_obj_center(lbl_sp);
+
+    lv_obj_t *sep3 = lv_obj_create(root);
+    lv_obj_set_size(sep3, LV_PCT(100), 1);
+    lv_obj_set_style_bg_color(sep3, th->border, 0);
+    lv_obj_set_style_bg_opa(sep3, LV_OPA_COVER, 0);
+    lv_obj_set_style_border_width(sep3, 0, 0);
+    lv_obj_set_style_pad_all(sep3, 0, 0);
+    lv_obj_clear_flag(sep3, LV_OBJ_FLAG_SCROLLABLE);
+
+    lv_obj_t *lbl_mark_relay = lv_label_create(root);
+    lv_label_set_text(lbl_mark_relay, "Relé de marcación");
+    lv_obj_set_style_text_font(lbl_mark_relay, FONT_SMALL, 0);
+    lv_obj_set_style_text_color(lbl_mark_relay, th->muted, 0);
+
+    bool mark_relay_en = alarm_config_marking_relay_is_enabled();
+
+    lv_obj_t *mark_relay_row = lv_obj_create(root);
+    lv_obj_set_width(mark_relay_row, LV_SIZE_CONTENT);
+    lv_obj_set_height(mark_relay_row, LV_SIZE_CONTENT);
+    lv_obj_set_style_bg_opa(mark_relay_row, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_border_width(mark_relay_row, 0, 0);
+    lv_obj_set_style_pad_all(mark_relay_row, 0, 0);
+    lv_obj_set_style_pad_gap(mark_relay_row, 12, 0);
+    lv_obj_set_flex_flow(mark_relay_row, LV_FLEX_FLOW_ROW);
+    lv_obj_clear_flag(mark_relay_row, LV_OBJ_FLAG_SCROLLABLE);
+
+    btn_mark_relay_on = lv_btn_create(mark_relay_row);
+    lv_obj_set_size(btn_mark_relay_on, 180, 52);
+    lv_obj_set_style_bg_color(btn_mark_relay_on, mark_relay_en ? th->blue : th->pressed, 0);
+    lv_obj_set_style_bg_opa(btn_mark_relay_on, LV_OPA_COVER, 0);
+    lv_obj_set_style_border_width(btn_mark_relay_on, 0, 0);
+    lv_obj_set_style_shadow_width(btn_mark_relay_on, 0, 0);
+    lv_obj_set_style_radius(btn_mark_relay_on, 8, 0);
+    lv_obj_add_event_cb(btn_mark_relay_on, mark_relay_on_cb, LV_EVENT_CLICKED, NULL);
+
+    lbl_mark_relay_on = lv_label_create(btn_mark_relay_on);
+    lv_label_set_text(lbl_mark_relay_on, "Activa");
+    lv_obj_set_style_text_font(lbl_mark_relay_on, FONT_MEDIUM, 0);
+    lv_obj_set_style_text_color(lbl_mark_relay_on, mark_relay_en ? lv_color_white() : th->subtle, 0);
+    lv_obj_center(lbl_mark_relay_on);
+
+    btn_mark_relay_off = lv_btn_create(mark_relay_row);
+    lv_obj_set_size(btn_mark_relay_off, 180, 52);
+    lv_obj_set_style_bg_color(btn_mark_relay_off, !mark_relay_en ? th->blue : th->pressed, 0);
+    lv_obj_set_style_bg_opa(btn_mark_relay_off, LV_OPA_COVER, 0);
+    lv_obj_set_style_border_width(btn_mark_relay_off, 0, 0);
+    lv_obj_set_style_shadow_width(btn_mark_relay_off, 0, 0);
+    lv_obj_set_style_radius(btn_mark_relay_off, 8, 0);
+    lv_obj_add_event_cb(btn_mark_relay_off, mark_relay_off_cb, LV_EVENT_CLICKED, NULL);
+
+    lbl_mark_relay_off = lv_label_create(btn_mark_relay_off);
+    lv_label_set_text(lbl_mark_relay_off, "Desactiva");
+    lv_obj_set_style_text_font(lbl_mark_relay_off, FONT_MEDIUM, 0);
+    lv_obj_set_style_text_color(lbl_mark_relay_off, !mark_relay_en ? lv_color_white() : th->subtle, 0);
+    lv_obj_center(lbl_mark_relay_off);
 
     return root;
 }

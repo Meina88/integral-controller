@@ -108,10 +108,12 @@ void recording_start(void)
     if (alarm_config_pre_cut_is_enabled())
         alarm_trigger_immediate();
 
-    relay_1_on();
-
-    relay_active = true;
-    relay_start_time = lv_tick_get();
+    if (alarm_config_marking_relay_is_enabled())
+    {
+        relay_1_on();
+        relay_active = true;
+        relay_start_time = lv_tick_get();
+    }
 }
 
 // =========================
@@ -243,7 +245,12 @@ void extrusion_process_tick(void)
                 {
                     total_count++;
 
-                    relay_1_on();
+                    if (alarm_config_marking_relay_is_enabled())
+                    {
+                        relay_1_on();
+                        relay_active = true;
+                        relay_start_time = now;
+                    }
 
                     // =========================
                     // TARGET ALCANZADO
@@ -255,9 +262,6 @@ void extrusion_process_tick(void)
 
                         printf("TARGET DE PRODUCCION ALCANZADO\n");
                     }
-
-                    relay_active = true;
-                    relay_start_time = now;
 
                     last_cut_mm = total_mm;
                     pre_cut_alarm_armed = false;

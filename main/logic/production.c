@@ -43,11 +43,12 @@ void production_finish(production_finish_reason_t reason)
         if (alarm_config_pre_cut_is_enabled())
             alarm_trigger_immediate();
 
-        relay_1_on();
-
-        lv_delay_ms(500);
-
-        relay_1_off();
+        if (alarm_config_marking_relay_is_enabled())
+        {
+            relay_1_on();
+            lv_delay_ms(500);
+            relay_1_off();
+        }
     }
 
     // =========================
