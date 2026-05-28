@@ -24,6 +24,7 @@
 #include "logic/extrusion.h"
 #include "logic/alarm.h"
 #include "logic/alarm_config.h"
+#include "logic/calibration.h"
 
 #include "services/production_log.h"
 
@@ -58,6 +59,7 @@ void app_main(void)
     ESP_ERROR_CHECK(storage_nvs_init());
 
     alarm_config_init();
+    calibration_init();
 
     if (!storage_nvs_profiles_exist())
     {

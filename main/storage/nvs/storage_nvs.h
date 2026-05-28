@@ -44,3 +44,9 @@ void storage_nvs_load_pre_cut_alarm(bool *enabled, int *seconds);
 // =========================
 void storage_nvs_save_marking_relay_enabled(bool enabled);
 void storage_nvs_load_marking_relay_enabled(bool *enabled);
+
+// =========================
+// LENGTH CALIBRATION
+// =========================
+void storage_nvs_save_cal_factor(float factor);
+void storage_nvs_load_cal_factor(float *factor);

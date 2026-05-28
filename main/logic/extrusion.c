@@ -4,6 +4,7 @@
 #include "drivers/rtc/rtc.h"
 #include "logic/alarm.h"
 #include "logic/alarm_config.h"
+#include "logic/calibration.h"
 #include "lvgl.h"
 #include <stdio.h>
 #include <string.h>
@@ -14,6 +15,9 @@
 // =========================
 // PARÁMETROS SISTEMA
 // =========================
+
+// Diámetro físico del disco sensado.
+// No participa del cálculo si el disco gira solidario 1:1 con la polea de cinta.
 #define SENSOR_DIAMETER_MM 200.0f
 #define BELT_DIAMETER_MM 300.0f
 #define HOLES_COUNT 22.0f
@@ -225,7 +229,7 @@ void extrusion_process_tick(void)
                 float delta_t_sec = interval / 1000.0f;
                 if (delta_t_sec > 0.001f)
                 {
-                    float speed_mm_s = MM_PER_PULSE / delta_t_sec;
+                    float speed_mm_s = (MM_PER_PULSE * calibration_get_factor()) / delta_t_sec;
                     speed_m_min = (speed_mm_s / 1000.0f) * 60.0f;
                 }
             }
@@ -237,7 +241,7 @@ void extrusion_process_tick(void)
             // =========================
             if (recording)
             {
-                total_mm += MM_PER_PULSE;
+                total_mm += MM_PER_PULSE * calibration_get_factor();
 
                 // CORTE
                 if (cut_distance_mm > 0.0f &&

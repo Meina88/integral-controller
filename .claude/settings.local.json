@@ -7,7 +7,8 @@
       "Bash(grep -r \"fa_18\\\\|0xf\\\\|\\\\\\\\\\\\\\\\u\" \"d:\\\\00_PROYECTOS\\\\rubber-srl\\\\codigo\\\\extrusion-controller\\\\main\\\\ui\" --include=\"*.c\" --include=\"*.h\")",
       "Bash(grep -r \"\\\\\\\\\\\\\\\\u\\\\|0xf\\\\|icon\" \"d:\\\\00_PROYECTOS\\\\rubber-srl\\\\codigo\\\\extrusion-controller\\\\main\\\\ui\\\\screens\" --include=\"*.c\")",
       "Bash(idf.py build *)",
-      "PowerShell(cd \"d:\\\\00_PROYECTOS\\\\rubber-srl\\\\codigo\\\\extrusion-controller\"; . $env:IDF_PATH\\\\export.ps1 2>&1 | Select-Object -Last 5; idf.py build 2>&1 | Select-Object -Last 60)"
+      "PowerShell(cd \"d:\\\\00_PROYECTOS\\\\rubber-srl\\\\codigo\\\\extrusion-controller\"; . $env:IDF_PATH\\\\export.ps1 2>&1 | Select-Object -Last 5; idf.py build 2>&1 | Select-Object -Last 60)",
+      "Bash(Get-ChildItem -Path \"d:\\\\00_PROYECTOS\\\\rubber-srl\\\\codigo\\\\extrusion-controller\\\\main\\\\logic\" -File)"
     ]
   }
 }

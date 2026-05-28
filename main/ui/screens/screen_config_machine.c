@@ -3,6 +3,7 @@
 #include "ui/ui_theme.h"
 #include "ui/ui_manager.h"
 #include "logic/alarm_config.h"
+#include "logic/calibration.h"
 #include "lvgl.h"
 #include <stdio.h>
 
@@ -21,10 +22,17 @@ static lv_obj_t *lbl_precut_on;
 static lv_obj_t *lbl_precut_off;
 static lv_obj_t *precut_sec_row;
 static lv_obj_t *label_precut_sec_val;
-static lv_obj_t *btn_mark_relay_on;
-static lv_obj_t *btn_mark_relay_off;
-static lv_obj_t *lbl_mark_relay_on;
-static lv_obj_t *lbl_mark_relay_off;
+
+// ─── Calibration refs ─────────────────────────────────────────────
+static lv_obj_t *label_cal_factor_current;
+static lv_obj_t *label_cal_teorica_val;
+static lv_obj_t *label_cal_real_val;
+static lv_obj_t *label_cal_factor_preview;
+
+static float    s_cal_teorica    = 10.0f;
+static float    s_cal_real       = 10.0f;
+static uint32_t s_teo_hold_ms    = 0;
+static uint32_t s_real_hold_ms   = 0;
 
 // =========================
 // HELPERS
@@ -144,25 +152,139 @@ static void precut_plus_cb(lv_event_t *e)
     lv_label_set_text(label_precut_sec_val, buf);
 }
 
-static void update_mark_relay_buttons(bool enabled)
+// =========================
+// CALIBRATION CALLBACKS
+// =========================
+static void update_cal_preview(void)
 {
-    const ui_theme_t *th = ui_theme_get();
-    lv_obj_set_style_bg_color(btn_mark_relay_on, enabled ? th->blue : th->pressed, 0);
-    lv_obj_set_style_bg_color(btn_mark_relay_off, !enabled ? th->blue : th->pressed, 0);
-    lv_obj_set_style_text_color(lbl_mark_relay_on, enabled ? lv_color_white() : th->subtle, 0);
-    lv_obj_set_style_text_color(lbl_mark_relay_off, !enabled ? lv_color_white() : th->subtle, 0);
+    if (s_cal_teorica <= 0.0f) return;
+    float f = s_cal_real / s_cal_teorica;
+    float pct = (f - 1.0f) * 100.0f;
+    char buf[64];
+    if (f < 0.8f)
+        snprintf(buf, sizeof(buf), "Factor calculado: %.4f  (%.1f%% — fuera del rango -20%%)", f, pct);
+    else if (f > 1.2f)
+        snprintf(buf, sizeof(buf), "Factor calculado: %.4f  (+%.1f%% — fuera del rango +20%%)", f, pct);
+    else
+        snprintf(buf, sizeof(buf), "Factor calculado: %.4f  (%+.1f%%)", f, pct);
+    lv_label_set_text(label_cal_factor_preview, buf);
 }
 
-static void mark_relay_on_cb(lv_event_t *e)
+// Snap float to 1 decimal place to avoid floating-point drift
+static float snap1(float v)
 {
-    alarm_config_marking_relay_set(true);
-    update_mark_relay_buttons(true);
+    int i = (int)(v * 10.0f + 0.5f);
+    return (float)i / 10.0f;
 }
 
-static void mark_relay_off_cb(lv_event_t *e)
+// Progressive step: slow at first, faster the longer you hold
+static float accel_step(uint32_t held_ms)
 {
-    alarm_config_marking_relay_set(false);
-    update_mark_relay_buttons(false);
+    if (held_ms > 4000) return 5.0f;
+    if (held_ms > 2000) return 1.0f;
+    if (held_ms > 1000) return 0.5f;
+    return 0.1f;
+}
+
+static void cal_teo_minus_cb(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    float step;
+    if (code == LV_EVENT_LONG_PRESSED) {
+        s_teo_hold_ms = lv_tick_get();
+        step = 0.1f;
+    } else if (code == LV_EVENT_LONG_PRESSED_REPEAT) {
+        step = accel_step(lv_tick_get() - s_teo_hold_ms);
+    } else {
+        step = 0.1f;
+    }
+    if (s_cal_teorica <= step + 0.001f) s_cal_teorica = 0.1f;
+    else s_cal_teorica = snap1(s_cal_teorica - step);
+    char buf[16];
+    snprintf(buf, sizeof(buf), "%.1f m", s_cal_teorica);
+    lv_label_set_text(label_cal_teorica_val, buf);
+    update_cal_preview();
+}
+
+static void cal_teo_plus_cb(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    float step;
+    if (code == LV_EVENT_LONG_PRESSED) {
+        s_teo_hold_ms = lv_tick_get();
+        step = 0.1f;
+    } else if (code == LV_EVENT_LONG_PRESSED_REPEAT) {
+        step = accel_step(lv_tick_get() - s_teo_hold_ms);
+    } else {
+        step = 0.1f;
+    }
+    s_cal_teorica = snap1(s_cal_teorica + step);
+    char buf[16];
+    snprintf(buf, sizeof(buf), "%.1f m", s_cal_teorica);
+    lv_label_set_text(label_cal_teorica_val, buf);
+    update_cal_preview();
+}
+
+static void cal_real_minus_cb(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    float step;
+    if (code == LV_EVENT_LONG_PRESSED) {
+        s_real_hold_ms = lv_tick_get();
+        step = 0.1f;
+    } else if (code == LV_EVENT_LONG_PRESSED_REPEAT) {
+        step = accel_step(lv_tick_get() - s_real_hold_ms);
+    } else {
+        step = 0.1f;
+    }
+    if (s_cal_real <= step + 0.001f) s_cal_real = 0.1f;
+    else s_cal_real = snap1(s_cal_real - step);
+    char buf[16];
+    snprintf(buf, sizeof(buf), "%.1f m", s_cal_real);
+    lv_label_set_text(label_cal_real_val, buf);
+    update_cal_preview();
+}
+
+static void cal_real_plus_cb(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    float step;
+    if (code == LV_EVENT_LONG_PRESSED) {
+        s_real_hold_ms = lv_tick_get();
+        step = 0.1f;
+    } else if (code == LV_EVENT_LONG_PRESSED_REPEAT) {
+        step = accel_step(lv_tick_get() - s_real_hold_ms);
+    } else {
+        step = 0.1f;
+    }
+    s_cal_real = snap1(s_cal_real + step);
+    char buf[16];
+    snprintf(buf, sizeof(buf), "%.1f m", s_cal_real);
+    lv_label_set_text(label_cal_real_val, buf);
+    update_cal_preview();
+}
+
+static void cal_apply_cb(lv_event_t *e)
+{
+    if (s_cal_teorica <= 0.0f) return;
+    float new_factor = s_cal_real / s_cal_teorica;
+    float pct = (new_factor - 1.0f) * 100.0f;
+    char buf[64];
+
+    if (new_factor > 1.2f) {
+        snprintf(buf, sizeof(buf), "Error: +%.1f%% supera el maximo permitido (+20%%)", pct);
+        lv_label_set_text(label_cal_factor_current, buf);
+        return;
+    }
+    if (new_factor < 0.8f) {
+        snprintf(buf, sizeof(buf), "Error: %.1f%% supera el maximo permitido (-20%%)", pct);
+        lv_label_set_text(label_cal_factor_current, buf);
+        return;
+    }
+
+    calibration_set_factor(new_factor);
+    snprintf(buf, sizeof(buf), "Factor actual: %.4f", new_factor);
+    lv_label_set_text(label_cal_factor_current, buf);
 }
 
 // =========================
@@ -480,6 +602,7 @@ lv_obj_t *screen_config_machine_create(lv_obj_t *parent)
     lv_obj_set_style_text_font(lbl_sp, FONT_SMALL, 0);
     lv_obj_center(lbl_sp);
 
+    // ── Separador ─────────────────────────────────────────────────
     lv_obj_t *sep3 = lv_obj_create(root);
     lv_obj_set_size(sep3, LV_PCT(100), 1);
     lv_obj_set_style_bg_color(sep3, th->border, 0);
@@ -488,52 +611,166 @@ lv_obj_t *screen_config_machine_create(lv_obj_t *parent)
     lv_obj_set_style_pad_all(sep3, 0, 0);
     lv_obj_clear_flag(sep3, LV_OBJ_FLAG_SCROLLABLE);
 
-    lv_obj_t *lbl_mark_relay = lv_label_create(root);
-    lv_label_set_text(lbl_mark_relay, "Relé de marcación");
-    lv_obj_set_style_text_font(lbl_mark_relay, FONT_SMALL, 0);
-    lv_obj_set_style_text_color(lbl_mark_relay, th->muted, 0);
+    // ── Calibración de longitud ───────────────────────────────────
+    lv_obj_t *lbl_cal_sec = lv_label_create(root);
+    lv_label_set_text(lbl_cal_sec, "Calibracion de longitud");
+    lv_obj_set_style_text_font(lbl_cal_sec, FONT_SMALL, 0);
+    lv_obj_set_style_text_color(lbl_cal_sec, th->muted, 0);
 
-    bool mark_relay_en = alarm_config_marking_relay_is_enabled();
+    // Current factor display
+    label_cal_factor_current = lv_label_create(root);
+    char cal_cur_buf[32];
+    snprintf(cal_cur_buf, sizeof(cal_cur_buf), "Factor actual: %.4f",
+             calibration_get_factor());
+    lv_label_set_text(label_cal_factor_current, cal_cur_buf);
+    lv_obj_set_style_text_font(label_cal_factor_current, FONT_MEDIUM, 0);
+    lv_obj_set_style_text_color(label_cal_factor_current, th->text, 0);
 
-    lv_obj_t *mark_relay_row = lv_obj_create(root);
-    lv_obj_set_width(mark_relay_row, LV_SIZE_CONTENT);
-    lv_obj_set_height(mark_relay_row, LV_SIZE_CONTENT);
-    lv_obj_set_style_bg_opa(mark_relay_row, LV_OPA_TRANSP, 0);
-    lv_obj_set_style_border_width(mark_relay_row, 0, 0);
-    lv_obj_set_style_pad_all(mark_relay_row, 0, 0);
-    lv_obj_set_style_pad_gap(mark_relay_row, 12, 0);
-    lv_obj_set_flex_flow(mark_relay_row, LV_FLEX_FLOW_ROW);
-    lv_obj_clear_flag(mark_relay_row, LV_OBJ_FLAG_SCROLLABLE);
+    // Helper: build a spinbox row [label] [▼] [val] [▲]
+    // ── Longitud teórica ─────────────────────────────────────────
+    lv_obj_t *teo_row = lv_obj_create(root);
+    lv_obj_set_size(teo_row, LV_PCT(100), 52);
+    lv_obj_set_flex_flow(teo_row, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(teo_row,
+                          LV_FLEX_ALIGN_SPACE_BETWEEN,
+                          LV_FLEX_ALIGN_CENTER,
+                          LV_FLEX_ALIGN_CENTER);
+    lv_obj_set_style_bg_opa(teo_row, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_border_width(teo_row, 0, 0);
+    lv_obj_set_style_shadow_width(teo_row, 0, 0);
+    lv_obj_set_style_pad_all(teo_row, 0, 0);
+    lv_obj_clear_flag(teo_row, LV_OBJ_FLAG_SCROLLABLE);
 
-    btn_mark_relay_on = lv_btn_create(mark_relay_row);
-    lv_obj_set_size(btn_mark_relay_on, 180, 52);
-    lv_obj_set_style_bg_color(btn_mark_relay_on, mark_relay_en ? th->blue : th->pressed, 0);
-    lv_obj_set_style_bg_opa(btn_mark_relay_on, LV_OPA_COVER, 0);
-    lv_obj_set_style_border_width(btn_mark_relay_on, 0, 0);
-    lv_obj_set_style_shadow_width(btn_mark_relay_on, 0, 0);
-    lv_obj_set_style_radius(btn_mark_relay_on, 8, 0);
-    lv_obj_add_event_cb(btn_mark_relay_on, mark_relay_on_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_t *lbl_teo_text = lv_label_create(teo_row);
+    lv_label_set_text(lbl_teo_text, "Longitud teorica (m):");
+    lv_obj_set_style_text_font(lbl_teo_text, FONT_SMALL, 0);
+    lv_obj_set_style_text_color(lbl_teo_text, th->text, 0);
 
-    lbl_mark_relay_on = lv_label_create(btn_mark_relay_on);
-    lv_label_set_text(lbl_mark_relay_on, "Activa");
-    lv_obj_set_style_text_font(lbl_mark_relay_on, FONT_MEDIUM, 0);
-    lv_obj_set_style_text_color(lbl_mark_relay_on, mark_relay_en ? lv_color_white() : th->subtle, 0);
-    lv_obj_center(lbl_mark_relay_on);
+    lv_obj_t *teo_ctrl = lv_obj_create(teo_row);
+    lv_obj_set_size(teo_ctrl, LV_SIZE_CONTENT, 52);
+    lv_obj_set_flex_flow(teo_ctrl, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(teo_ctrl, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_set_style_pad_gap(teo_ctrl, 8, 0);
+    lv_obj_set_style_bg_opa(teo_ctrl, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_border_width(teo_ctrl, 0, 0);
+    lv_obj_set_style_shadow_width(teo_ctrl, 0, 0);
+    lv_obj_set_style_pad_all(teo_ctrl, 0, 0);
+    lv_obj_clear_flag(teo_ctrl, LV_OBJ_FLAG_SCROLLABLE);
 
-    btn_mark_relay_off = lv_btn_create(mark_relay_row);
-    lv_obj_set_size(btn_mark_relay_off, 180, 52);
-    lv_obj_set_style_bg_color(btn_mark_relay_off, !mark_relay_en ? th->blue : th->pressed, 0);
-    lv_obj_set_style_bg_opa(btn_mark_relay_off, LV_OPA_COVER, 0);
-    lv_obj_set_style_border_width(btn_mark_relay_off, 0, 0);
-    lv_obj_set_style_shadow_width(btn_mark_relay_off, 0, 0);
-    lv_obj_set_style_radius(btn_mark_relay_off, 8, 0);
-    lv_obj_add_event_cb(btn_mark_relay_off, mark_relay_off_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_t *btn_teo_m = lv_btn_create(teo_ctrl);
+    lv_obj_set_size(btn_teo_m, 48, 44);
+    lv_obj_set_style_shadow_width(btn_teo_m, 0, 0);
+    lv_obj_set_style_radius(btn_teo_m, 6, 0);
+    lv_obj_add_event_cb(btn_teo_m, cal_teo_minus_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(btn_teo_m, cal_teo_minus_cb, LV_EVENT_LONG_PRESSED, NULL);
+    lv_obj_add_event_cb(btn_teo_m, cal_teo_minus_cb, LV_EVENT_LONG_PRESSED_REPEAT, NULL);
+    lv_obj_t *lbl_teo_m = lv_label_create(btn_teo_m);
+    lv_label_set_text(lbl_teo_m, "▼");
+    lv_obj_set_style_text_font(lbl_teo_m, FONT_SMALL, 0);
+    lv_obj_center(lbl_teo_m);
 
-    lbl_mark_relay_off = lv_label_create(btn_mark_relay_off);
-    lv_label_set_text(lbl_mark_relay_off, "Desactiva");
-    lv_obj_set_style_text_font(lbl_mark_relay_off, FONT_MEDIUM, 0);
-    lv_obj_set_style_text_color(lbl_mark_relay_off, !mark_relay_en ? lv_color_white() : th->subtle, 0);
-    lv_obj_center(lbl_mark_relay_off);
+    label_cal_teorica_val = lv_label_create(teo_ctrl);
+    lv_label_set_text(label_cal_teorica_val, "10.0 m");
+    lv_obj_set_style_text_font(label_cal_teorica_val, FONT_MEDIUM, 0);
+    lv_obj_set_style_text_color(label_cal_teorica_val, th->text, 0);
+    lv_obj_set_width(label_cal_teorica_val, 110);
+    lv_label_set_long_mode(label_cal_teorica_val, LV_LABEL_LONG_CLIP);
+    lv_obj_set_style_text_align(label_cal_teorica_val, LV_TEXT_ALIGN_CENTER, 0);
+
+    lv_obj_t *btn_teo_p = lv_btn_create(teo_ctrl);
+    lv_obj_set_size(btn_teo_p, 48, 44);
+    lv_obj_set_style_shadow_width(btn_teo_p, 0, 0);
+    lv_obj_set_style_radius(btn_teo_p, 6, 0);
+    lv_obj_add_event_cb(btn_teo_p, cal_teo_plus_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(btn_teo_p, cal_teo_plus_cb, LV_EVENT_LONG_PRESSED, NULL);
+    lv_obj_add_event_cb(btn_teo_p, cal_teo_plus_cb, LV_EVENT_LONG_PRESSED_REPEAT, NULL);
+    lv_obj_t *lbl_teo_p = lv_label_create(btn_teo_p);
+    lv_label_set_text(lbl_teo_p, "▲");
+    lv_obj_set_style_text_font(lbl_teo_p, FONT_SMALL, 0);
+    lv_obj_center(lbl_teo_p);
+
+    // ── Longitud real ─────────────────────────────────────────────
+    lv_obj_t *real_row = lv_obj_create(root);
+    lv_obj_set_size(real_row, LV_PCT(100), 52);
+    lv_obj_set_flex_flow(real_row, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(real_row,
+                          LV_FLEX_ALIGN_SPACE_BETWEEN,
+                          LV_FLEX_ALIGN_CENTER,
+                          LV_FLEX_ALIGN_CENTER);
+    lv_obj_set_style_bg_opa(real_row, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_border_width(real_row, 0, 0);
+    lv_obj_set_style_shadow_width(real_row, 0, 0);
+    lv_obj_set_style_pad_all(real_row, 0, 0);
+    lv_obj_clear_flag(real_row, LV_OBJ_FLAG_SCROLLABLE);
+
+    lv_obj_t *lbl_real_text = lv_label_create(real_row);
+    lv_label_set_text(lbl_real_text, "Longitud real (m):");
+    lv_obj_set_style_text_font(lbl_real_text, FONT_SMALL, 0);
+    lv_obj_set_style_text_color(lbl_real_text, th->text, 0);
+
+    lv_obj_t *real_ctrl = lv_obj_create(real_row);
+    lv_obj_set_size(real_ctrl, LV_SIZE_CONTENT, 52);
+    lv_obj_set_flex_flow(real_ctrl, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(real_ctrl, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_set_style_pad_gap(real_ctrl, 8, 0);
+    lv_obj_set_style_bg_opa(real_ctrl, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_border_width(real_ctrl, 0, 0);
+    lv_obj_set_style_shadow_width(real_ctrl, 0, 0);
+    lv_obj_set_style_pad_all(real_ctrl, 0, 0);
+    lv_obj_clear_flag(real_ctrl, LV_OBJ_FLAG_SCROLLABLE);
+
+    lv_obj_t *btn_real_m = lv_btn_create(real_ctrl);
+    lv_obj_set_size(btn_real_m, 48, 44);
+    lv_obj_set_style_shadow_width(btn_real_m, 0, 0);
+    lv_obj_set_style_radius(btn_real_m, 6, 0);
+    lv_obj_add_event_cb(btn_real_m, cal_real_minus_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(btn_real_m, cal_real_minus_cb, LV_EVENT_LONG_PRESSED, NULL);
+    lv_obj_add_event_cb(btn_real_m, cal_real_minus_cb, LV_EVENT_LONG_PRESSED_REPEAT, NULL);
+    lv_obj_t *lbl_real_m = lv_label_create(btn_real_m);
+    lv_label_set_text(lbl_real_m, "▼");
+    lv_obj_set_style_text_font(lbl_real_m, FONT_SMALL, 0);
+    lv_obj_center(lbl_real_m);
+
+    label_cal_real_val = lv_label_create(real_ctrl);
+    lv_label_set_text(label_cal_real_val, "10.0 m");
+    lv_obj_set_style_text_font(label_cal_real_val, FONT_MEDIUM, 0);
+    lv_obj_set_style_text_color(label_cal_real_val, th->text, 0);
+    lv_obj_set_width(label_cal_real_val, 110);
+    lv_label_set_long_mode(label_cal_real_val, LV_LABEL_LONG_CLIP);
+    lv_obj_set_style_text_align(label_cal_real_val, LV_TEXT_ALIGN_CENTER, 0);
+
+    lv_obj_t *btn_real_p = lv_btn_create(real_ctrl);
+    lv_obj_set_size(btn_real_p, 48, 44);
+    lv_obj_set_style_shadow_width(btn_real_p, 0, 0);
+    lv_obj_set_style_radius(btn_real_p, 6, 0);
+    lv_obj_add_event_cb(btn_real_p, cal_real_plus_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(btn_real_p, cal_real_plus_cb, LV_EVENT_LONG_PRESSED, NULL);
+    lv_obj_add_event_cb(btn_real_p, cal_real_plus_cb, LV_EVENT_LONG_PRESSED_REPEAT, NULL);
+    lv_obj_t *lbl_real_p = lv_label_create(btn_real_p);
+    lv_label_set_text(lbl_real_p, "▲");
+    lv_obj_set_style_text_font(lbl_real_p, FONT_SMALL, 0);
+    lv_obj_center(lbl_real_p);
+
+    // Factor preview label
+    label_cal_factor_preview = lv_label_create(root);
+    lv_label_set_text(label_cal_factor_preview, "Factor calculado: 1.0000");
+    lv_obj_set_style_text_font(label_cal_factor_preview, FONT_SMALL, 0);
+    lv_obj_set_style_text_color(label_cal_factor_preview, th->muted, 0);
+
+    // Apply button
+    lv_obj_t *btn_cal_apply = lv_btn_create(root);
+    lv_obj_set_size(btn_cal_apply, LV_PCT(100), 52);
+    lv_obj_set_style_bg_color(btn_cal_apply, th->blue, 0);
+    lv_obj_set_style_bg_opa(btn_cal_apply, LV_OPA_COVER, 0);
+    lv_obj_set_style_border_width(btn_cal_apply, 0, 0);
+    lv_obj_set_style_shadow_width(btn_cal_apply, 0, 0);
+    lv_obj_set_style_radius(btn_cal_apply, 8, 0);
+    lv_obj_add_event_cb(btn_cal_apply, cal_apply_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_t *lbl_cal_apply = lv_label_create(btn_cal_apply);
+    lv_label_set_text(lbl_cal_apply, "Aplicar factor de correccion");
+    lv_obj_set_style_text_font(lbl_cal_apply, FONT_MEDIUM, 0);
+    lv_obj_set_style_text_color(lbl_cal_apply, lv_color_white(), 0);
+    lv_obj_center(lbl_cal_apply);
 
     return root;
 }

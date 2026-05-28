@@ -67,6 +67,7 @@ idf_component_register(
         "logic/production.c"
         "logic/alarm_config.c"
         "logic/alarm.c"
+        "logic/calibration.c"
 
         # =========================
         # STORAGE

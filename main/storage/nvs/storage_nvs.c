@@ -14,6 +14,7 @@
 #define KEY_PRECUT_ENABLED  "precut_en"
 #define KEY_PRECUT_SECONDS  "precut_sec"
 #define KEY_MARK_RELAY_EN   "mark_rel_en"
+#define KEY_CAL_FACTOR      "cal_factor"
 
 // =========================
 // INIT NVS
@@ -340,6 +341,33 @@ void storage_nvs_load_marking_relay_enabled(bool *enabled)
     nvs_get_i32(handle, KEY_MARK_RELAY_EN, &en);
     nvs_close(handle);
     if (enabled) *enabled = (bool)en;
+}
+
+// =========================
+// SAVE CALIBRATION FACTOR
+// =========================
+void storage_nvs_save_cal_factor(float factor)
+{
+    nvs_handle_t handle;
+    if (nvs_open(NAMESPACE, NVS_READWRITE, &handle) != ESP_OK)
+        return;
+    nvs_set_i32(handle, KEY_CAL_FACTOR, (int32_t)(factor * 10000.0f));
+    nvs_commit(handle);
+    nvs_close(handle);
+}
+
+// =========================
+// LOAD CALIBRATION FACTOR
+// =========================
+void storage_nvs_load_cal_factor(float *factor)
+{
+    nvs_handle_t handle;
+    if (nvs_open(NAMESPACE, NVS_READONLY, &handle) != ESP_OK)
+        return;
+    int32_t val = 10000; // default 1.0000
+    nvs_get_i32(handle, KEY_CAL_FACTOR, &val);
+    nvs_close(handle);
+    if (factor) *factor = (float)val / 10000.0f;
 }
 
 // =========================
