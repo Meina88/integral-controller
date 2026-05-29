@@ -5,6 +5,12 @@ build/
 sdkconfig
 sdkconfig.old
 
+# Gitignore
+.gitignore
+
+# Cloude settings
+Cloude/
+
 # VSCode
 .vscode/
 
