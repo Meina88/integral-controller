@@ -9,7 +9,7 @@ sdkconfig.old
 .gitignore
 
 # Cloude settings
-Cloude/
+.cloude/
 
 # VSCode
 .vscode/
