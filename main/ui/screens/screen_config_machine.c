@@ -23,6 +23,12 @@ static lv_obj_t *lbl_precut_off;
 static lv_obj_t *precut_sec_row;
 static lv_obj_t *label_precut_sec_val;
 
+// ─── Marking relay refs ───────────────────────────────────────────
+static lv_obj_t *btn_relay_on;
+static lv_obj_t *btn_relay_off;
+static lv_obj_t *lbl_relay_on;
+static lv_obj_t *lbl_relay_off;
+
 // ─── Calibration refs ─────────────────────────────────────────────
 static lv_obj_t *label_cal_factor_current;
 static lv_obj_t *label_cal_teorica_val;
@@ -150,6 +156,30 @@ static void precut_plus_cb(lv_event_t *e)
     char buf[16];
     snprintf(buf, sizeof(buf), "%d s", s + 1);
     lv_label_set_text(label_precut_sec_val, buf);
+}
+
+// =========================
+// MARKING RELAY CALLBACKS
+// =========================
+static void update_relay_buttons(bool enabled)
+{
+    const ui_theme_t *th = ui_theme_get();
+    lv_obj_set_style_bg_color(btn_relay_on,  enabled  ? th->blue : th->pressed, 0);
+    lv_obj_set_style_bg_color(btn_relay_off, !enabled ? th->blue : th->pressed, 0);
+    lv_obj_set_style_text_color(lbl_relay_on,  enabled  ? lv_color_white() : th->subtle, 0);
+    lv_obj_set_style_text_color(lbl_relay_off, !enabled ? lv_color_white() : th->subtle, 0);
+}
+
+static void relay_on_cb(lv_event_t *e)
+{
+    alarm_config_marking_relay_set(true);
+    update_relay_buttons(true);
+}
+
+static void relay_off_cb(lv_event_t *e)
+{
+    alarm_config_marking_relay_set(false);
+    update_relay_buttons(false);
 }
 
 // =========================
@@ -601,6 +631,63 @@ lv_obj_t *screen_config_machine_create(lv_obj_t *parent)
     lv_label_set_text(lbl_sp, "▲");
     lv_obj_set_style_text_font(lbl_sp, FONT_SMALL, 0);
     lv_obj_center(lbl_sp);
+
+    // ── Separador ─────────────────────────────────────────────────
+    lv_obj_t *sep_relay = lv_obj_create(root);
+    lv_obj_set_size(sep_relay, LV_PCT(100), 1);
+    lv_obj_set_style_bg_color(sep_relay, th->border, 0);
+    lv_obj_set_style_bg_opa(sep_relay, LV_OPA_COVER, 0);
+    lv_obj_set_style_border_width(sep_relay, 0, 0);
+    lv_obj_set_style_pad_all(sep_relay, 0, 0);
+    lv_obj_clear_flag(sep_relay, LV_OBJ_FLAG_SCROLLABLE);
+
+    // ── Relay de marcación ────────────────────────────────────────
+    lv_obj_t *lbl_relay_sec = lv_label_create(root);
+    lv_label_set_text(lbl_relay_sec, "Relay de marcacion");
+    lv_obj_set_style_text_font(lbl_relay_sec, FONT_SMALL, 0);
+    lv_obj_set_style_text_color(lbl_relay_sec, th->muted, 0);
+
+    bool relay_en = alarm_config_marking_relay_is_enabled();
+
+    lv_obj_t *relay_row = lv_obj_create(root);
+    lv_obj_set_width(relay_row, LV_SIZE_CONTENT);
+    lv_obj_set_height(relay_row, LV_SIZE_CONTENT);
+    lv_obj_set_style_bg_opa(relay_row, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_border_width(relay_row, 0, 0);
+    lv_obj_set_style_pad_all(relay_row, 0, 0);
+    lv_obj_set_style_pad_gap(relay_row, 12, 0);
+    lv_obj_set_flex_flow(relay_row, LV_FLEX_FLOW_ROW);
+    lv_obj_clear_flag(relay_row, LV_OBJ_FLAG_SCROLLABLE);
+
+    btn_relay_on = lv_btn_create(relay_row);
+    lv_obj_set_size(btn_relay_on, 180, 52);
+    lv_obj_set_style_bg_color(btn_relay_on, relay_en ? th->blue : th->pressed, 0);
+    lv_obj_set_style_bg_opa(btn_relay_on, LV_OPA_COVER, 0);
+    lv_obj_set_style_border_width(btn_relay_on, 0, 0);
+    lv_obj_set_style_shadow_width(btn_relay_on, 0, 0);
+    lv_obj_set_style_radius(btn_relay_on, 8, 0);
+    lv_obj_add_event_cb(btn_relay_on, relay_on_cb, LV_EVENT_CLICKED, NULL);
+
+    lbl_relay_on = lv_label_create(btn_relay_on);
+    lv_label_set_text(lbl_relay_on, "Activo");
+    lv_obj_set_style_text_font(lbl_relay_on, FONT_MEDIUM, 0);
+    lv_obj_set_style_text_color(lbl_relay_on, relay_en ? lv_color_white() : th->subtle, 0);
+    lv_obj_center(lbl_relay_on);
+
+    btn_relay_off = lv_btn_create(relay_row);
+    lv_obj_set_size(btn_relay_off, 180, 52);
+    lv_obj_set_style_bg_color(btn_relay_off, !relay_en ? th->blue : th->pressed, 0);
+    lv_obj_set_style_bg_opa(btn_relay_off, LV_OPA_COVER, 0);
+    lv_obj_set_style_border_width(btn_relay_off, 0, 0);
+    lv_obj_set_style_shadow_width(btn_relay_off, 0, 0);
+    lv_obj_set_style_radius(btn_relay_off, 8, 0);
+    lv_obj_add_event_cb(btn_relay_off, relay_off_cb, LV_EVENT_CLICKED, NULL);
+
+    lbl_relay_off = lv_label_create(btn_relay_off);
+    lv_label_set_text(lbl_relay_off, "Desactivado");
+    lv_obj_set_style_text_font(lbl_relay_off, FONT_MEDIUM, 0);
+    lv_obj_set_style_text_color(lbl_relay_off, !relay_en ? lv_color_white() : th->subtle, 0);
+    lv_obj_center(lbl_relay_off);
 
     // ── Separador ─────────────────────────────────────────────────
     lv_obj_t *sep3 = lv_obj_create(root);

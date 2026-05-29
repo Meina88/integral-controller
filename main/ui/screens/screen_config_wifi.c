@@ -36,9 +36,10 @@ static lv_obj_t *status_dot;
 
 static char ssid_buffer[33] = {0};
 static char pass_buffer[65] = {0};
-static bool wifi_scan_loaded = false;
+static bool scan_in_progress = false;
 
-static void load_wifi_list(void);
+static void populate_wifi_list(void);
+static void start_scan(void);
 
 static lv_obj_t *active_ta = NULL;
 static char kb_original_text[96] = {0};
@@ -161,13 +162,76 @@ static void btn_connect_event_cb(lv_event_t *e)
 }
 
 // =========================
+// STATUS REFRESH
+// =========================
+static void refresh_status(void)
+{
+    if (!label_btn_connect || !lv_obj_is_valid(label_btn_connect))
+        return;
+
+    wifi_state_t state = wifi_get_state();
+    bool connected = (state == WIFI_STATE_CONNECTED);
+
+    lv_label_set_text(label_btn_connect, connected ? "Desconectar" : "Conectar");
+
+    const char *status_text;
+    lv_color_t  dot_color;
+    lv_color_t  text_color;
+
+    switch (state)
+    {
+    case WIFI_STATE_CONNECTED:
+        status_text = "Conectado";
+        dot_color   = C_GREEN;
+        text_color  = C_GREEN;
+        break;
+    case WIFI_STATE_DISCONNECTED:
+        status_text = "Desconectado";
+        dot_color   = C_MUTED;
+        text_color  = C_SUBTLE;
+        break;
+    case WIFI_STATE_CONNECTING:
+        status_text = "Conectando...";
+        dot_color   = C_BLUE;
+        text_color  = C_SUBTLE;
+        break;
+    case WIFI_STATE_AUTH_FAIL:
+        status_text = "Contrasena incorrecta";
+        dot_color   = C_RED;
+        text_color  = C_RED;
+        break;
+    case WIFI_STATE_NO_AP:
+        status_text = "Red no encontrada";
+        dot_color   = C_RED;
+        text_color  = C_RED;
+        break;
+    case WIFI_STATE_ERROR:
+        status_text = wifi_get_last_error();
+        dot_color   = C_RED;
+        text_color  = C_RED;
+        break;
+    default:
+        status_text = "Sin configurar";
+        dot_color   = C_MUTED;
+        text_color  = C_MUTED;
+        break;
+    }
+
+    lv_label_set_text(label_status, status_text);
+    lv_obj_set_style_bg_color(status_dot, dot_color, 0);
+    lv_obj_set_style_text_color(label_status, text_color, 0);
+
+    char ip_buf[32];
+    snprintf(ip_buf, sizeof(ip_buf), "IP: %s", wifi_get_ip_string());
+    lv_label_set_text(label_ip, ip_buf);
+}
+
+// =========================
 // SCAN BUTTON
 // =========================
 static void scan_btn_event_cb(lv_event_t *e)
 {
-    wifi_scan_loaded = false;
-    load_wifi_list();
-    wifi_scan_loaded = true;
+    start_scan();
 }
 
 // =========================
@@ -202,14 +266,13 @@ static lv_obj_t *make_field(lv_obj_t *parent, const char *label_text, bool passw
 }
 
 // =========================
-// LOAD WIFI LIST
+// POPULATE WIFI LIST (usa resultados ya disponibles, no dispara scan)
 // =========================
-static void load_wifi_list(void)
+static void populate_wifi_list(void)
 {
     if (!wifi_container)
         return;
     lv_obj_clean(wifi_container);
-    wifi_start_scan();
 
     int count = wifi_get_scan_count();
     printf("Redes encontradas: %d\n", count);
@@ -253,6 +316,26 @@ static void load_wifi_list(void)
 
         lv_obj_add_event_cb(card, wifi_network_event_cb, LV_EVENT_CLICKED, (void *)ssid);
     }
+}
+
+// =========================
+// START SCAN (no bloqueante — muestra placeholder y lanza scan en background)
+// =========================
+static void start_scan(void)
+{
+    if (!wifi_container || scan_in_progress)
+        return;
+
+    scan_in_progress = true;
+
+    lv_obj_clean(wifi_container);
+    lv_obj_t *hint = lv_label_create(wifi_container);
+    lv_label_set_text(hint, "Escaneando...");
+    lv_obj_set_style_text_font(hint, FONT_SMALL, 0);
+    lv_obj_set_style_text_color(hint, C_MUTED, 0);
+    lv_obj_set_width(hint, LV_PCT(100));
+
+    wifi_start_scan();
 }
 
 // =========================
@@ -508,6 +591,9 @@ lv_obj_t *screen_config_wifi_create(lv_obj_t *parent)
 
     lv_obj_add_event_cb(kb, kb_event_cb, LV_EVENT_ALL, NULL);
 
+    refresh_status();
+    start_scan();
+
     return root;
 }
 
@@ -516,77 +602,11 @@ lv_obj_t *screen_config_wifi_create(lv_obj_t *parent)
 // =========================
 void screen_config_wifi_update(void)
 {
-    if (!wifi_scan_loaded)
+    if (scan_in_progress && wifi_is_scan_done())
     {
-        wifi_scan_loaded = true;
-        load_wifi_list();
+        scan_in_progress = false;
+        populate_wifi_list();
     }
 
-    // Guard: objects may be NULL during screen rebuild
-    if (!label_btn_connect || !lv_obj_is_valid(label_btn_connect))
-        return;
-
-    wifi_state_t state = wifi_get_state();
-    bool connected = (state == WIFI_STATE_CONNECTED);
-
-    // Botón Conectar / Desconectar
-    lv_label_set_text(label_btn_connect, connected ? "Desconectar" : "Conectar");
-
-    // Punto de estado + texto inline (sin modales)
-    const char *status_text;
-    lv_color_t  dot_color;
-    lv_color_t  text_color;
-
-    switch (state)
-    {
-    case WIFI_STATE_CONNECTED:
-        status_text = "Conectado";
-        dot_color   = C_GREEN;
-        text_color  = C_GREEN;
-        break;
-
-    case WIFI_STATE_DISCONNECTED:
-        status_text = "Desconectado";
-        dot_color   = C_MUTED;
-        text_color  = C_SUBTLE;
-        break;
-
-    case WIFI_STATE_CONNECTING:
-        status_text = "Conectando...";
-        dot_color   = C_BLUE;
-        text_color  = C_SUBTLE;
-        break;
-
-    case WIFI_STATE_AUTH_FAIL:
-        status_text = "Contrasena incorrecta";
-        dot_color   = C_RED;
-        text_color  = C_RED;
-        break;
-
-    case WIFI_STATE_NO_AP:
-        status_text = "Red no encontrada";
-        dot_color   = C_RED;
-        text_color  = C_RED;
-        break;
-
-    case WIFI_STATE_ERROR:
-        status_text = wifi_get_last_error();
-        dot_color   = C_RED;
-        text_color  = C_RED;
-        break;
-
-    default:  // WIFI_STATE_IDLE
-        status_text = "Sin configurar";
-        dot_color   = C_MUTED;
-        text_color  = C_MUTED;
-        break;
-    }
-
-    lv_label_set_text(label_status, status_text);
-    lv_obj_set_style_bg_color(status_dot, dot_color, 0);
-    lv_obj_set_style_text_color(label_status, text_color, 0);
-
-    char ip_buf[32];
-    snprintf(ip_buf, sizeof(ip_buf), "IP: %s", wifi_get_ip_string());
-    lv_label_set_text(label_ip, ip_buf);
+    refresh_status();
 }

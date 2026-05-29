@@ -39,6 +39,7 @@ const char *wifi_get_ssid(void);
 // SCAN
 // =========================
 void wifi_start_scan(void);
+bool wifi_is_scan_done(void);
 int  wifi_get_scan_count(void);
 const char *wifi_get_scan_ssid(int index);
 

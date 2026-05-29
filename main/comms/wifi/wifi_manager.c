@@ -16,7 +16,9 @@ static bool connection_error_reported = false;
 static char ip_string[32] = "0.0.0.0";
 static char wifi_last_error[64] = "";
 static uint8_t connect_attempt = 0;
-static wifi_state_t s_wifi_state = WIFI_STATE_IDLE;
+static wifi_state_t    s_wifi_state = WIFI_STATE_IDLE;
+static volatile bool   s_scanning   = false;
+static volatile bool   s_scan_done  = false;
 #define MAX_WIFI_SCAN_RESULTS 20
 #define WIFI_ERROR_MIN_ATTEMPTS 3
 
@@ -49,42 +51,47 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
 
         if (reconnect_enabled)
         {
-            // Reportar error solo tras WIFI_ERROR_MIN_ATTEMPTS fallos consecutivos
-            // para no mostrar falsos positivos durante el proceso normal de asociación.
-            if (!connection_error_reported &&
-                connect_attempt >= WIFI_ERROR_MIN_ATTEMPTS)
+            // Durante un escaneo el stack WiFi desconecta brevemente; ignorar el
+            // cambio de estado para no mostrar "Conectando..." siendo que ya estaba conectado.
+            if (!s_scanning)
             {
-                connection_error_reported = true;
-
-                switch (disconn->reason)
+                // Reportar error solo tras WIFI_ERROR_MIN_ATTEMPTS fallos consecutivos
+                // para no mostrar falsos positivos durante el proceso normal de asociación.
+                if (!connection_error_reported &&
+                    connect_attempt >= WIFI_ERROR_MIN_ATTEMPTS)
                 {
-                case WIFI_REASON_AUTH_FAIL:
-                case WIFI_REASON_4WAY_HANDSHAKE_TIMEOUT:
-                case WIFI_REASON_HANDSHAKE_TIMEOUT:
-                    s_wifi_state = WIFI_STATE_AUTH_FAIL;
-                    snprintf(wifi_last_error, sizeof(wifi_last_error),
-                             "Contrasena incorrecta");
-                    break;
+                    connection_error_reported = true;
 
-                case WIFI_REASON_NO_AP_FOUND:
-                    s_wifi_state = WIFI_STATE_NO_AP;
-                    snprintf(wifi_last_error, sizeof(wifi_last_error),
-                             "Red no encontrada");
-                    break;
+                    switch (disconn->reason)
+                    {
+                    case WIFI_REASON_AUTH_FAIL:
+                    case WIFI_REASON_4WAY_HANDSHAKE_TIMEOUT:
+                    case WIFI_REASON_HANDSHAKE_TIMEOUT:
+                        s_wifi_state = WIFI_STATE_AUTH_FAIL;
+                        snprintf(wifi_last_error, sizeof(wifi_last_error),
+                                 "Contrasena incorrecta");
+                        break;
 
-                default:
-                    s_wifi_state = WIFI_STATE_ERROR;
-                    snprintf(wifi_last_error, sizeof(wifi_last_error),
-                             "Error WiFi (%d)", disconn->reason);
-                    break;
+                    case WIFI_REASON_NO_AP_FOUND:
+                        s_wifi_state = WIFI_STATE_NO_AP;
+                        snprintf(wifi_last_error, sizeof(wifi_last_error),
+                                 "Red no encontrada");
+                        break;
+
+                    default:
+                        s_wifi_state = WIFI_STATE_ERROR;
+                        snprintf(wifi_last_error, sizeof(wifi_last_error),
+                                 "Error WiFi (%d)", disconn->reason);
+                        break;
+                    }
+
+                    ESP_LOGW(TAG, "WiFi error after %d attempts: %s",
+                             connect_attempt, wifi_last_error);
                 }
-
-                ESP_LOGW(TAG, "WiFi error after %d attempts: %s",
-                         connect_attempt, wifi_last_error);
-            }
-            else if (!connection_error_reported)
-            {
-                s_wifi_state = WIFI_STATE_CONNECTING;
+                else if (!connection_error_reported)
+                {
+                    s_wifi_state = WIFI_STATE_CONNECTING;
+                }
             }
 
             esp_wifi_connect();
@@ -94,6 +101,16 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
             // Desconexión manual: no reconectar, marcar como desconectado.
             s_wifi_state = WIFI_STATE_DISCONNECTED;
         }
+    }
+    else if (event_base == WIFI_EVENT &&
+             event_id == WIFI_EVENT_SCAN_DONE)
+    {
+        s_scanning  = false;
+        scan_count  = MAX_WIFI_SCAN_RESULTS;
+        esp_wifi_scan_get_ap_records(&scan_count, scan_results);
+        esp_wifi_clear_ap_list();
+        s_scan_done = true;
+        ESP_LOGI(TAG, "WiFi scan complete: %d networks", scan_count);
     }
     else if (event_base == IP_EVENT &&
              event_id == IP_EVENT_STA_GOT_IP)
@@ -280,36 +297,39 @@ const char *wifi_get_ssid(void)
 }
 
 // =========================
-// START SCAN
+// START SCAN (non-blocking)
+// Results ready when wifi_is_scan_done() returns true.
+// WIFI_EVENT_SCAN_DONE fires in the event task and fills scan_results.
 // =========================
 void wifi_start_scan(void)
 {
     wifi_scan_config_t scan_config = {
         .show_hidden = false};
 
+    scan_count  = 0;
+    s_scan_done = false;
+    s_scanning  = true;
+
     esp_err_t err =
-        esp_wifi_scan_start(&scan_config, true);
+        esp_wifi_scan_start(&scan_config, false);
 
     if (err != ESP_OK)
     {
         ESP_LOGW(TAG,
                  "WiFi scan skipped: %s",
                  esp_err_to_name(err));
-
+        s_scanning  = false;
+        s_scan_done = true;
         return;
     }
+}
 
-    scan_count = MAX_WIFI_SCAN_RESULTS;
-
-    esp_wifi_scan_get_ap_records(
-        &scan_count,
-        scan_results);
-
-    esp_wifi_clear_ap_list();
-
-    ESP_LOGI(TAG,
-             "WiFi scan complete: %d networks",
-             scan_count);
+// =========================
+// SCAN DONE
+// =========================
+bool wifi_is_scan_done(void)
+{
+    return s_scan_done;
 }
 
 // =========================
