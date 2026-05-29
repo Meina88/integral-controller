@@ -5,6 +5,34 @@ In this particular application, the system was developed for rubber profile extr
 
 The controller is designed to operate directly in industrial environments with an integrated touchscreen interface, local storage, WiFi connectivity and OTA firmware updates.
 
+
+### Main screen
+<img src="docs/home.jpg" width="600">
+
+### Profile selection
+<img src="docs/profiles.jpg" width="600">
+
+### Profile
+<img src="docs/profile.jpg" width="600">
+
+### Ready
+<img src="docs/ready.jpg" width="600">
+
+### Recording
+<img src="docs/recording.jpg" width="600">
+
+### System
+<img src="docs/system.jpg" width="600">
+
+### Painting machine
+<img src="docs/painting.jpg" width="400">
+
+### Dashboard (WebUI)
+<img src="docs/dashboard.jpg" width="1000">|
+
+### Profile create (WebUI)
+<img src="docs/create.jpg" width="1000">
+
 ---
 
 # Main Features
@@ -114,17 +142,6 @@ https://github.com/Meina88/integral-controller/releases
 
 ---
 
-# Development
-
-Project developed by:
-
-## Pablo Meinardo
-
-- Mechanical Engineer — UNRC
-- Instructional Design Diploma — UTN
-- Industry 4.0 Diploma — UNSAM
-
----
 
 # Disclaimer
 
@@ -135,3 +152,26 @@ The author does not guarantee the suitability of this software or hardware for c
 The use of this firmware, hardware, documentation or overall system architecture is entirely at the end user's own risk and responsibility.
 
 This repository may contain experimental code, work-in-progress features and incompatible changes between versions.
+
+
+# Development
+
+Project developed by:
+
+## Pablo Meinardo
+
+Mechanical Engineer | Embedded Systems | Industrial Automation
+
+- Mechanical Engineer — UNRC
+- Instructional Design — UTN
+- Industry 4.0 — UNSAM
+
+## Contact
+
+**Pablo Meinardo**  
+
+📱 [WhatsApp](https://wa.me/+5493586547097)
+
+📧 Email: meinardop@gmail.com
+
+---
