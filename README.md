@@ -7,31 +7,31 @@ The controller is designed to operate directly in industrial environments with a
 
 
 ### Main screen
-<img src="docs/home.jpg" width="600">
+<img src="docs/images/home.jpg" width="600">
 
 ### Profile selection
-<img src="docs/profiles.jpg" width="600">
+<img src="docs/images/profiles.jpg" width="600">
 
 ### Profile
-<img src="docs/profile.jpg" width="600">
+<img src="docs/images/profile.jpg" width="600">
 
 ### Ready
-<img src="docs/ready.jpg" width="600">
+<img src="docs/images/ready.jpg" width="600">
 
 ### Recording
-<img src="docs/recording.jpg" width="600">
+<img src="docs/images/recording.jpg" width="600">
 
 ### System
-<img src="docs/system.jpg" width="600">
+<img src="docs/images/system.jpg" width="600">
 
 ### Painting machine
-<img src="docs/painting.jpg" width="400">
+<img src="docs/images/painting.jpg" width="400">
 
 ### Dashboard (WebUI)
-<img src="docs/dashboard.jpg" width="1000">|
+<img src="docs/images/dashboard.jpg" width="1000">|
 
 ### Profile create (WebUI)
-<img src="docs/create.jpg" width="1000">
+<img src="docs/images/create.jpg" width="1000">
 
 ---
 
