@@ -58,3 +58,4 @@ bool extrusion_is_target_reached(void);
 // =========================
 bool extrusion_get_sensor_state(void);
 bool extrusion_get_relay_fired(void);
+void extrusion_relay_test(void);

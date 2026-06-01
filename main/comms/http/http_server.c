@@ -43,6 +43,13 @@ static const char HTML_HEAD[] =
 ":root{--bg:#0d1117;--sb:#010409;--card:#161b22;--card2:#1c2128;--brd:#30363d;"
 "--txt:#e6edf3;--mut:#8b949e;--grn:#00e676;--grn2:rgba(0,230,118,.08);--grn3:rgba(0,230,118,.18);"
 "--blu:#58a6ff;--org:#f78166;--yel:#d29922;--red:#f85149}"
+"[data-theme=light]{--bg:#f5f5f5;--sb:#ffffff;--card:#ffffff;--card2:#f8f9fa;--brd:#e0e0e0;"
+"--txt:#212121;--mut:#757575;--grn:#00897b;--grn2:rgba(0,137,123,.08);--grn3:rgba(0,137,123,.18);"
+"--blu:#1976d2;--org:#e64a19;--yel:#f57c00;--red:#c62828}"
+"[data-theme=light] .sb{box-shadow:inset 0 -120px 120px rgba(0,137,123,.05)}"
+"[data-theme=light] .pf{background:var(--grn);box-shadow:0 0 6px rgba(0,137,123,.4)}"
+"[data-theme=light] .bp{background:var(--grn)}"
+"[data-theme=light] .bp:hover{box-shadow:0 0 12px rgba(0,137,123,.4)}"
 "*{box-sizing:border-box;margin:0;padding:0}"
 "body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:flex;height:100vh;height:100dvh;overflow:hidden}"
 ".sb{width:clamp(150px,13vw,210px);background:var(--sb);border-right:1px solid var(--brd);display:flex;flex-direction:column;flex-shrink:0;box-shadow:inset 0 -120px 120px rgba(0,230,118,.08)}"
@@ -65,7 +72,13 @@ static const char HTML_HEAD[] =
 ".grid{display:grid;gap:clamp(6px,0.7vw,11px);margin-bottom:clamp(6px,0.7vw,11px)}"
 ".g4{grid-template-columns:repeat(4,1fr)}"
 ".g5{grid-template-columns:repeat(5,1fr)}"
+".g6{grid-template-columns:repeat(6,1fr)}"
+".g7{grid-template-columns:repeat(7,1fr)}"
 ".g21{grid-template-columns:2fr 1fr}.g211{grid-template-columns:2fr 1fr 1fr}"
+".topbar-status{display:flex;align-items:center;gap:clamp(14px,2vw,36px);flex:1;justify-content:center;overflow:hidden}"
+".topbar-status .cst{font-size:clamp(11px,0.9vw,14px)!important;font-weight:700}"
+".tsitem{display:flex;align-items:baseline;gap:4px;white-space:nowrap}"
+".tslbl{font-size:clamp(9px,0.75vw,11px);color:var(--mut);text-transform:uppercase;letter-spacing:.04em}"
 ".g12{grid-template-columns:1fr 1fr}"
 ".g3{grid-template-columns:repeat(3,1fr)}"
 ".card{background:var(--card);border:1px solid var(--brd);border-radius:8px;padding:clamp(10px,1vw,16px)}"
@@ -91,8 +104,10 @@ static const char HTML_HEAD[] =
 ".view{display:none}.view.act{display:block}"
 "#v-dashboard.act{display:flex;flex-direction:column;gap:clamp(6px,0.7vw,11px);flex:1;min-height:0}"
 "#v-dashboard .grid{margin-bottom:0}"
-"#v-dashboard .g21,#v-dashboard .g211{flex:1;min-height:0}"
-"#v-dashboard .g21>.card,#v-dashboard .g211>.card{overflow:hidden}"
+"#v-dashboard .g21{flex:1;min-height:0}"
+"#v-dashboard .g21>.card{overflow:hidden}"
+"#v-dashboard .chart-full{flex:1;min-height:0;overflow:hidden}"
+"#v-dashboard .io-row{flex-shrink:0}"
 ".plo{display:flex;gap:12px;height:calc(100vh - 128px)}"
 ".pll{width:260px;flex-shrink:0;display:flex;flex-direction:column}"
 ".ple{flex:1;overflow-y:auto}"
@@ -150,10 +165,11 @@ static const char HTML_HEAD[] =
 ".mob-ni{display:flex;flex-direction:column;align-items:center;font-size:11px;color:var(--mut);cursor:pointer;padding:6px 20px;user-select:none}"
 ".mob-ni.act{color:var(--grn)}"
 ".mob-ni-ico{font-size:22px;margin-bottom:2px}"
-"@media(max-width:1300px){.g5{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(2,1fr)}}"
-"@media(max-width:900px){.g5{grid-template-columns:repeat(2,1fr)}.g21{grid-template-columns:1fr}.g211{grid-template-columns:1fr}.lsg{grid-template-columns:repeat(2,1fr)}}"
+"@media(max-width:1400px){.g6{grid-template-columns:repeat(3,1fr)}.g7{grid-template-columns:repeat(4,1fr)}}"
+"@media(max-width:1300px){.g5{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(2,1fr)}.topbar-status{gap:clamp(10px,1.5vw,24px)}}"
+"@media(max-width:900px){.g5{grid-template-columns:repeat(2,1fr)}.g6{grid-template-columns:repeat(2,1fr)}.g7{grid-template-columns:repeat(3,1fr)}.g21{grid-template-columns:1fr}.lsg{grid-template-columns:repeat(2,1fr)}.topbar-status{display:none}}"
 "@media(max-width:640px){.sb{display:none}.mob-nav{display:flex}.content{padding-bottom:60px}"
-"#v-dashboard .g21,#v-dashboard .g211{display:none}"
+"#v-dashboard .g21,#v-dashboard .chart-full,#v-dashboard .io-row{display:none}"
 ".g5{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr}"
 ".cv{font-size:clamp(32px,10vw,54px)}.cst{font-size:clamp(22px,7vw,40px)}.sm .sv{font-size:clamp(18px,5vw,28px)}}"
 "</style></head>";
@@ -161,7 +177,7 @@ static const char HTML_HEAD[] =
 // ------------------------------------
 
 static const char HTML_BODY[] =
-"<body>"
+"<body data-theme='dark'>"
 "<div class='sb'>"
 "  <div class='logo'><h1>&#9654; Rubber SRL</h1><p>CONTROLLER</p></div>"
 "  <nav>"
@@ -169,14 +185,22 @@ static const char HTML_BODY[] =
 "    <div class='ni act' data-view='dashboard' onclick='nav(this)'>&#9632;&nbsp; Dashboard</div>"
 "    <div class='ni' data-view='profiles' onclick='nav(this)'>&#9776;&nbsp; Perfiles</div>"
 "    <div class='ni' data-view='logs' onclick='nav(this)'>&#9741;&nbsp; Logs</div>"
+"    <div class='ns'>Sistema</div>"
+"    <div class='ni' data-view='diagnostico' onclick='nav(this)'>&#9881;&nbsp; Diagnostico</div>"
 "  </nav>"
 "  <div style='padding:10px 16px;font-size:11px;color:var(--mut);border-top:1px solid var(--brd)'>v1.0.0 &copy; 2025 Rubber SRL</div>"
 "</div>"
 "<div class='main'>"
 "  <div class='topbar'>"
 "    <div><h2 id='vtitle'>Dashboard</h2><p id='vsub'>Resumen general del sistema</p></div>"
+"    <div class='topbar-status'>"
+"      <div class='tsitem'><span class='tslbl'>Sistema</span><span id='sysst' class='cst cm'>---</span><span id='syssub' style='display:none'></span></div>"
+"      <div class='tsitem'><span class='tslbl'>Perfil</span><span id='aprof' style='font-weight:700;color:var(--grn)'>---</span><span id='aprofsub' style='display:none'></span></div>"
+"      <div class='tsitem'><span class='tslbl'>IP</span><span id='ipdisp' style='font-weight:700;color:var(--grn);font-family:monospace'>---</span><span id='ssiddisp' style='display:none'></span></div>"
+"    </div>"
 "    <div class='tbr'>"
 "      <div class='wbg'><div class='dot dr' id='wdot'></div><span id='wlbl'>Sin WiFi</span></div>"
+"      <button id='theme-btn' class='mx' onclick='toggleTheme()' title='Cambiar tema' style='font-size:16px;cursor:pointer'>🌙</button>"
 "      <div style='font-size:11px;color:var(--mut)' id='uptime'>00:00:00</div>"
 "    </div>"
 "  </div>"
@@ -185,63 +209,39 @@ static const char HTML_BODY[] =
 /* === DASHBOARD VIEW === */
 "  <div id='v-dashboard' class='view act'>"
 
-/* Top 4 status cards */
-"    <div class='grid g3'>"
-"      <div class='card'><div class='ch'><div class='ct'>Estado del sistema</div><div class='mx' onclick='maxCard(\"status\")'>&#x26F6;</div></div><div class='cst' id='sysst'>---</div><div class='cs' id='syssub'>&nbsp;</div></div>"
-"      <div class='card'><div class='ch'><div class='ct'>Perfil activo</div><div class='mx' onclick='maxCard(\"profile\")'>&#x26F6;</div></div><div class='cst cg' id='aprof'>---</div><div class='cs' id='aprofsub'>&nbsp;</div></div>"
-"      <div class='card'><div class='ch'><div class='ct'>IP local</div><div class='mx' onclick='maxCard(\"ip\")'>&#x26F6;</div></div><div class='cst' id='ipdisp' style='font-family:monospace;font-size:13px;color:var(--grn)'>---</div><div class='cs' id='ssiddisp'>&nbsp;</div></div>"
-"    </div>"
-
-/* 5 metric cards */
-"    <div class='grid g5'>"
-"      <div class='card'><div class='ch'><div class='ct'>Velocidad actual</div><div class='mx' onclick='maxCard(\"spd\")'>&#x26F6;</div></div><div class='cv'><span id='spd'>0.00</span><span class='cu'>m/min</span></div><div class='cs' id='spdrng'>&nbsp;</div><div class='pb'><div class='pf' id='spdpb' style='width:0%'></div></div></div>"
+/* 5 metric cards + compact spray */
+"    <div class='grid g6'>"
+"      <div class='card'><div class='ch'><div class='ct'>Velocidad actual</div><div class='mx' onclick='maxCard(\"spd\")'>&#x26F6;</div></div><div class='cv'><span id='spd'>0.00</span><span class='cu'>m/min</span></div><div class='cs' id='spdrng' style='color:var(--org)'>&nbsp;</div></div>"
 "      <div class='card'><div class='ch'><div class='ct'>Metros producidos</div><div class='mx' onclick='maxCard(\"totm\")'>&#x26F6;</div></div><div class='cv'><span id='totm'>0.00</span><span class='cu'>m</span></div><div class='cs' id='totmsub'>&nbsp;</div><div class='pb'><div class='pf' id='totmpb' style='width:0%'></div></div></div>"
 "      <div class='card'><div class='ch'><div class='ct'>Cortes realizados</div><div class='mx' onclick='maxCard(\"cuts\")'>&#x26F6;</div></div><div class='cv'><span id='cuts'>0</span><span class='cu'>cortes</span></div><div class='cs' id='cutssub'>&nbsp;</div><div class='pb'><div class='pf' id='cutspb' style='width:0%'></div></div></div>"
 "      <div class='card'><div class='ch'><div class='ct'>Long. de corte</div><div class='mx' onclick='maxCard(\"cdist\")'>&#x26F6;</div></div><div class='cv'><span id='cdist'>---</span><span class='cu'>m</span></div><div class='pb'><div class='pf' id='cprog' style='width:0%'></div></div></div>"
-"      <div class='card'><div class='ch'><div class='ct'>Vel. promedio sesion</div><div class='mx' onclick='maxCard(\"avgsp\")'>&#x26F6;</div></div><div class='cv'><span id='avgsp'>0.00</span><span class='cu'>m/min</span></div><div class='cs'>Sesion actual</div><div class='pb'><div class='pf' id='avgpb' style='width:0%'></div></div></div>"
+"      <div class='card'><div class='ch'><div class='ct'>Vel. promedio sesion</div><div class='mx' onclick='maxCard(\"avgsp\")'>&#x26F6;</div></div><div class='cv'><span id='avgsp'>0.00</span><span class='cu'>m/min</span></div><div class='cs'>Sesion actual</div></div>"
+"      <div class='card' style='display:flex;flex-direction:column'>"
+"        <div class='ch'><div class='ct'>Pintura restante</div></div>"
+"        <div style='flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center'>"
+"          <canvas id='sprayArc' style='width:min(100%,80px);display:block'></canvas>"
+"          <div style='margin-top:6px'><span id='sprayRem' style='font-size:clamp(16px,1.5vw,28px);font-weight:700;color:var(--grn)'>---</span><span class='cu' style='font-size:11px'>&nbsp;disp.</span></div>"
+"          <div class='cs' style='font-size:10px;margin-top:2px' id='spraySub'>---</div>"
+"          <div id='sprayWarn' style='display:none;font-size:10px;font-weight:600;color:var(--red)'>&#9888; Bajo</div>"
+"        </div>"
+"      </div>"
 "    </div>"
 
-/* Chart + IO + Spray row */
-"    <div class='grid g211'>"
-"      <div class='card'>"
-"        <div style='display:flex;align-items:center;justify-content:space-between;margin-bottom:10px'>"
-"          <span style='font-size:13px;font-weight:600'>Velocidad en tiempo real</span>"
-"          <div style='display:flex;align-items:center;gap:10px'><span style='font-size:11px;color:var(--mut)'><span style='color:var(--grn)'>&#8212; Actual</span>&nbsp;&nbsp;<span style='color:var(--org)'>- - Objetivo</span></span><div class='mx' onclick='maxCard(\"chart\")'>&#x26F6;</div></div>"
-"        </div>"
-"        <canvas id='speedChart' height='170'></canvas>"
-"        <div class='grid g4' style='margin-top:10px;margin-bottom:0'>"
-"          <div class='sm'><div class='sv' id='st-avg'>0.00</div><div class='sl'>Promedio</div></div>"
-"          <div class='sm'><div class='sv' id='st-max'>--</div><div class='sl'>Maxima</div></div>"
-"          <div class='sm'><div class='sv' id='st-min'>--</div><div class='sl'>Minima</div></div>"
-"          <div class='sm'><div class='sv' id='st-dev'>0.00</div><div class='sl'>Desv. Est.</div></div>"
-"        </div>"
+/* Full-width chart */
+"    <div class='card chart-full'>"
+"      <div class='ch'>"
+"        <span class='ct'>Velocidad en tiempo real</span>"
+"        <div style='display:flex;align-items:center;gap:10px'><span style='font-size:11px;color:var(--mut)'><span style='color:var(--grn)'>&#8212; Actual</span>&nbsp;&nbsp;<span style='color:var(--org)'>- - Objetivo</span></span><div class='mx' onclick='maxCard(\"chart\")'>&#x26F6;</div></div>"
 "      </div>"
-"      <div class='card'>"
-"        <div style='display:flex;align-items:center;justify-content:space-between;margin-bottom:10px'><span style='font-size:13px;font-weight:600'>Entradas / Salidas</span><div class='mx' onclick='maxCard(\"io\")'>&#x26F6;</div></div>"
-"        <div class='tabs'>"
-"          <div class='tab act' data-tab='out' onclick='iotab(this)'>Salidas</div>"
-"          <div class='tab' data-tab='in' onclick='iotab(this)'>Entradas</div>"
-"        </div>"
-"        <div id='io-out'>"
-"          <div class='io'><span>DO1 &ndash; Alarma</span><span class='bdg bof' id='io-al'>OFF</span></div>"
-"          <div class='io'><span>DO2 &ndash; Corte (relay)</span><span class='bdg bof' id='io-rl'>OFF</span></div>"
-"        </div>"
-"        <div id='io-in' style='display:none'>"
-"          <div class='io'><span>DI1 &ndash; Sensor correa</span><span class='bdg bof' id='io-di1'>OFF</span></div>"
-"        </div>"
-"        <div style='margin-top:14px'>"
-"          <div style='font-size:13px;font-weight:600;margin-bottom:8px'>Alarmas activas</div>"
-"          <div id='alml'><div style='font-size:12px;color:var(--mut)'>Sin alarmas activas</div></div>"
-"        </div>"
-"      </div>"
-"      <div class='card' style='display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center'>"
-"        <div class='ct' style='margin-bottom:8px;align-self:flex-start'>Spray de pintura</div>"
-"        <canvas id='sprayArc' style='width:min(100%,180px);display:block'></canvas>"
-"        <div style='margin-top:10px'><span id='sprayRem' style='font-size:clamp(20px,2vw,34px);font-weight:700;color:var(--grn)'>---</span><span class='cu'>&nbsp;disparos</span></div>"
-"        <div class='cs' style='margin-top:4px' id='spraySub'>Capacidad: ---</div>"
-"        <div id='sprayWarn' style='display:none;margin-top:8px;font-size:11px;font-weight:600;color:var(--red)'>&#9888; Spray bajo</div>"
+"      <canvas id='speedChart'></canvas>"
+"      <div class='grid g4' style='margin-top:10px;margin-bottom:0'>"
+"        <div class='sm'><div class='sv' id='st-avg'>0.00</div><div class='sl'>Promedio</div></div>"
+"        <div class='sm'><div class='sv' id='st-max'>--</div><div class='sl'>Maxima</div></div>"
+"        <div class='sm'><div class='sv' id='st-min'>--</div><div class='sl'>Minima</div></div>"
+"        <div class='sm'><div class='sv' id='st-dev'>0.00</div><div class='sl'>Desv. Est.</div></div>"
 "      </div>"
 "    </div>"
+
 "  </div>" /* /dashboard */
 
 /* === PROFILES VIEW === */
@@ -321,51 +321,69 @@ static const char HTML_BODY[] =
 
 
 
-// /* === LOGS VIEW === */
-// "  <div id='v-logs' class='view'>"
-// "    <div class='ltab-wrap'>"
-// "      <div class='ltab act' data-lt='profile' onclick='ltab(this)'>Por Perfil</div>"
-// "      <div class='ltab' data-lt='period' onclick='ltab(this)'>Por Periodo</div>"
-// "      <div class='ltab' data-lt='stats' onclick='ltab(this)'>Estadisticas</div>"
-// "    </div>"
-// "    <div id='lt-profile' class='lpanel act card'>"
-// "      <div style='display:flex;align-items:center;justify-content:space-between;margin-bottom:12px'>"
-// "        <span style='font-size:13px;font-weight:600'>Produccion por perfil</span>"
-// "        <button class='btn bgh' onclick='loadAllLogs()'>&#8635; Actualizar</button>"
-// "      </div>"
-// "      <select class='psel' id='lp-sel' onchange='renderProfileTab()'><option value=''>Todos los perfiles</option></select>"
-// "      <div id='lp-stats' class='lsg' style='margin-top:12px'></div>"
-// "      <canvas class='lcanv' id='lp-chart' height='200' style='margin-top:10px'></canvas>"
-// "      <div id='lp-empty' style='text-align:center;padding:30px;color:var(--mut);font-size:13px'>Cargando...</div>"
-// "    </div>"
-// "    <div id='lt-period' class='lpanel card'>"
-// "      <div style='display:flex;align-items:center;justify-content:space-between;margin-bottom:12px'>"
-// "        <select class='psel' id='period-sel' onchange='renderPeriodTab()'>"
-// "          <option value='day'>Hoy</option>"
-// "          <option value='week'>Esta semana</option>"
-// "          <option value='month' selected>Este mes</option>"
-// "          <option value='year'>Este a&ntilde;o</option>"
-// "        </select>"
-// "        <button class='btn bgh' onclick='loadAllLogs()'>&#8635; Actualizar</button>"
-// "      </div>"
-// "      <div id='lper-stats' class='lsg'></div>"
-// "      <canvas class='lcanv' id='lper-chart' height='200' style='margin-top:10px'></canvas>"
-// "      <div id='lper-empty' style='text-align:center;padding:30px;color:var(--mut);font-size:13px'>Sin datos para este periodo</div>"
-// "    </div>"
-// "    <div id='lt-stats' class='lpanel card'>"
-// "      <div style='font-size:15px;font-weight:600;margin-bottom:14px'>Estadisticas de produccion</div>"
-// "      <div id='lstats-grid' class='lsg'></div>"
-// "      <div style='display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px'>"
-// "        <div><div style='font-size:11px;color:var(--mut);text-transform:uppercase;margin-bottom:8px'>Metros por dia</div><canvas class='lcanv' id='lst-daily' height='160'></canvas></div>"
-// "        <div><div style='font-size:11px;color:var(--mut);text-transform:uppercase;margin-bottom:8px'>Sesiones por motivo</div><canvas class='lcanv' id='lst-reason' height='160'></canvas></div>"
-// "      </div>"
-// "    </div>"
-// "  </div>" /* /logs */
+/* === LOGS VIEW === */
+"  <div id='v-logs' class='view'>"
+"    <div class='plo'>"
+"      <div class='pll'>"
+"        <div class='br' style='margin:0 0 10px'>"
+"          <button class='btn bp' style='flex:1' onclick='loadLogList()'>&#8635; Actualizar</button>"
+"        </div>"
+"        <div id='log-list-count' style='font-size:11px;color:var(--mut);padding:2px 2px 6px'></div>"
+"        <div class='pl' id='log-list'></div>"
+"      </div>"
+"      <div class='ple card' id='log-viewer'>"
+"        <div style='display:flex;align-items:center;justify-content:center;height:200px;color:var(--mut);font-size:13px'>Selecciona un archivo de log</div>"
+"      </div>"
+"    </div>"
+"  </div>" /* /logs */
 
 
 
 
 
+
+/* === DIAGNOSTICO VIEW === */
+"  <div id='v-diagnostico' class='view'>"
+"    <div class='grid g12' style='height:100%;align-content:start'>"
+
+"      <div class='card'>"
+"        <div class='ch'><div class='ct'>Conexion WiFi</div></div>"
+"        <div style='display:flex;align-items:center;gap:14px;margin:clamp(8px,1.5vh,20px) 0'>"
+"          <div class='dot dr' id='diag-wifi-dot' style='width:16px;height:16px;flex-shrink:0'></div>"
+"          <span style='font-size:clamp(16px,1.8vw,26px);font-weight:700' id='diag-wifi-lbl'>Sin WiFi</span>"
+"        </div>"
+"        <div class='io'><span style='color:var(--mut)'>Red (SSID)</span><span id='diag-wifi-ssid' style='font-family:monospace;font-weight:600;color:var(--grn)'>---</span></div>"
+"        <div class='io'><span style='color:var(--mut)'>Direcci&oacute;n IP</span><span id='diag-wifi-ip' style='font-family:monospace;font-weight:600;color:var(--grn)'>---</span></div>"
+"      </div>"
+
+"      <div class='card'>"
+"        <div class='ch'><div class='ct'>Entradas / Salidas</div></div>"
+"        <div class='tabs'>"
+"          <div class='tab act' data-tab='out' onclick='iotab(this)'>Salidas</div>"
+"          <div class='tab' data-tab='in' onclick='iotab(this)'>Entradas</div>"
+"        </div>"
+"        <div id='io-out'>"
+"          <div class='io'><span>DO1 &ndash; Alarma</span><span class='bdg bof' id='io-al'>OFF</span></div>"
+"          <div class='io'><span>DO2 &ndash; Pintura</span><span class='bdg bof' id='io-rl'>OFF</span></div>"
+"        </div>"
+"        <div id='io-in' style='display:none'>"
+"          <div class='io'><span>DI1 &ndash; Sensor de velocidad</span><span class='bdg bof' id='io-di1'>OFF</span></div>"
+"        </div>"
+"        <div style='margin-top:16px;padding-top:14px;border-top:1px solid var(--brd)'>"
+"          <div class='ct' style='margin-bottom:10px'>Prueba de relays</div>"
+"          <div style='display:flex;gap:10px;flex-wrap:wrap'>"
+"            <button class='btn bgh' id='btn-test-alarm' onclick='testRelay(\"alarm\",this)'>&#9654; Probar alarma</button>"
+"            <button class='btn bgh' id='btn-test-paint' onclick='testRelay(\"paint\",this)'>&#9654; Probar pintura</button>"
+"          </div>"
+"        </div>"
+"        <div style='margin-top:16px'>"
+"          <div class='ct' style='margin-bottom:8px'>Alarmas activas</div>"
+"          <div id='alml'><div style='font-size:12px;color:var(--mut)'>Sin alarmas activas</div></div>"
+"        </div>"
+"      </div>"
+
+"    </div>"
+"  </div>" /* /diagnostico */
 
 "  </div>" /* /content */
 "</div>" /* /main */
@@ -380,6 +398,7 @@ static const char HTML_BODY[] =
 "  <div class='mob-ni act' data-view='dashboard' onclick='nav(this)'><div class='mob-ni-ico'>&#9632;</div>Dashboard</div>"
 "  <div class='mob-ni' data-view='profiles' onclick='nav(this)'><div class='mob-ni-ico'>&#9776;</div>Perfiles</div>"
 "  <div class='mob-ni' data-view='logs' onclick='nav(this)'><div class='mob-ni-ico'>&#9741;</div>Logs</div>"
+"  <div class='mob-ni' data-view='diagnostico' onclick='nav(this)'><div class='mob-ni-ico'>&#9881;</div>Diagn.</div>"
 "</div>"
 "</body>";
 
@@ -388,7 +407,7 @@ static const char HTML_BODY[] =
 static const char HTML_JS[] =
 "<script>"
 /* --- VIEWS --- */
-"const VIEWS={'dashboard':'Dashboard|Resumen general del sistema','profiles':'Perfiles|Gestion de perfiles','logs':'Logs de produccion|Historico del dia'};"
+"const VIEWS={'dashboard':'Dashboard|Resumen general del sistema','profiles':'Perfiles|Gestion de perfiles','logs':'Logs de produccion|Historico del dia','diagnostico':'Diagnostico|Estado de conexion y E/S'};"
 "function nav(el){"
 "  const id=el.dataset.view;"
 "  document.querySelectorAll('.ni,.mob-ni').forEach(n=>n.classList.remove('act'));"
@@ -401,12 +420,14 @@ static const char HTML_JS[] =
 "  const c=document.querySelector('.content');"
 "  if(c){if(id==='dashboard')c.classList.add('dash-mode');else c.classList.remove('dash-mode');}"
 "  if(id==='profiles')loadProfs();"
-"  if(id==='logs')loadAllLogs();"
+"  if(id==='logs')loadLogList();"
 "}"
 
 /* --- UPTIME --- */
+"let online=false;"
 "const t0=Date.now();"
 "setInterval(()=>{"
+"  if(!online)return;"
 "  const s=Math.floor((Date.now()-t0)/1000);"
 "  const h=String(Math.floor(s/3600)).padStart(2,'0');"
 "  const m=String(Math.floor((s%3600)/60)).padStart(2,'0');"
@@ -415,13 +436,24 @@ static const char HTML_JS[] =
 
 /* --- REAL-TIME DATA --- */
 "let hist=[],hmax=-Infinity,hmin=Infinity,hsum=0,hn=0,tspd=0,sprayPctVal=0;"
+"function setOnline(v){"
+"  online=v;"
+"  if(!v){"
+"    document.getElementById('wdot').className='dot dr';"
+"    document.getElementById('wlbl').textContent='Sin conexion';"
+"    const st=document.getElementById('sysst');if(st){st.textContent='Sin conexion';st.className='cst cr';}"
+"    const dd=document.getElementById('diag-wifi-dot');if(dd)dd.className='dot dr';"
+"    const dl=document.getElementById('diag-wifi-lbl');if(dl)dl.textContent='Sin conexion';"
+"  }"
+"}"
 "async function poll(){"
 "  try{"
 "    const r=await fetch('/api/status');"
-"    if(!r.ok)return;"
+"    if(!r.ok){setOnline(false);return;}"
 "    const d=await r.json();"
+"    setOnline(true);"
 "    update(d);"
-"  }catch(e){}"
+"  }catch(e){setOnline(false);}"
 "}"
 "function setPb(id,pct){"
 "  const el=document.getElementById(id);"
@@ -472,13 +504,18 @@ static const char HTML_JS[] =
 "  document.getElementById('wlbl').textContent=wok?(d.wifi_ssid||'Conectado'):'Sin WiFi';"
 "  document.getElementById('ipdisp').textContent=d.ip||'---';"
 "  document.getElementById('ssiddisp').textContent=wok?'Red: '+(d.wifi_ssid||''):'Desconectado';"
+"  const dd=document.getElementById('diag-wifi-dot'),dl=document.getElementById('diag-wifi-lbl');"
+"  const di=document.getElementById('diag-wifi-ip'),ds=document.getElementById('diag-wifi-ssid');"
+"  if(dd)dd.className='dot '+(wok?'dg':'dr');"
+"  if(dl)dl.textContent=wok?'Conectado':'Sin WiFi';"
+"  if(di)di.textContent=d.ip||'---';"
+"  if(ds)ds.textContent=wok?(d.wifi_ssid||'---'):'---';"
 "  const ral=document.getElementById('io-al'),rrl=document.getElementById('io-rl');"
 "  const ar=d.alarm_relay;ral.textContent=ar?'ON':'OFF';ral.className='bdg '+(ar?'bon':'bof');"
 "  const rf=d.relay_fired;rrl.textContent=rf?'ON':'OFF';rrl.className='bdg '+(rf?'bon':'bof');"
 "  const di1=document.getElementById('io-di1');if(di1){const so=d.sensor_correa;di1.textContent=so?'ON':'OFF';di1.className='bdg '+(so?'bon':'bof');}"
 "  const al=document.getElementById('alml');"
-"  if(alm)al.innerHTML='<div class=\"ali\"><div class=\"alt\">&#9888; Velocidad fuera de rango</div><div style=\"color:var(--mut)\">Actual: '+spd.toFixed(2)+' m/min &nbsp;|&nbsp; Objetivo: '+tspd.toFixed(2)+' m/min</div></div>';"
-"  else al.innerHTML='<div style=\"font-size:12px;color:var(--mut)\">Sin alarmas activas</div>';"
+"  if(al){if(alm)al.innerHTML='<div class=\"ali\"><div class=\"alt\">&#9888; Velocidad fuera de rango</div><div style=\"color:var(--mut)\">Actual: '+spd.toFixed(2)+' m/min &nbsp;|&nbsp; Objetivo: '+tspd.toFixed(2)+' m/min</div></div>';else al.innerHTML='<div style=\"font-size:12px;color:var(--mut)\">Sin alarmas activas</div>';}"
 "  const sRem=parseInt(d.spray_remaining)||0,sMx=parseInt(d.spray_max)||1;"
 "  document.getElementById('sprayRem').textContent=sRem;"
 "  document.getElementById('spraySub').textContent='Capacidad: '+sMx+' disparos';"
@@ -488,23 +525,37 @@ static const char HTML_JS[] =
 "  drawSprayArc();"
 "  drawChart();"
 "}"
+"function tc(){"
+"  const l=document.body.getAttribute('data-theme')==='light';"
+"  return{"
+"    grn:l?'#00897b':'#00e676',"
+"    grid:l?'rgba(0,137,123,.1)':'rgba(0,230,118,.08)',"
+"    fill0:l?'rgba(0,137,123,.22)':'rgba(0,230,118,.3)',"
+"    fill1:l?'rgba(0,137,123,0)':'rgba(0,230,118,0)',"
+"    org:l?'#e64a19':'#f78166',"
+"    mut:l?'#9e9e9e':'#8b949e',"
+"    red:l?'#c62828':'#f85149',"
+"    arcbg:l?'rgba(0,0,0,.1)':'rgba(139,148,158,.15)'"
+"  };"
+"}"
 "function drawSprayArc(){"
 "  const cv=document.getElementById('sprayArc');if(!cv||!cv.offsetWidth)return;"
-"  const S=Math.min(cv.offsetWidth,180);cv.width=S;cv.height=S;"
+"  const S=Math.min(cv.offsetWidth,180),dpr=window.devicePixelRatio||1;"
+"  cv.width=S*dpr;cv.height=S*dpr;cv.style.width=S+'px';cv.style.height=S+'px';"
 "  const cx=S/2,cy=S/2,r=S/2-Math.round(S*0.09);"
-"  const ctx=cv.getContext('2d');ctx.clearRect(0,0,S,S);"
-"  const pct=Math.max(0,Math.min(1,sprayPctVal)),low=pct<=0.2;"
-"  const col=low?'#f85149':'#00e676';"
+"  const ctx=cv.getContext('2d');ctx.scale(dpr,dpr);ctx.clearRect(0,0,S,S);"
+"  const th=tc(),pct=Math.max(0,Math.min(1,sprayPctVal)),low=pct<=0.2;"
+"  const col=low?th.red:th.grn;"
 "  const sa=Math.PI*0.75,sw=Math.PI*1.5;"
 "  const lw=Math.round(S*0.085);ctx.lineWidth=lw;ctx.lineCap='round';"
-"  ctx.beginPath();ctx.arc(cx,cy,r,sa,sa+sw);ctx.strokeStyle='rgba(139,148,158,.15)';ctx.stroke();"
+"  ctx.beginPath();ctx.arc(cx,cy,r,sa,sa+sw);ctx.strokeStyle=th.arcbg;ctx.stroke();"
 "  if(pct>0.001){"
 "    ctx.beginPath();ctx.arc(cx,cy,r,sa,sa+sw*pct);ctx.strokeStyle=col;"
 "    if(low){ctx.shadowColor=col;ctx.shadowBlur=8;}ctx.stroke();ctx.shadowBlur=0;"
 "  }"
 "  ctx.fillStyle=col;ctx.textAlign='center';ctx.textBaseline='middle';"
-"  ctx.font='bold '+Math.round(S*0.165)+'px sans-serif';ctx.fillText(Math.round(pct*100)+'%',cx,cy-S*0.05);"
-"  ctx.font=Math.round(S*0.08)+'px sans-serif';ctx.fillStyle='#8b949e';ctx.fillText('restante',cx,cy+S*0.12);"
+"  ctx.font='bold '+Math.round(S*0.165)+'px sans-serif';ctx.fillText(Math.round(pct*100)+'%',cx,cy+S*0.04);"
+"  ctx.font=Math.round(S*0.08)+'px sans-serif';ctx.fillStyle=th.mut;ctx.fillText('restante',cx,cy+S*0.20);"
 "}"
 "function stddev(){"
 "  if(hist.length<2)return 0;"
@@ -518,28 +569,30 @@ static const char HTML_JS[] =
 "  if(!cv||!cv.offsetWidth)return;"
 "  const W=cv.offsetWidth;"
 "  const card=cv.parentElement;"
-"  const H=Math.max(80,card&&card.clientHeight>200?card.clientHeight-160:Math.round(window.innerHeight*0.25));"
-"  cv.width=W;cv.height=H;"
-"  const cx=cv.getContext('2d');"
+"  const H=Math.max(80,card&&card.clientHeight>120?card.clientHeight-90:Math.round(window.innerHeight*0.35));"
+"  const dpr=window.devicePixelRatio||1;"
+"  cv.width=W*dpr;cv.height=H*dpr;cv.style.width=W+'px';cv.style.height=H+'px';"
+"  const cx=cv.getContext('2d');cx.scale(dpr,dpr);"
 "  const p={t:8,r:8,b:24,l:38};"
 "  const cw=W-p.l-p.r,ch=H-p.t-p.b;"
 "  cx.clearRect(0,0,W,H);"
-"  if(hist.length<2){cx.fillStyle='#8b949e';cx.font='12px sans-serif';cx.textAlign='center';cx.fillText('Esperando datos...',W/2,H/2);return;}"
+"  const th=tc();"
+"  if(hist.length<2){cx.fillStyle=th.mut;cx.font='12px sans-serif';cx.textAlign='center';cx.fillText('Esperando datos...',W/2,H/2);return;}"
 "  const mx=Math.max(...hist,tspd*1.2,0.5)*1.1,mn=0;"
 "  const xp=i=>p.l+(i/(hist.length-1))*cw;"
 "  const yp=v=>p.t+ch-((v-mn)/(mx-mn))*ch;"
 /* Grid */
-"  cx.strokeStyle='rgba(0,230,118,.08)';cx.lineWidth=1;"
+"  cx.strokeStyle=th.grid;cx.lineWidth=1;"
 "  for(let i=0;i<=4;i++){"
 "    const v=mn+(mx-mn)*(i/4);const y=yp(v);"
 "    cx.beginPath();cx.moveTo(p.l,y);cx.lineTo(p.l+cw,y);cx.stroke();"
-"    cx.fillStyle='#8b949e';cx.font='10px sans-serif';cx.textAlign='right';"
+"    cx.fillStyle=th.mut;cx.font='10px sans-serif';cx.textAlign='right';"
 "    cx.fillText(v.toFixed(1),p.l-3,y+4);"
 "  }"
 /* Target line */
 "  if(tspd>0){"
 "    const ty=yp(tspd);"
-"    cx.strokeStyle='#f78166';cx.lineWidth=1.5;cx.setLineDash([5,4]);"
+"    cx.strokeStyle=th.org;cx.lineWidth=1.5;cx.setLineDash([5,4]);"
 "    cx.beginPath();cx.moveTo(p.l,ty);cx.lineTo(p.l+cw,ty);cx.stroke();"
 "    cx.setLineDash([]);"
 "  }"
@@ -548,15 +601,15 @@ static const char HTML_JS[] =
 "  for(let i=1;i<hist.length;i++)cx.lineTo(xp(i),yp(hist[i]));"
 "  cx.lineTo(xp(hist.length-1),p.t+ch);cx.lineTo(xp(0),p.t+ch);cx.closePath();"
 "  const g=cx.createLinearGradient(0,p.t,0,p.t+ch);"
-"  g.addColorStop(0,'rgba(0,230,118,.3)');g.addColorStop(1,'rgba(0,230,118,0)');"
+"  g.addColorStop(0,th.fill0);g.addColorStop(1,th.fill1);"
 "  cx.fillStyle=g;cx.fill();"
 /* Line */
-"  cx.beginPath();cx.strokeStyle='#00e676';cx.lineWidth=2;"
+"  cx.beginPath();cx.strokeStyle=th.grn;cx.lineWidth=2;"
 "  cx.moveTo(xp(0),yp(hist[0]));"
 "  for(let i=1;i<hist.length;i++)cx.lineTo(xp(i),yp(hist[i]));"
 "  cx.stroke();"
 /* Dots at data points (every 15 samples to avoid clutter) */
-"  cx.fillStyle='#00e676';"
+"  cx.fillStyle=th.grn;"
 "  for(let i=0;i<hist.length;i+=15){"
 "    cx.beginPath();cx.arc(xp(i),yp(hist[i]),3,0,Math.PI*2);cx.fill();"
 "  }"
@@ -564,7 +617,7 @@ static const char HTML_JS[] =
 "  cx.beginPath();cx.arc(xp(hist.length-1),yp(hist[hist.length-1]),4,0,Math.PI*2);cx.fill();"
 /* Time axis */
 "  const now=new Date();"
-"  cx.fillStyle='#8b949e';cx.font='10px sans-serif';cx.textAlign='center';"
+"  cx.fillStyle=th.mut;cx.font='10px sans-serif';cx.textAlign='center';"
 "  for(let i=0;i<=4;i++){"
 "    const idx=Math.floor(i*(hist.length-1)/4);"
 "    const sec=(hist.length-1-idx)*2;"
@@ -585,7 +638,7 @@ static const char HTML_JS[] =
 "  }else if(t==='io'){"
 "    const alm=document.getElementById('io-al').textContent==='ON';"
 "    mb.style.cssText='flex:1;overflow:auto;padding:24px;align-items:flex-start;justify-content:flex-start';"
-"    mb.innerHTML='<div style=\"width:100%;max-width:600px\"><div style=\"font-size:12px;color:var(--mut);text-transform:uppercase;margin-bottom:14px\">Salidas digitales</div>'+'<div class=\"io\" style=\"font-size:16px;padding:14px 0\"><span>DO1 &ndash; Alarma</span><span class=\"bdg '+(alm?'bal':'bof')+'\">'+(alm?'ON':'OFF')+'</span></div>'+'<div class=\"io\" style=\"font-size:16px;padding:14px 0\"><span>DO2 &ndash; Corte (relay)</span><span class=\"bdg bof\">OFF</span></div></div>';"
+"    mb.innerHTML='<div style=\"width:100%;max-width:600px\"><div style=\"font-size:12px;color:var(--mut);text-transform:uppercase;margin-bottom:14px\">Salidas digitales</div>'+'<div class=\"io\" style=\"font-size:16px;padding:14px 0\"><span>DO1 &ndash; Alarma</span><span class=\"bdg '+(alm?'bal':'bof')+'\">'+(alm?'ON':'OFF')+'</span></div>'+'<div class=\"io\" style=\"font-size:16px;padding:14px 0\"><span>DO2 &ndash; Pintura</span><span class=\"bdg bof\">OFF</span></div></div>';"
 "  }else{"
 "    mb.style.cssText='flex:1;overflow:auto;padding:24px;display:flex;flex-direction:column;align-items:center;justify-content:center';"
 "    const vals={status:[document.getElementById('sysst').textContent,'Estado actual'],profile:[document.getElementById('aprof').textContent,document.getElementById('aprofsub').textContent],ip:[document.getElementById('ipdisp').textContent,document.getElementById('ssiddisp').textContent],spd:[document.getElementById('spd').textContent,'m/min'],totm:[document.getElementById('totm').textContent,'metros producidos'],cuts:[document.getElementById('cuts').textContent,'cortes realizados'],cdist:[document.getElementById('cdist').textContent,'m por corte'],avgsp:[document.getElementById('avgsp').textContent,'m/min promedio']};"
@@ -598,21 +651,32 @@ static const char HTML_JS[] =
 "function drawFmChart(){"
 "  const cv=document.getElementById('fmChart');if(!cv)return;"
 "  const W=cv.offsetWidth,H=Math.max(cv.offsetHeight,350);"
-"  cv.width=W;cv.height=H;"
-"  const cx=cv.getContext('2d'),p={t:8,r:8,b:24,l:42};"
+"  const dpr=window.devicePixelRatio||1;"
+"  cv.width=W*dpr;cv.height=H*dpr;cv.style.width=W+'px';cv.style.height=H+'px';"
+"  const cx=cv.getContext('2d');cx.scale(dpr,dpr);"
+"  const p={t:8,r:8,b:24,l:42};"
 "  const cw=W-p.l-p.r,ch=H-p.t-p.b;"
 "  cx.clearRect(0,0,W,H);"
-"  if(hist.length<2){cx.fillStyle='#8b949e';cx.font='14px sans-serif';cx.textAlign='center';cx.fillText('Esperando datos...',W/2,H/2);return;}"
+"  const th=tc();"
+"  if(hist.length<2){cx.fillStyle=th.mut;cx.font='14px sans-serif';cx.textAlign='center';cx.fillText('Esperando datos...',W/2,H/2);return;}"
 "  const mx=Math.max(...hist,tspd*1.2,0.5)*1.1,mn=0;"
 "  const xp=i=>p.l+(i/(hist.length-1))*cw,yp=v=>p.t+ch-((v-mn)/(mx-mn))*ch;"
-"  cx.strokeStyle='rgba(0,230,118,.08)';cx.lineWidth=1;"
-"  for(let i=0;i<=4;i++){const vv=mn+(mx-mn)*(i/4),y=yp(vv);cx.beginPath();cx.moveTo(p.l,y);cx.lineTo(p.l+cw,y);cx.stroke();cx.fillStyle='#8b949e';cx.font='11px sans-serif';cx.textAlign='right';cx.fillText(vv.toFixed(1),p.l-3,y+4);}"
-"  if(tspd>0){const ty=yp(tspd);cx.strokeStyle='#f78166';cx.lineWidth=1.5;cx.setLineDash([5,4]);cx.beginPath();cx.moveTo(p.l,ty);cx.lineTo(p.l+cw,ty);cx.stroke();cx.setLineDash([]);}"
+"  cx.strokeStyle=th.grid;cx.lineWidth=1;"
+"  for(let i=0;i<=4;i++){const vv=mn+(mx-mn)*(i/4),y=yp(vv);cx.beginPath();cx.moveTo(p.l,y);cx.lineTo(p.l+cw,y);cx.stroke();cx.fillStyle=th.mut;cx.font='11px sans-serif';cx.textAlign='right';cx.fillText(vv.toFixed(1),p.l-3,y+4);}"
+"  if(tspd>0){const ty=yp(tspd);cx.strokeStyle=th.org;cx.lineWidth=1.5;cx.setLineDash([5,4]);cx.beginPath();cx.moveTo(p.l,ty);cx.lineTo(p.l+cw,ty);cx.stroke();cx.setLineDash([]);}"
 "  cx.beginPath();cx.moveTo(xp(0),yp(hist[0]));for(let i=1;i<hist.length;i++)cx.lineTo(xp(i),yp(hist[i]));cx.lineTo(xp(hist.length-1),p.t+ch);cx.lineTo(xp(0),p.t+ch);cx.closePath();"
-"  const g=cx.createLinearGradient(0,p.t,0,p.t+ch);g.addColorStop(0,'rgba(0,230,118,.3)');g.addColorStop(1,'rgba(0,230,118,0)');cx.fillStyle=g;cx.fill();"
-"  cx.beginPath();cx.strokeStyle='#00e676';cx.lineWidth=2;cx.moveTo(xp(0),yp(hist[0]));for(let i=1;i<hist.length;i++)cx.lineTo(xp(i),yp(hist[i]));cx.stroke();"
-"  cx.fillStyle='#00e676';for(let i=0;i<hist.length;i+=15){cx.beginPath();cx.arc(xp(i),yp(hist[i]),3,0,Math.PI*2);cx.fill();}"
+"  const g=cx.createLinearGradient(0,p.t,0,p.t+ch);g.addColorStop(0,th.fill0);g.addColorStop(1,th.fill1);cx.fillStyle=g;cx.fill();"
+"  cx.beginPath();cx.strokeStyle=th.grn;cx.lineWidth=2;cx.moveTo(xp(0),yp(hist[0]));for(let i=1;i<hist.length;i++)cx.lineTo(xp(i),yp(hist[i]));cx.stroke();"
+"  cx.fillStyle=th.grn;for(let i=0;i<hist.length;i+=15){cx.beginPath();cx.arc(xp(i),yp(hist[i]),3,0,Math.PI*2);cx.fill();}"
 "  cx.beginPath();cx.arc(xp(hist.length-1),yp(hist[hist.length-1]),5,0,Math.PI*2);cx.fill();"
+"}"
+
+/* --- RELAY TEST --- */
+"async function testRelay(r,btn){"
+"  const lbl=btn.textContent;"
+"  btn.disabled=true;btn.textContent='...';"
+"  try{await fetch('/api/test?relay='+r);}catch(e){}"
+"  setTimeout(()=>{btn.disabled=false;btn.textContent=lbl;},r==='alarm'?2500:1200);"
 "}"
 
 /* --- IO TABS --- */
@@ -781,133 +845,67 @@ static const char HTML_JS[] =
 "}"
 
 /* --- LOGS --- */
-"let allLogs=[];"
-"function ltab(el){"
+"async function loadLogList(){"
+"  try{"
+"    const r=await fetch('/api/logs/list');if(!r.ok)return;"
+"    const files=await r.json();renderLogList(files);"
+"  }catch(e){}"
+"}"
+"function renderLogList(files){"
+"  const el=document.getElementById('log-list'),cnt=document.getElementById('log-list-count');"
+"  el.innerHTML='';"
+"  if(cnt)cnt.textContent=files.length+(files.length===1?' archivo':' archivos');"
+"  if(!files.length){el.innerHTML='<div style=\"color:var(--mut);font-size:12px;padding:8px\">Sin logs disponibles</div>';return;}"
+"  files.forEach(f=>{"
+"    const d=document.createElement('div');d.className='pi';"
+"    const date=f.replace('production_','').replace('.csv','');"
+"    d.innerHTML='<div class=\"pic\">'+date+'</div><div class=\"pin\">Sesiones de produccion</div>';"
+"    d.onclick=()=>openLog(f,d);el.appendChild(d);"
+"  });"
+"}"
+"async function openLog(file,el){"
+"  document.querySelectorAll('#log-list .pi').forEach(e=>e.classList.remove('sel'));"
+"  if(el)el.classList.add('sel');"
+"  const vw=document.getElementById('log-viewer');"
+"  vw.innerHTML='<div style=\"padding:20px;color:var(--mut)\">Cargando...</div>';"
+"  try{"
+"    const r=await fetch('/api/logs?file='+encodeURIComponent(file));"
+"    if(!r.ok){vw.innerHTML='<div style=\"padding:20px;color:var(--red)\">Error al cargar</div>';return;}"
+"    const txt=await r.text();renderLogContent(txt,file);"
+"  }catch(e){vw.innerHTML='<div style=\"padding:20px;color:var(--red)\">Error de conexion</div>';}"
+"}"
+"function renderLogContent(csv,filename){"
+"  const vw=document.getElementById('log-viewer');"
+"  const lines=csv.trim().split('\\n').filter(l=>l.trim());"
+"  const title=filename.replace('production_','').replace('.csv','');"
+"  if(!lines.length){vw.innerHTML='<div style=\"padding:20px;color:var(--mut)\">Archivo vacio</div>';return;}"
+"  const cols=['Inicio','Fin','Perfil','Metros','Vel. prom.','Cortes','Motivo'];"
+"  let h='<div style=\"font-size:13px;font-weight:600;margin-bottom:14px\">'+title+' &mdash; '+lines.length+' sesi'+(lines.length===1?'on':'ones')+'</div>';"
+"  h+='<div style=\"overflow-x:auto\"><table><thead><tr>';"
+"  cols.forEach(c=>h+='<th>'+c+'</th>');h+='</tr></thead><tbody>';"
+"  lines.forEach(line=>{const ps=line.split(';').map(s=>s.trim());h+='<tr>';ps.forEach(p=>h+='<td>'+p+'</td>');h+='</tr>';});"
+"  h+='</tbody></table></div>';vw.innerHTML=h;"
+"}"
+"function ltab(el){"  /* kept for compat */
 "  document.querySelectorAll('.ltab').forEach(t=>t.classList.remove('act'));"
 "  el.classList.add('act');"
-"  const t=el.dataset.lt;"
-"  document.querySelectorAll('.lpanel').forEach(p=>p.classList.remove('act'));"
-"  document.getElementById('lt-'+t).classList.add('act');"
-"  if(t==='profile')renderProfileTab();"
-"  else if(t==='period')renderPeriodTab();"
-"  else if(t==='stats')renderStatsTab();"
-"}"
-"function parseLogLine(l){"
-"  const p=l.split(';');if(p.length<7)return null;"
-"  return{start:p[0].trim(),end:p[1].trim(),profile:p[2].trim(),meters:parseFloat(p[3])||0,avgSpeed:parseFloat(p[4])||0,cuts:parseInt(p[5])||0,reason:p[6].trim()};"
-"}"
-"function parseDateStr(s){"
-"  const[d,t]=s.split(' ');if(!d)return null;"
-"  const[dd,mm,yy]=d.split('-');const[hh,mi,ss]=(t||'00:00:00').split(':');"
-"  return new Date(yy,mm-1,dd,hh||0,mi||0,ss||0);"
-"}"
-"function sessionMin(row){"
-"  const s=parseDateStr(row.start),e=parseDateStr(row.end);if(!s||!e)return 0;"
-"  return Math.max(0,(e-s)/60000);"
-"}"
-"async function loadAllLogs(){"
-"  try{"
-"    const r=await fetch('/api/logs/all');"
-"    if(!r.ok){allLogs=[];}"
-"    else{const txt=await r.text();allLogs=txt.trim().split('\\n').map(parseLogLine).filter(x=>x!==null);}"
-"  }catch(e){allLogs=[];}"
-"  const act=document.querySelector('.ltab.act');"
-"  const t=act?act.dataset.lt:'profile';"
-"  if(t==='profile')renderProfileTab();"
-"  else if(t==='period')renderPeriodTab();"
-"  else if(t==='stats')renderStatsTab();"
-"}"
-"function lstat(v,l,u){return '<div class=\"lst\"><div class=\"lsv\">'+v+'</div><div class=\"lsl\">'+l+(u?' <span style=\"font-size:10px\">'+u+'</span>':'')+'</div></div>';}"
-"function renderProfileTab(){"
-"  const sel=document.getElementById('lp-sel');"
-"  const profs=[...new Set(allLogs.map(r=>r.profile))].sort();"
-"  const cur=sel.value;"
-"  sel.innerHTML='<option value=\"\">Todos los perfiles</option>';"
-"  profs.forEach(p=>sel.innerHTML+='<option value=\"'+p+'\"'+( cur===p?' selected':'')+'>'+p+'</option>');"
-"  const filter=sel.value;"
-"  const data=filter?allLogs.filter(r=>r.profile===filter):allLogs;"
-"  const em=document.getElementById('lp-empty');"
-"  if(!data.length){em.style.display='';document.getElementById('lp-stats').innerHTML='';return;}"
-"  em.style.display='none';"
-"  const totM=data.reduce((a,r)=>a+r.meters,0);"
-"  const totC=data.reduce((a,r)=>a+r.cuts,0);"
-"  document.getElementById('lp-stats').innerHTML=lstat(totM.toFixed(1),'Metros totales','m')+lstat(totC,'Cortes','total')+lstat(data.length,'Sesiones','');"
-"  if(filter){"
-"    drawBarChart(document.getElementById('lp-chart'),data.map((_,i)=>'S'+(i+1)),data.map(r=>r.meters),'m');"
-"  }else{"
-"    const pm={};allLogs.forEach(r=>{pm[r.profile]=(pm[r.profile]||0)+r.meters;});"
-"    const keys=Object.keys(pm).sort();"
-"    drawBarChart(document.getElementById('lp-chart'),keys,keys.map(k=>pm[k]),'m');"
-"  }"
-"}"
-"function renderPeriodTab(){"
-"  const period=document.getElementById('period-sel').value;"
-"  const now=new Date();"
-"  let data=allLogs;"
-"  if(period==='day'){data=allLogs.filter(r=>{const d=parseDateStr(r.start);return d&&d.toDateString()===now.toDateString();});}"
-"  else if(period==='week'){const s=new Date(now);s.setDate(now.getDate()-now.getDay());s.setHours(0,0,0,0);data=allLogs.filter(r=>{const d=parseDateStr(r.start);return d&&d>=s;});}"
-"  else if(period==='month'){data=allLogs.filter(r=>{const d=parseDateStr(r.start);return d&&d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});}"
-"  else if(period==='year'){data=allLogs.filter(r=>{const d=parseDateStr(r.start);return d&&d.getFullYear()===now.getFullYear();});}"
-"  const em=document.getElementById('lper-empty');"
-"  if(!data.length){em.style.display='';document.getElementById('lper-stats').innerHTML='';return;}"
-"  em.style.display='none';"
-"  const totM=data.reduce((a,r)=>a+r.meters,0);"
-"  const totC=data.reduce((a,r)=>a+r.cuts,0);"
-"  document.getElementById('lper-stats').innerHTML=lstat(totM.toFixed(1),'Metros','m')+lstat(totC,'Cortes','total')+lstat(data.length,'Sesiones','');"
-"  const grp={};const DN=['Dom','Lun','Mar','Mie','Jue','Vie','Sab'],MN=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];"
-"  data.forEach(r=>{const d=parseDateStr(r.start);if(!d)return;let k;"
-"    if(period==='day')k=d.getHours().toString().padStart(2,'0')+'h';"
-"    else if(period==='week')k=DN[d.getDay()];"
-"    else if(period==='month')k=d.getDate().toString().padStart(2,'0');"
-"    else k=MN[d.getMonth()];"
-"    grp[k]=(grp[k]||0)+r.meters;});"
-"  const keys=Object.keys(grp);"
-"  drawBarChart(document.getElementById('lper-chart'),keys,keys.map(k=>grp[k]),'m');"
-"}"
-"function renderStatsTab(){"
-"  if(!allLogs.length){document.getElementById('lstats-grid').innerHTML=lstat('---','Sin datos','');return;}"
-"  const totM=allLogs.reduce((a,r)=>a+r.meters,0);"
-"  const totC=allLogs.reduce((a,r)=>a+r.cuts,0);"
-"  const n=allLogs.length;"
-"  const avgSp=allLogs.reduce((a,r)=>a+r.avgSpeed,0)/n;"
-"  const prodMin=allLogs.reduce((a,r)=>a+sessionMin(r),0);"
-"  const manual=allLogs.filter(r=>r.reason==='manual').length;"
-"  document.getElementById('lstats-grid').innerHTML="
-"    lstat(totM.toFixed(1),'Metros extruidos','m')+lstat(totC,'Cortes realizados','')+lstat(n,'Sesiones totales','')"
-"    +lstat(avgSp.toFixed(2),'Vel. promedio','m/min')+lstat((prodMin/60).toFixed(1),'Horas productivas','h')+lstat(manual+'/'+n,'Paros manuales','');"
-"  const days={};allLogs.forEach(r=>{const d=parseDateStr(r.start);if(!d)return;const k=d.getDate().toString().padStart(2,'0')+'/'+( d.getMonth()+1).toString().padStart(2,'0');days[k]=(days[k]||0)+r.meters;});"
-"  const dk=Object.keys(days);"
-"  drawBarChart(document.getElementById('lst-daily'),dk,dk.map(k=>days[k]),'m');"
-"  drawBarChart(document.getElementById('lst-reason'),['Manual','Completado'],[manual,n-manual],'');"
-"}"
-"function drawBarChart(cv,labels,values){"
-"  if(!cv||!labels.length)return;"
-"  cv.width=cv.offsetWidth||cv.parentElement.offsetWidth||600;"
-"  const W=cv.width,H=parseInt(cv.height)||200;"
-"  const cx=cv.getContext('2d'),p={t:10,r:10,b:36,l:44};"
-"  const cw=W-p.l-p.r,ch=H-p.t-p.b;"
-"  cx.clearRect(0,0,W,H);"
-"  const mx2=Math.max(...values,0.1);"
-"  cx.strokeStyle='rgba(0,230,118,.06)';cx.lineWidth=1;"
-"  for(let i=0;i<=4;i++){const y=p.t+ch*(1-i/4);cx.beginPath();cx.moveTo(p.l,y);cx.lineTo(p.l+cw,y);cx.stroke();cx.fillStyle='#8b949e';cx.font='10px sans-serif';cx.textAlign='right';cx.fillText((mx2*i/4).toFixed(mx2<10?1:0),p.l-3,y+3);}"
-"  const bw=Math.max(4,(cw/labels.length)*0.65);"
-"  values.forEach((v,i)=>{"
-"    const x=p.l+(i+0.5)*(cw/labels.length)-bw/2;"
-"    const bh=Math.max(1,(v/mx2)*ch),y=p.t+ch-bh;"
-"    const g=cx.createLinearGradient(0,y,0,y+bh);"
-"    g.addColorStop(0,'rgba(0,230,118,.9)');g.addColorStop(1,'rgba(0,230,118,.35)');"
-"    cx.fillStyle=g;cx.beginPath();"
-"    if(typeof cx.roundRect==='function')cx.roundRect(x,y,bw,bh,3);else cx.rect(x,y,bw,bh);"
-"    cx.fill();"
-"    cx.fillStyle='#8b949e';cx.font='9px sans-serif';cx.textAlign='center';"
-"    cx.fillText(labels[i],p.l+(i+0.5)*(cw/labels.length),H-8);"
-"  });"
 "}"
 
 /* --- INIT --- */
+"function toggleTheme(){"
+"  const l=document.body.getAttribute('data-theme')==='light';"
+"  const n=l?'dark':'light';"
+"  document.body.setAttribute('data-theme',n);"
+"  try{localStorage.setItem('theme',n);}catch(e){}"
+"  document.getElementById('theme-btn').textContent=n==='light'?'☀':'🌙';"
+"  drawChart();drawSprayArc();"
+"}"
 "poll();"
 "setInterval(poll,2000);"
 "window.addEventListener('resize',drawChart);"
+"(function(){"
+"  try{const t=localStorage.getItem('theme');if(t){document.body.setAttribute('data-theme',t);const b=document.getElementById('theme-btn');if(b)b.textContent=t==='light'?'☀':'🌙';}}catch(e){}"
+"})();"
 "</script></html>";
 
 // =============================================================
@@ -1121,13 +1119,80 @@ static esp_err_t profile_delete_handler(httpd_req_t *req)
 }
 
 // =============================================================
-// /api/logs  — CSV del día
+// /api/logs/list  — lista de archivos CSV disponibles
+// =============================================================
+static esp_err_t logs_list_handler(httpd_req_t *req)
+{
+    DIR *dir = opendir("/sdcard/logs");
+    if (!dir)
+        return httpd_resp_send_err(req, HTTPD_404_NOT_FOUND, "Logs dir not found");
+
+    char names[64][32];
+    int count = 0;
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL && count < 64) {
+        if (strncmp(entry->d_name, "production_", 11) != 0) continue;
+        strncpy(names[count], entry->d_name, 31);
+        names[count][31] = 0;
+        count++;
+    }
+    closedir(dir);
+
+    // Bubble sort descending (newest first)
+    for (int i = 0; i < count - 1; i++)
+        for (int j = 0; j < count - i - 1; j++)
+            if (strcmp(names[j], names[j+1]) < 0) {
+                char tmp[32];
+                strcpy(tmp, names[j]);
+                strcpy(names[j], names[j+1]);
+                strcpy(names[j+1], tmp);
+            }
+
+    int buf_size = count * 42 + 8;
+    char *json = malloc(buf_size);
+    if (!json) return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "No mem");
+
+    strcpy(json, "[");
+    for (int i = 0; i < count; i++) {
+        if (i > 0) strcat(json, ",");
+        strcat(json, "\"");
+        strcat(json, names[i]);
+        strcat(json, "\"");
+    }
+    strcat(json, "]");
+
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_set_hdr(req, "Cache-Control", "no-cache");
+    httpd_resp_send(req, json, HTTPD_RESP_USE_STRLEN);
+    free(json);
+    return ESP_OK;
+}
+
+// =============================================================
+// /api/logs  — CSV del día o de un archivo específico (?file=)
 // =============================================================
 static esp_err_t logs_handler(httpd_req_t *req)
 {
-    char date[32], filepath[128];
-    rtc_get_date_filename_string(date);
-    snprintf(filepath, sizeof(filepath), "/sdcard/logs/production_%s.csv", date);
+    char filepath[128];
+    char query[128];
+
+    if (httpd_req_get_url_query_str(req, query, sizeof(query)) == ESP_OK) {
+        char filename[64];
+        if (httpd_query_key_value(query, "file", filename, sizeof(filename)) == ESP_OK) {
+            if (strncmp(filename, "production_", 11) != 0 ||
+                strstr(filename, "/") || strstr(filename, ".."))
+                return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Nombre invalido");
+            snprintf(filepath, sizeof(filepath), "/sdcard/logs/%s", filename);
+        } else {
+            char date[32];
+            rtc_get_date_filename_string(date);
+            snprintf(filepath, sizeof(filepath), "/sdcard/logs/production_%s.csv", date);
+        }
+    } else {
+        char date[32];
+        rtc_get_date_filename_string(date);
+        snprintf(filepath, sizeof(filepath), "/sdcard/logs/production_%s.csv", date);
+    }
 
     FILE *f = fopen(filepath, "r");
     if (!f)
@@ -1354,6 +1419,32 @@ static esp_err_t ota_start_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
+// =============================================================
+// /api/test?relay=alarm|paint  — prueba manual de relays
+// =============================================================
+static esp_err_t relay_test_handler(httpd_req_t *req)
+{
+    char query[64], target[16];
+
+    if (httpd_req_get_url_query_str(req, query, sizeof(query)) != ESP_OK)
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Falta query");
+
+    if (httpd_query_key_value(query, "relay", target, sizeof(target)) != ESP_OK)
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Falta relay");
+
+    if (strcmp(target, "alarm") == 0) {
+        alarm_trigger_speed();
+    } else if (strcmp(target, "paint") == 0) {
+        extrusion_relay_test();
+    } else {
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "relay invalido");
+    }
+
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_sendstr(req, "{\"ok\":true}");
+    return ESP_OK;
+}
+
 static esp_err_t root_get_handler(httpd_req_t *req)
 {
     httpd_resp_set_type(req, "text/html");
@@ -1386,14 +1477,16 @@ void start_http_server(void)
         { .uri = "/api/profile",  .method = HTTP_GET,    .handler = profile_get_handler  },
         { .uri = "/api/profile",  .method = HTTP_POST,   .handler = profile_save_handler },
         { .uri = "/api/profile",  .method = HTTP_DELETE, .handler = profile_delete_handler },
-        { .uri = "/api/logs",     .method = HTTP_GET,    .handler = logs_handler         },
-        { .uri = "/api/logs/all",     .method = HTTP_GET,    .handler = logs_all_handler            },
+        { .uri = "/api/logs",      .method = HTTP_GET, .handler = logs_handler      },
+        { .uri = "/api/logs/list", .method = HTTP_GET, .handler = logs_list_handler },
+        { .uri = "/api/logs/all",  .method = HTTP_GET, .handler = logs_all_handler  },
         { .uri = "/api/profile/image", .method = HTTP_GET,    .handler = profile_image_get_handler    },
         { .uri = "/api/profile/image", .method = HTTP_POST,   .handler = profile_image_upload_handler },
         { .uri = "/api/profile/image", .method = HTTP_DELETE, .handler = profile_image_delete_handler },
-        { .uri = "/api/ota/status", .method = HTTP_GET, .handler = ota_status_handler },
-        { .uri = "/api/ota/check",  .method = HTTP_POST, .handler = ota_check_handler },
-        { .uri = "/api/ota/start",  .method = HTTP_POST, .handler = ota_start_handler },
+        { .uri = "/api/ota/status", .method = HTTP_GET,  .handler = ota_status_handler },
+        { .uri = "/api/ota/check",  .method = HTTP_POST, .handler = ota_check_handler  },
+        { .uri = "/api/ota/start",  .method = HTTP_POST, .handler = ota_start_handler  },
+        { .uri = "/api/test",       .method = HTTP_GET,  .handler = relay_test_handler  },
     };
 
     for (int i = 0; i < (int)(sizeof(routes) / sizeof(routes[0])); i++)

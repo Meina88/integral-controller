@@ -49,9 +49,10 @@ static char start_time_str[32];
 static char end_time_str[32];
 
 // relay 1
-static bool relay_active = false;
-static bool relay_fired_since_check = false;
-static uint32_t relay_start_time = 0;
+static bool     relay_active          = false;
+static bool     relay_fired_since_check = false;
+static uint32_t relay_start_time      = 0;
+static uint32_t relay_timeout_ms      = 500;
 
 static bool pre_cut_alarm_armed = false;
 
@@ -289,10 +290,11 @@ void extrusion_process_tick(void)
     // =========================
     // RELAY 1
     // =========================
-    if (relay_active && (now - relay_start_time >= 500))
+    if (relay_active && (now - relay_start_time >= relay_timeout_ms))
     {
         relay_1_off();
         relay_active = false;
+        relay_timeout_ms = 500;
     }
 
     // =========================
@@ -334,6 +336,15 @@ void extrusion_process_tick(void)
     // BUZZER TICK
     // =========================
     alarm_tick();
+}
+
+void extrusion_relay_test(void)
+{
+    relay_timeout_ms      = 1000;
+    relay_1_on();
+    relay_active          = true;
+    relay_fired_since_check = true;
+    relay_start_time      = lv_tick_get();
 }
 
 bool extrusion_get_sensor_state(void)
