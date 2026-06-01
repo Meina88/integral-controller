@@ -40,6 +40,11 @@ static float    s_cal_real       = 10.0f;
 static uint32_t s_teo_hold_ms    = 0;
 static uint32_t s_real_hold_ms   = 0;
 
+// ─── Spray shots refs ─────────────────────────────────────────────
+static lv_obj_t *label_spray_remaining;
+static lv_obj_t *label_spray_shots_val;
+static uint32_t  s_spray_hold_ms = 0;
+
 // =========================
 // HELPERS
 // =========================
@@ -180,6 +185,78 @@ static void relay_off_cb(lv_event_t *e)
 {
     alarm_config_marking_relay_set(false);
     update_relay_buttons(false);
+}
+
+// =========================
+// SPRAY SHOTS CALLBACKS
+// =========================
+static void update_spray_remaining(void)
+{
+    char buf[48];
+    snprintf(buf, sizeof(buf), "Restantes: %d / %d disparos",
+             alarm_config_spray_shots_get_remaining(),
+             alarm_config_spray_shots_get_max());
+    lv_label_set_text(label_spray_remaining, buf);
+}
+
+static int accel_step_int(uint32_t held_ms)
+{
+    if (held_ms > 4000) return 100;
+    if (held_ms > 2000) return 50;
+    if (held_ms > 1000) return 10;
+    return 1;
+}
+
+static void spray_minus_cb(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    int step;
+    if (code == LV_EVENT_LONG_PRESSED) {
+        s_spray_hold_ms = lv_tick_get();
+        step = 1;
+    } else if (code == LV_EVENT_LONG_PRESSED_REPEAT) {
+        step = accel_step_int(lv_tick_get() - s_spray_hold_ms);
+    } else {
+        step = 1;
+    }
+    int cur = alarm_config_spray_shots_get_max();
+    int nxt = cur - step;
+    if (nxt < 1) nxt = 1;
+    if (nxt == cur) return;
+    alarm_config_spray_shots_set_max(nxt);
+    char buf[16];
+    snprintf(buf, sizeof(buf), "%d", nxt);
+    lv_label_set_text(label_spray_shots_val, buf);
+    update_spray_remaining();
+}
+
+static void spray_plus_cb(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    int step;
+    if (code == LV_EVENT_LONG_PRESSED) {
+        s_spray_hold_ms = lv_tick_get();
+        step = 1;
+    } else if (code == LV_EVENT_LONG_PRESSED_REPEAT) {
+        step = accel_step_int(lv_tick_get() - s_spray_hold_ms);
+    } else {
+        step = 1;
+    }
+    int cur = alarm_config_spray_shots_get_max();
+    int nxt = cur + step;
+    if (nxt > 9999) nxt = 9999;
+    if (nxt == cur) return;
+    alarm_config_spray_shots_set_max(nxt);
+    char buf[16];
+    snprintf(buf, sizeof(buf), "%d", nxt);
+    lv_label_set_text(label_spray_shots_val, buf);
+    update_spray_remaining();
+}
+
+static void spray_reset_cb(lv_event_t *e)
+{
+    alarm_config_spray_shots_reset();
+    update_spray_remaining();
 }
 
 // =========================
@@ -697,6 +774,104 @@ lv_obj_t *screen_config_machine_create(lv_obj_t *parent)
     lv_obj_set_style_border_width(sep3, 0, 0);
     lv_obj_set_style_pad_all(sep3, 0, 0);
     lv_obj_clear_flag(sep3, LV_OBJ_FLAG_SCROLLABLE);
+
+    // ── Contador de pintura ───────────────────────────────────────
+    lv_obj_t *lbl_spray_sec = lv_label_create(root);
+    lv_label_set_text(lbl_spray_sec, "Contador de pintura");
+    lv_obj_set_style_text_font(lbl_spray_sec, FONT_SMALL, 0);
+    lv_obj_set_style_text_color(lbl_spray_sec, th->muted, 0);
+
+    label_spray_remaining = lv_label_create(root);
+    lv_obj_set_style_text_font(label_spray_remaining, FONT_MEDIUM, 0);
+    lv_obj_set_style_text_color(label_spray_remaining, th->text, 0);
+    update_spray_remaining();
+
+    // Fila: [Capacidad del spray (disparos):]  [▼] [valor] [▲]
+    lv_obj_t *spray_row = lv_obj_create(root);
+    lv_obj_set_size(spray_row, LV_PCT(100), 52);
+    lv_obj_set_flex_flow(spray_row, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(spray_row,
+                          LV_FLEX_ALIGN_SPACE_BETWEEN,
+                          LV_FLEX_ALIGN_CENTER,
+                          LV_FLEX_ALIGN_CENTER);
+    lv_obj_set_style_bg_opa(spray_row, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_border_width(spray_row, 0, 0);
+    lv_obj_set_style_shadow_width(spray_row, 0, 0);
+    lv_obj_set_style_pad_all(spray_row, 0, 0);
+    lv_obj_clear_flag(spray_row, LV_OBJ_FLAG_SCROLLABLE);
+
+    lv_obj_t *lbl_spray_text = lv_label_create(spray_row);
+    lv_label_set_text(lbl_spray_text, "Capacidad del spray (disparos):");
+    lv_obj_set_style_text_font(lbl_spray_text, FONT_SMALL, 0);
+    lv_obj_set_style_text_color(lbl_spray_text, th->text, 0);
+
+    lv_obj_t *spray_ctrl = lv_obj_create(spray_row);
+    lv_obj_set_size(spray_ctrl, LV_SIZE_CONTENT, 52);
+    lv_obj_set_flex_flow(spray_ctrl, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(spray_ctrl, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_set_style_pad_gap(spray_ctrl, 8, 0);
+    lv_obj_set_style_bg_opa(spray_ctrl, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_border_width(spray_ctrl, 0, 0);
+    lv_obj_set_style_shadow_width(spray_ctrl, 0, 0);
+    lv_obj_set_style_pad_all(spray_ctrl, 0, 0);
+    lv_obj_clear_flag(spray_ctrl, LV_OBJ_FLAG_SCROLLABLE);
+
+    lv_obj_t *btn_spray_m = lv_btn_create(spray_ctrl);
+    lv_obj_set_size(btn_spray_m, 48, 44);
+    lv_obj_set_style_shadow_width(btn_spray_m, 0, 0);
+    lv_obj_set_style_radius(btn_spray_m, 6, 0);
+    lv_obj_add_event_cb(btn_spray_m, spray_minus_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(btn_spray_m, spray_minus_cb, LV_EVENT_LONG_PRESSED, NULL);
+    lv_obj_add_event_cb(btn_spray_m, spray_minus_cb, LV_EVENT_LONG_PRESSED_REPEAT, NULL);
+    lv_obj_t *lbl_spray_m = lv_label_create(btn_spray_m);
+    lv_label_set_text(lbl_spray_m, "▼");
+    lv_obj_set_style_text_font(lbl_spray_m, FONT_SMALL, 0);
+    lv_obj_center(lbl_spray_m);
+
+    label_spray_shots_val = lv_label_create(spray_ctrl);
+    char spray_buf[8];
+    snprintf(spray_buf, sizeof(spray_buf), "%d", alarm_config_spray_shots_get_max());
+    lv_label_set_text(label_spray_shots_val, spray_buf);
+    lv_obj_set_style_text_font(label_spray_shots_val, FONT_MEDIUM, 0);
+    lv_obj_set_style_text_color(label_spray_shots_val, th->text, 0);
+    lv_obj_set_width(label_spray_shots_val, 80);
+    lv_label_set_long_mode(label_spray_shots_val, LV_LABEL_LONG_CLIP);
+    lv_obj_set_style_text_align(label_spray_shots_val, LV_TEXT_ALIGN_CENTER, 0);
+
+    lv_obj_t *btn_spray_p = lv_btn_create(spray_ctrl);
+    lv_obj_set_size(btn_spray_p, 48, 44);
+    lv_obj_set_style_shadow_width(btn_spray_p, 0, 0);
+    lv_obj_set_style_radius(btn_spray_p, 6, 0);
+    lv_obj_add_event_cb(btn_spray_p, spray_plus_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(btn_spray_p, spray_plus_cb, LV_EVENT_LONG_PRESSED, NULL);
+    lv_obj_add_event_cb(btn_spray_p, spray_plus_cb, LV_EVENT_LONG_PRESSED_REPEAT, NULL);
+    lv_obj_t *lbl_spray_p = lv_label_create(btn_spray_p);
+    lv_label_set_text(lbl_spray_p, "▲");
+    lv_obj_set_style_text_font(lbl_spray_p, FONT_SMALL, 0);
+    lv_obj_center(lbl_spray_p);
+
+    lv_obj_t *btn_spray_reset = lv_btn_create(root);
+    lv_obj_set_size(btn_spray_reset, LV_PCT(100), 52);
+    lv_obj_set_style_bg_color(btn_spray_reset, th->blue, 0);
+    lv_obj_set_style_bg_opa(btn_spray_reset, LV_OPA_COVER, 0);
+    lv_obj_set_style_border_width(btn_spray_reset, 0, 0);
+    lv_obj_set_style_shadow_width(btn_spray_reset, 0, 0);
+    lv_obj_set_style_radius(btn_spray_reset, 8, 0);
+    lv_obj_add_event_cb(btn_spray_reset, spray_reset_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_t *lbl_spray_reset = lv_label_create(btn_spray_reset);
+    lv_label_set_text(lbl_spray_reset, "Reiniciar contador");
+    lv_obj_set_style_text_font(lbl_spray_reset, FONT_MEDIUM, 0);
+    lv_obj_set_style_text_color(lbl_spray_reset, lv_color_white(), 0);
+    lv_obj_center(lbl_spray_reset);
+
+    // ── Separador ─────────────────────────────────────────────────
+    lv_obj_t *sep4 = lv_obj_create(root);
+    lv_obj_set_size(sep4, LV_PCT(100), 1);
+    lv_obj_set_style_bg_color(sep4, th->border, 0);
+    lv_obj_set_style_bg_opa(sep4, LV_OPA_COVER, 0);
+    lv_obj_set_style_border_width(sep4, 0, 0);
+    lv_obj_set_style_pad_all(sep4, 0, 0);
+    lv_obj_clear_flag(sep4, LV_OBJ_FLAG_SCROLLABLE);
 
     // ── Calibración de longitud ───────────────────────────────────
     lv_obj_t *lbl_cal_sec = lv_label_create(root);

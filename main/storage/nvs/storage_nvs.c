@@ -15,6 +15,8 @@
 #define KEY_PRECUT_SECONDS  "precut_sec"
 #define KEY_MARK_RELAY_EN   "mark_rel_en"
 #define KEY_CAL_FACTOR      "cal_factor"
+#define KEY_SPRAY_MAX       "spray_max"
+#define KEY_SPRAY_REM       "spray_rem"
 
 // =========================
 // INIT NVS
@@ -368,6 +370,60 @@ void storage_nvs_load_cal_factor(float *factor)
     nvs_get_i32(handle, KEY_CAL_FACTOR, &val);
     nvs_close(handle);
     if (factor) *factor = (float)val / 10000.0f;
+}
+
+// =========================
+// SAVE SPRAY SHOTS MAX
+// =========================
+void storage_nvs_save_spray_shots_max(int max)
+{
+    nvs_handle_t handle;
+    if (nvs_open(NAMESPACE, NVS_READWRITE, &handle) != ESP_OK)
+        return;
+    nvs_set_i32(handle, KEY_SPRAY_MAX, (int32_t)max);
+    nvs_commit(handle);
+    nvs_close(handle);
+}
+
+// =========================
+// LOAD SPRAY SHOTS MAX
+// =========================
+void storage_nvs_load_spray_shots_max(int *max)
+{
+    nvs_handle_t handle;
+    if (nvs_open(NAMESPACE, NVS_READONLY, &handle) != ESP_OK)
+        return;
+    int32_t val = 500;
+    nvs_get_i32(handle, KEY_SPRAY_MAX, &val);
+    nvs_close(handle);
+    if (max) *max = (int)val;
+}
+
+// =========================
+// SAVE SPRAY SHOTS REMAINING
+// =========================
+void storage_nvs_save_spray_shots_remaining(int remaining)
+{
+    nvs_handle_t handle;
+    if (nvs_open(NAMESPACE, NVS_READWRITE, &handle) != ESP_OK)
+        return;
+    nvs_set_i32(handle, KEY_SPRAY_REM, (int32_t)remaining);
+    nvs_commit(handle);
+    nvs_close(handle);
+}
+
+// =========================
+// LOAD SPRAY SHOTS REMAINING
+// =========================
+void storage_nvs_load_spray_shots_remaining(int *remaining)
+{
+    nvs_handle_t handle;
+    if (nvs_open(NAMESPACE, NVS_READONLY, &handle) != ESP_OK)
+        return;
+    int32_t val = 500;
+    nvs_get_i32(handle, KEY_SPRAY_REM, &val);
+    nvs_close(handle);
+    if (remaining) *remaining = (int)val;
 }
 
 // =========================

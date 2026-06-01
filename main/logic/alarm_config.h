@@ -16,3 +16,10 @@ void alarm_config_pre_cut_set(bool enabled, int seconds);
 // Relay de marcacion (relay 1)
 bool alarm_config_marking_relay_is_enabled(void);
 void alarm_config_marking_relay_set(bool enabled);
+
+// ── Spray shots counter ───────────────────────────────────────────
+int  alarm_config_spray_shots_get_max(void);
+void alarm_config_spray_shots_set_max(int max);
+int  alarm_config_spray_shots_get_remaining(void);
+void alarm_config_spray_shots_decrement(void);
+void alarm_config_spray_shots_reset(void);

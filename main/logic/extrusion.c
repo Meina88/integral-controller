@@ -50,6 +50,7 @@ static char end_time_str[32];
 
 // relay 1
 static bool relay_active = false;
+static bool relay_fired_since_check = false;
 static uint32_t relay_start_time = 0;
 
 static bool pre_cut_alarm_armed = false;
@@ -116,7 +117,9 @@ void recording_start(void)
     {
         relay_1_on();
         relay_active = true;
+        relay_fired_since_check = true;
         relay_start_time = lv_tick_get();
+        alarm_config_spray_shots_decrement();
     }
 }
 
@@ -253,7 +256,9 @@ void extrusion_process_tick(void)
                     {
                         relay_1_on();
                         relay_active = true;
+                        relay_fired_since_check = true;
                         relay_start_time = now;
+                        alarm_config_spray_shots_decrement();
                     }
 
                     // =========================
@@ -329,6 +334,18 @@ void extrusion_process_tick(void)
     // BUZZER TICK
     // =========================
     alarm_tick();
+}
+
+bool extrusion_get_sensor_state(void)
+{
+    return last_sensor_state;
+}
+
+bool extrusion_get_relay_fired(void)
+{
+    bool v = relay_fired_since_check;
+    relay_fired_since_check = false;
+    return v;
 }
 
 const char *extrusion_get_start_time(void)

@@ -20,6 +20,7 @@ static uint32_t      phase_start  = 0;
 // volatile: written from main-loop task, read from extrusion task.
 static volatile bool s_pending_speed     = false;
 static volatile bool s_pending_immediate = false;
+static volatile bool s_fired_since_check = false;
 
 // =========================
 // INIT
@@ -50,16 +51,25 @@ void alarm_trigger_immediate(void)
 // =========================
 static void start_sequence(uint8_t count)
 {
-    beeps_total = count;
-    beeps_done  = 0;
-    phase_start = lv_tick_get();
-    state       = ALARM_ON;
+    beeps_total       = count;
+    beeps_done        = 0;
+    phase_start       = lv_tick_get();
+    state             = ALARM_ON;
+    s_fired_since_check = true;
     relay_2_on();
 }
 
 // =========================
 // TICK (called from extrusion_task every 5 ms)
 // =========================
+bool alarm_get_relay_state(void)
+{
+    bool active = (state != ALARM_IDLE);
+    bool fired  = s_fired_since_check;
+    s_fired_since_check = false;
+    return active || fired;
+}
+
 void alarm_tick(void)
 {
     uint32_t now = lv_tick_get();

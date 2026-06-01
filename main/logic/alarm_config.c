@@ -8,6 +8,9 @@ static bool s_pre_cut_enabled = false;
 static int  s_pre_cut_seconds = 3;
 static bool s_marking_relay_enabled = true;
 
+static int s_spray_shots_max       = 500;
+static int s_spray_shots_remaining = 500;
+
 void alarm_config_init(void)
 {
     storage_nvs_load_alarm(&s_enabled, &s_threshold);
@@ -19,6 +22,16 @@ void alarm_config_init(void)
     if (s_pre_cut_seconds > 30) s_pre_cut_seconds = 30;
 
     storage_nvs_load_marking_relay_enabled(&s_marking_relay_enabled);
+
+    storage_nvs_load_spray_shots_max(&s_spray_shots_max);
+    if (s_spray_shots_max < 1)    s_spray_shots_max = 1;
+    if (s_spray_shots_max > 9999) s_spray_shots_max = 9999;
+
+    storage_nvs_load_spray_shots_remaining(&s_spray_shots_remaining);
+    if (s_spray_shots_remaining < 0)
+        s_spray_shots_remaining = 0;
+    if (s_spray_shots_remaining > s_spray_shots_max)
+        s_spray_shots_remaining = s_spray_shots_max;
 }
 
 bool alarm_config_is_enabled(void)    { return s_enabled; }
@@ -50,4 +63,40 @@ void alarm_config_marking_relay_set(bool enabled)
 {
     s_marking_relay_enabled = enabled;
     storage_nvs_save_marking_relay_enabled(enabled);
+}
+
+int alarm_config_spray_shots_get_max(void)
+{
+    return s_spray_shots_max;
+}
+
+void alarm_config_spray_shots_set_max(int max)
+{
+    if (max < 1)    max = 1;
+    if (max > 9999) max = 9999;
+    s_spray_shots_max = max;
+    if (s_spray_shots_remaining > s_spray_shots_max) {
+        s_spray_shots_remaining = s_spray_shots_max;
+        storage_nvs_save_spray_shots_remaining(s_spray_shots_remaining);
+    }
+    storage_nvs_save_spray_shots_max(max);
+}
+
+int alarm_config_spray_shots_get_remaining(void)
+{
+    return s_spray_shots_remaining;
+}
+
+void alarm_config_spray_shots_decrement(void)
+{
+    if (s_spray_shots_remaining > 0) {
+        s_spray_shots_remaining--;
+        storage_nvs_save_spray_shots_remaining(s_spray_shots_remaining);
+    }
+}
+
+void alarm_config_spray_shots_reset(void)
+{
+    s_spray_shots_remaining = s_spray_shots_max;
+    storage_nvs_save_spray_shots_remaining(s_spray_shots_remaining);
 }

@@ -4,6 +4,7 @@
 
 void alarm_init(void);
 void alarm_tick(void);
+bool alarm_get_relay_state(void);
 
 // 3 × 500 ms beeps — speed out of range. Always overrides current beep.
 void alarm_trigger_speed(void);

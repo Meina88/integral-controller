@@ -52,3 +52,9 @@ const char* extrusion_get_end_time(void);
 void extrusion_set_target_count(int count);
 int extrusion_get_target_count(void);
 bool extrusion_is_target_reached(void);
+
+// =========================
+// IO STATE
+// =========================
+bool extrusion_get_sensor_state(void);
+bool extrusion_get_relay_fired(void);

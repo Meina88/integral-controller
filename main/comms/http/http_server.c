@@ -8,6 +8,7 @@
 #include "drivers/rtc/rtc.h"
 #include "logic/extrusion.h"
 #include "logic/production.h"
+#include "logic/alarm.h"
 #include "logic/alarm_config.h"
 #include "logic/profile.h"
 #include "logic/active_profile.h"
@@ -64,7 +65,7 @@ static const char HTML_HEAD[] =
 ".grid{display:grid;gap:clamp(6px,0.7vw,11px);margin-bottom:clamp(6px,0.7vw,11px)}"
 ".g4{grid-template-columns:repeat(4,1fr)}"
 ".g5{grid-template-columns:repeat(5,1fr)}"
-".g21{grid-template-columns:2fr 1fr}"
+".g21{grid-template-columns:2fr 1fr}.g211{grid-template-columns:2fr 1fr 1fr}"
 ".g12{grid-template-columns:1fr 1fr}"
 ".g3{grid-template-columns:repeat(3,1fr)}"
 ".card{background:var(--card);border:1px solid var(--brd);border-radius:8px;padding:clamp(10px,1vw,16px)}"
@@ -90,8 +91,8 @@ static const char HTML_HEAD[] =
 ".view{display:none}.view.act{display:block}"
 "#v-dashboard.act{display:flex;flex-direction:column;gap:clamp(6px,0.7vw,11px);flex:1;min-height:0}"
 "#v-dashboard .grid{margin-bottom:0}"
-"#v-dashboard .g21{flex:1;min-height:0}"
-"#v-dashboard .g21>.card{overflow:hidden}"
+"#v-dashboard .g21,#v-dashboard .g211{flex:1;min-height:0}"
+"#v-dashboard .g21>.card,#v-dashboard .g211>.card{overflow:hidden}"
 ".plo{display:flex;gap:12px;height:calc(100vh - 128px)}"
 ".pll{width:260px;flex-shrink:0;display:flex;flex-direction:column}"
 ".ple{flex:1;overflow-y:auto}"
@@ -150,9 +151,9 @@ static const char HTML_HEAD[] =
 ".mob-ni.act{color:var(--grn)}"
 ".mob-ni-ico{font-size:22px;margin-bottom:2px}"
 "@media(max-width:1300px){.g5{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(2,1fr)}}"
-"@media(max-width:900px){.g5{grid-template-columns:repeat(2,1fr)}.g21{grid-template-columns:1fr}.lsg{grid-template-columns:repeat(2,1fr)}}"
+"@media(max-width:900px){.g5{grid-template-columns:repeat(2,1fr)}.g21{grid-template-columns:1fr}.g211{grid-template-columns:1fr}.lsg{grid-template-columns:repeat(2,1fr)}}"
 "@media(max-width:640px){.sb{display:none}.mob-nav{display:flex}.content{padding-bottom:60px}"
-"#v-dashboard .g21{display:none}"
+"#v-dashboard .g21,#v-dashboard .g211{display:none}"
 ".g5{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr}"
 ".cv{font-size:clamp(32px,10vw,54px)}.cst{font-size:clamp(22px,7vw,40px)}.sm .sv{font-size:clamp(18px,5vw,28px)}}"
 "</style></head>";
@@ -200,8 +201,8 @@ static const char HTML_BODY[] =
 "      <div class='card'><div class='ch'><div class='ct'>Vel. promedio sesion</div><div class='mx' onclick='maxCard(\"avgsp\")'>&#x26F6;</div></div><div class='cv'><span id='avgsp'>0.00</span><span class='cu'>m/min</span></div><div class='cs'>Sesion actual</div><div class='pb'><div class='pf' id='avgpb' style='width:0%'></div></div></div>"
 "    </div>"
 
-/* Chart + IO row */
-"    <div class='grid g21'>"
+/* Chart + IO + Spray row */
+"    <div class='grid g211'>"
 "      <div class='card'>"
 "        <div style='display:flex;align-items:center;justify-content:space-between;margin-bottom:10px'>"
 "          <span style='font-size:13px;font-weight:600'>Velocidad en tiempo real</span>"
@@ -226,12 +227,19 @@ static const char HTML_BODY[] =
 "          <div class='io'><span>DO2 &ndash; Corte (relay)</span><span class='bdg bof' id='io-rl'>OFF</span></div>"
 "        </div>"
 "        <div id='io-in' style='display:none'>"
-"          <div class='io'><span>DI1 &ndash; Sensor correa</span><span class='bdg bon'>ON</span></div>"
+"          <div class='io'><span>DI1 &ndash; Sensor correa</span><span class='bdg bof' id='io-di1'>OFF</span></div>"
 "        </div>"
 "        <div style='margin-top:14px'>"
 "          <div style='font-size:13px;font-weight:600;margin-bottom:8px'>Alarmas activas</div>"
 "          <div id='alml'><div style='font-size:12px;color:var(--mut)'>Sin alarmas activas</div></div>"
 "        </div>"
+"      </div>"
+"      <div class='card' style='display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center'>"
+"        <div class='ct' style='margin-bottom:8px;align-self:flex-start'>Spray de pintura</div>"
+"        <canvas id='sprayArc' style='width:min(100%,180px);display:block'></canvas>"
+"        <div style='margin-top:10px'><span id='sprayRem' style='font-size:clamp(20px,2vw,34px);font-weight:700;color:var(--grn)'>---</span><span class='cu'>&nbsp;disparos</span></div>"
+"        <div class='cs' style='margin-top:4px' id='spraySub'>Capacidad: ---</div>"
+"        <div id='sprayWarn' style='display:none;margin-top:8px;font-size:11px;font-weight:600;color:var(--red)'>&#9888; Spray bajo</div>"
 "      </div>"
 "    </div>"
 "  </div>" /* /dashboard */
@@ -406,7 +414,7 @@ static const char HTML_JS[] =
 "},1000);"
 
 /* --- REAL-TIME DATA --- */
-"let hist=[],hmax=-Infinity,hmin=Infinity,hsum=0,hn=0,tspd=0;"
+"let hist=[],hmax=-Infinity,hmin=Infinity,hsum=0,hn=0,tspd=0,sprayPctVal=0;"
 "async function poll(){"
 "  try{"
 "    const r=await fetch('/api/status');"
@@ -465,12 +473,38 @@ static const char HTML_JS[] =
 "  document.getElementById('ipdisp').textContent=d.ip||'---';"
 "  document.getElementById('ssiddisp').textContent=wok?'Red: '+(d.wifi_ssid||''):'Desconectado';"
 "  const ral=document.getElementById('io-al'),rrl=document.getElementById('io-rl');"
-"  ral.textContent=alm?'ON':'OFF';ral.className='bdg '+(alm?'bal':'bof');"
-"  rrl.textContent='OFF';rrl.className='bdg bof';"
+"  const ar=d.alarm_relay;ral.textContent=ar?'ON':'OFF';ral.className='bdg '+(ar?'bon':'bof');"
+"  const rf=d.relay_fired;rrl.textContent=rf?'ON':'OFF';rrl.className='bdg '+(rf?'bon':'bof');"
+"  const di1=document.getElementById('io-di1');if(di1){const so=d.sensor_correa;di1.textContent=so?'ON':'OFF';di1.className='bdg '+(so?'bon':'bof');}"
 "  const al=document.getElementById('alml');"
 "  if(alm)al.innerHTML='<div class=\"ali\"><div class=\"alt\">&#9888; Velocidad fuera de rango</div><div style=\"color:var(--mut)\">Actual: '+spd.toFixed(2)+' m/min &nbsp;|&nbsp; Objetivo: '+tspd.toFixed(2)+' m/min</div></div>';"
 "  else al.innerHTML='<div style=\"font-size:12px;color:var(--mut)\">Sin alarmas activas</div>';"
+"  const sRem=parseInt(d.spray_remaining)||0,sMx=parseInt(d.spray_max)||1;"
+"  document.getElementById('sprayRem').textContent=sRem;"
+"  document.getElementById('spraySub').textContent='Capacidad: '+sMx+' disparos';"
+"  sprayPctVal=sMx>0?sRem/sMx:0;"
+"  document.getElementById('sprayRem').style.color=sprayPctVal<=0.2?'var(--red)':'var(--grn)';"
+"  const wEl=document.getElementById('sprayWarn');if(wEl)wEl.style.display=sprayPctVal<=0.2?'':'none';"
+"  drawSprayArc();"
 "  drawChart();"
+"}"
+"function drawSprayArc(){"
+"  const cv=document.getElementById('sprayArc');if(!cv||!cv.offsetWidth)return;"
+"  const S=Math.min(cv.offsetWidth,180);cv.width=S;cv.height=S;"
+"  const cx=S/2,cy=S/2,r=S/2-Math.round(S*0.09);"
+"  const ctx=cv.getContext('2d');ctx.clearRect(0,0,S,S);"
+"  const pct=Math.max(0,Math.min(1,sprayPctVal)),low=pct<=0.2;"
+"  const col=low?'#f85149':'#00e676';"
+"  const sa=Math.PI*0.75,sw=Math.PI*1.5;"
+"  const lw=Math.round(S*0.085);ctx.lineWidth=lw;ctx.lineCap='round';"
+"  ctx.beginPath();ctx.arc(cx,cy,r,sa,sa+sw);ctx.strokeStyle='rgba(139,148,158,.15)';ctx.stroke();"
+"  if(pct>0.001){"
+"    ctx.beginPath();ctx.arc(cx,cy,r,sa,sa+sw*pct);ctx.strokeStyle=col;"
+"    if(low){ctx.shadowColor=col;ctx.shadowBlur=8;}ctx.stroke();ctx.shadowBlur=0;"
+"  }"
+"  ctx.fillStyle=col;ctx.textAlign='center';ctx.textBaseline='middle';"
+"  ctx.font='bold '+Math.round(S*0.165)+'px sans-serif';ctx.fillText(Math.round(pct*100)+'%',cx,cy-S*0.05);"
+"  ctx.font=Math.round(S*0.08)+'px sans-serif';ctx.fillStyle='#8b949e';ctx.fillText('restante',cx,cy+S*0.12);"
 "}"
 "function stddev(){"
 "  if(hist.length<2)return 0;"
@@ -909,10 +943,16 @@ static esp_err_t status_handler(httpd_req_t *req)
         }
     }
 
-    char *buf = malloc(512);
+    int  spray_rem      = alarm_config_spray_shots_get_remaining();
+    int  spray_max      = alarm_config_spray_shots_get_max();
+    bool sensor_on      = extrusion_get_sensor_state();
+    bool relay_fired    = extrusion_get_relay_fired();
+    bool alarm_relay_on = alarm_get_relay_state();
+
+    char *buf = malloc(768);
     if (!buf) return ESP_FAIL;
 
-    snprintf(buf, 512,
+    snprintf(buf, 768,
         "{"
         "\"speed\":%.2f,"
         "\"avg_speed\":%.2f,"
@@ -927,7 +967,12 @@ static esp_err_t status_handler(httpd_req_t *req)
         "\"start_time\":\"%s\","
         "\"wifi_connected\":%s,"
         "\"wifi_ssid\":\"%s\","
-        "\"ip\":\"%s\""
+        "\"ip\":\"%s\","
+        "\"spray_remaining\":%d,"
+        "\"spray_max\":%d,"
+        "\"sensor_correa\":%s,"
+        "\"relay_fired\":%s,"
+        "\"alarm_relay\":%s"
         "}",
         speed, avg_speed, total_m, cuts, cut_dist, tgt_count,
         recording    ? "true" : "false",
@@ -937,7 +982,11 @@ static esp_err_t status_handler(httpd_req_t *req)
         start_t  ? start_t  : "",
         wifi_ok  ? "true" : "false",
         ssid     ? ssid     : "",
-        ip       ? ip       : ""
+        ip       ? ip       : "",
+        spray_rem, spray_max,
+        sensor_on       ? "true" : "false",
+        relay_fired     ? "true" : "false",
+        alarm_relay_on  ? "true" : "false"
     );
 
     httpd_resp_set_type(req, "application/json");
