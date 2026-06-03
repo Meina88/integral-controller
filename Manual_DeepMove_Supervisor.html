@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:w="urn:schemas-microsoft-com:office:word"
+      xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+  <meta charset="UTF-8">
+  <meta name="ProgId" content="Word.Document">
+  <meta name="Generator" content="Microsoft Word 15">
+  <title>Manual de Usuario - Sistema DeepMove</title>
+  <style>
+    body {
+      font-family: Calibri, sans-serif;
+      font-size: 11pt;
+      color: #222222;
+      margin: 2.5cm 3cm 2.5cm 3cm;
+      line-height: 1.4;
+    }
+    h1 {
+      font-size: 22pt;
+      font-weight: bold;
+      color: #1F3864;
+      border-bottom: 3px solid #1F3864;
+      padding-bottom: 6px;
+      margin-top: 40px;
+      margin-bottom: 16px;
+      page-break-before: always;
+    }
+    h1.first {
+      page-break-before: avoid;
+    }
+    h2 {
+      font-size: 15pt;
+      font-weight: bold;
+      color: #2E74B5;
+      border-bottom: 1px solid #2E74B5;
+      padding-bottom: 4px;
+      margin-top: 28px;
+      margin-bottom: 10px;
+    }
+    h3 {
+      font-size: 12pt;
+      font-weight: bold;
+      color: #1F3864;
+      margin-top: 20px;
+      margin-bottom: 6px;
+    }
+    p {
+      margin-bottom: 8px;
+    }
+    ul, ol {
+      margin-left: 24px;
+      margin-bottom: 10px;
+    }
+    li {
+      margin-bottom: 4px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 14px 0;
+      font-size: 10.5pt;
+    }
+    th {
+      background-color: #2E74B5;
+      color: white;
+      padding: 8px 10px;
+      text-align: left;
+      font-weight: bold;
+    }
+    td {
+      border: 1px solid #B8CCE4;
+      padding: 7px 10px;
+      vertical-align: top;
+    }
+    tr:nth-child(even) td {
+      background-color: #EBF3FB;
+    }
+    .cover {
+      text-align: center;
+      margin-top: 120px;
+    }
+    .cover h1 {
+      font-size: 32pt;
+      border: none;
+      page-break-before: avoid;
+      color: #1F3864;
+    }
+    .cover h2 {
+      font-size: 18pt;
+      border: none;
+      color: #2E74B5;
+      font-weight: normal;
+    }
+    .cover .version {
+      font-size: 11pt;
+      color: #666;
+      margin-top: 60px;
+    }
+    .cover .empresa {
+      font-size: 13pt;
+      color: #1F3864;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    .nota {
+      background-color: #FFF3CD;
+      border-left: 5px solid #FFC107;
+      padding: 10px 14px;
+      margin: 14px 0;
+      border-radius: 2px;
+    }
+    .importante {
+      background-color: #FCE4E4;
+      border-left: 5px solid #D32F2F;
+      padding: 10px 14px;
+      margin: 14px 0;
+      border-radius: 2px;
+    }
+    .consejo {
+      background-color: #E8F5E9;
+      border-left: 5px solid #388E3C;
+      padding: 10px 14px;
+      margin: 14px 0;
+      border-radius: 2px;
+    }
+    .placeholder-img {
+      border: 2px dashed #2E74B5;
+      background-color: #F0F6FF;
+      text-align: center;
+      padding: 30px;
+      color: #2E74B5;
+      font-style: italic;
+      margin: 16px 0;
+      border-radius: 4px;
+    }
+    .estado-verde {
+      display: inline-block;
+      background-color: #4CAF50;
+      color: white;
+      padding: 2px 10px;
+      border-radius: 10px;
+      font-size: 10pt;
+      font-weight: bold;
+    }
+    .estado-rojo {
+      display: inline-block;
+      background-color: #D32F2F;
+      color: white;
+      padding: 2px 10px;
+      border-radius: 10px;
+      font-size: 10pt;
+      font-weight: bold;
+    }
+    .estado-naranja {
+      display: inline-block;
+      background-color: #F57C00;
+      color: white;
+      padding: 2px 10px;
+      border-radius: 10px;
+      font-size: 10pt;
+      font-weight: bold;
+    }
+    .toc-entry {
+      margin: 4px 0;
+    }
+    .toc-chapter {
+      font-weight: bold;
+      font-size: 12pt;
+      margin-top: 8px;
+    }
+    .toc-section {
+      margin-left: 20px;
+      font-size: 11pt;
+    }
+    hr.page-break {
+      page-break-after: always;
+      visibility: hidden;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- PORTADA -->
+<!-- ============================================================ -->
+<div class="cover">
+  <h1>Sistema DeepMove</h1>
+  <h2>Manual de Supervisor de Planta</h2>
+  <br><br>
+  <p style="font-size:13pt; color:#444;">Control y Monitoreo de Líneas de Extrusión de Caucho</p>
+  <br><br>
+  <div class="placeholder-img" style="margin: 30px auto; max-width: 500px;">
+    [ Insertar fotografía del equipo instalado en planta ]
+  </div>
+  <div class="version">Versión 1.0 &nbsp;|&nbsp; Junio 2026</div>
+  <div class="empresa">Rubber SRL</div>
+</div>
+
+<hr class="page-break">
+
+<!-- ============================================================ -->
+<!-- ÍNDICE -->
+<!-- ============================================================ -->
+<h1 class="first" style="page-break-before:avoid;">Índice de Contenidos</h1>
+
+<div class="toc-entry toc-chapter">1. Introducción y Descripción General</div>
+<div class="toc-entry toc-section">1.1 ¿Qué es DeepMove?</div>
+<div class="toc-entry toc-section">1.2 ¿Para qué sirve?</div>
+<div class="toc-entry toc-section">1.3 Componentes del sistema</div>
+
+<div class="toc-entry toc-chapter">2. La Pantalla y la Navegación</div>
+<div class="toc-entry toc-section">2.1 La pantalla táctil</div>
+<div class="toc-entry toc-section">2.2 Barra de estado superior</div>
+<div class="toc-entry toc-section">2.3 Menú de navegación inferior</div>
+
+<div class="toc-entry toc-chapter">3. Pantalla "Extruir" – Producción</div>
+<div class="toc-entry toc-section">3.1 ¿Qué se ve en esta pantalla?</div>
+<div class="toc-entry toc-section">3.2 Cómo iniciar una producción</div>
+<div class="toc-entry toc-section">3.3 Durante la producción</div>
+<div class="toc-entry toc-section">3.4 Cómo detener la producción</div>
+
+<div class="toc-entry toc-chapter">4. Pantalla "Perfil" – Selección de Perfiles</div>
+<div class="toc-entry toc-section">4.1 ¿Qué es un perfil?</div>
+<div class="toc-entry toc-section">4.2 Cómo buscar y seleccionar un perfil</div>
+<div class="toc-entry toc-section">4.3 Información del perfil</div>
+
+<div class="toc-entry toc-chapter">5. Pantalla "Históricos" – Registros de Producción</div>
+<div class="toc-entry toc-section">5.1 ¿Qué son los históricos?</div>
+<div class="toc-entry toc-section">5.2 Cómo navegar los registros</div>
+<div class="toc-entry toc-section">5.3 Datos registrados por turno</div>
+
+<div class="toc-entry toc-chapter">6. Pantalla "Configuración"</div>
+<div class="toc-entry toc-section">6.1 Fecha y Hora</div>
+<div class="toc-entry toc-section">6.2 WiFi</div>
+<div class="toc-entry toc-section">6.3 Máquina</div>
+<div class="toc-entry toc-section">6.4 Sistema (Actualizaciones)</div>
+
+<div class="toc-entry toc-chapter">7. Alarmas y Alertas</div>
+<div class="toc-entry toc-section">7.1 Tipos de alarma</div>
+<div class="toc-entry toc-section">7.2 Qué hacer ante una alarma</div>
+
+<div class="toc-entry toc-chapter">8. Calibración de Longitud</div>
+<div class="toc-entry toc-section">8.1 Cuándo calibrar</div>
+<div class="toc-entry toc-section">8.2 Procedimiento de calibración</div>
+
+<div class="toc-entry toc-chapter">9. Contador de Pintura (Spray)</div>
+
+<div class="toc-entry toc-chapter">10. Acceso Remoto por Web</div>
+
+<div class="toc-entry toc-chapter">11. Mantenimiento Básico y Solución de Problemas</div>
+
+<div class="toc-entry toc-chapter">12. Glosario de Términos</div>
+
+<hr class="page-break">
+
+<!-- ============================================================ -->
+<!-- CAPÍTULO 1 -->
+<!-- ============================================================ -->
+<h1>1. Introducción y Descripción General</h1>
+
+<h2>1.1 ¿Qué es DeepMove?</h2>
+<p>
+  <strong>DeepMove</strong> es un sistema electrónico de control y monitoreo diseñado específicamente para líneas de extrusión de caucho. Se instala en la máquina extrusora y cuenta con una <strong>pantalla táctil a color</strong> de 8 pulgadas (800×480 píxeles) que permite al operador y al supervisor interactuar con el sistema de forma sencilla, sin necesidad de conocimientos de programación ni computadoras.
+</p>
+<p>
+  El sistema fue desarrollado por Rubber SRL para sus propias líneas de producción, con el objetivo de mejorar la trazabilidad, reducir el desperdicio de material y facilitar el control del proceso de extrusión.
+</p>
+
+<div class="placeholder-img">
+  [ Insertar foto de la pantalla táctil montada en la extrusora ]
+</div>
+
+<h2>1.2 ¿Para qué sirve?</h2>
+<p>DeepMove cumple las siguientes funciones principales:</p>
+<ul>
+  <li><strong>Medir la velocidad de extrusión</strong> en tiempo real (metros por minuto), mostrándola en un velocímetro visual en pantalla.</li>
+  <li><strong>Contar la producción</strong>: registra cuántos metros se han extruido y cuántas piezas se han cortado durante cada turno.</li>
+  <li><strong>Controlar el corte automático</strong>: acciona el relé de la cortadora en el momento exacto para que cada pieza tenga la longitud correcta según el perfil seleccionado.</li>
+  <li><strong>Emitir alertas sonoras y visuales</strong> cuando la velocidad se desvía del valor esperado o cuando se acerca el momento del próximo corte.</li>
+  <li><strong>Guardar registros históricos</strong> de cada producción en una tarjeta de memoria (SD), con fecha, hora, perfil, metros extruidos y velocidad promedio.</li>
+  <li><strong>Gestionar perfiles de extrusión</strong>: almacena las fichas técnicas de cada perfil (tipo de matriz, longitudes de corte, densidad del material, etc.) para que el operador solo tenga que seleccionar el perfil a producir.</li>
+  <li><strong>Conectarse a la red WiFi</strong> de la planta para permitir supervisión remota desde una computadora.</li>
+</ul>
+
+<h2>1.3 Componentes del sistema</h2>
+
+<table>
+  <tr>
+    <th>Componente</th>
+    <th>Descripción</th>
+  </tr>
+  <tr>
+    <td><strong>Unidad principal (pantalla)</strong></td>
+    <td>Tablero con pantalla táctil de 8" instalado en la extrusora. Es el cerebro del sistema.</td>
+  </tr>
+  <tr>
+    <td><strong>Sensor inductivo</strong></td>
+    <td>Sensor instalado sobre el rodillo encoder que mide cuántos metros de perfil han salido de la extrusora.</td>
+  </tr>
+  <tr>
+    <td><strong>Relé 1 – Corte/Marcado</strong></td>
+    <td>Salida de 24V que activa la cortadora o el marcador automático en el momento del corte.</td>
+  </tr>
+  <tr>
+    <td><strong>Relé 2</strong></td>
+    <td>Salida de 24V de uso auxiliar (configurable según la instalación).</td>
+  </tr>
+  <tr>
+    <td><strong>Buzzer (zumbador)</strong></td>
+    <td>Emite señales sonoras para alarmas y avisos de corte.</td>
+  </tr>
+  <tr>
+    <td><strong>Tarjeta SD</strong></td>
+    <td>Almacena los registros históricos de producción. Sin tarjeta SD, el sistema funciona pero no guarda datos.</td>
+  </tr>
+  <tr>
+    <td><strong>Módulo WiFi (integrado)</strong></td>
+    <td>Permite conectar el equipo a la red de la planta para acceso remoto.</td>
+  </tr>
+  <tr>
+    <td><strong>Reloj de tiempo real (RTC)</strong></td>
+    <td>Mantiene la hora exacta aunque el equipo esté apagado.</td>
+  </tr>
+</table>
+
+<div class="placeholder-img">
+  [ Insertar diagrama esquemático de los componentes del sistema ]
+</div>
+
+<hr class="page-break">
+
+<!-- ============================================================ -->
+<!-- CAPÍTULO 2 -->
+<!-- ============================================================ -->
+<h1>2. La Pantalla y la Navegación</h1>
+
+<h2>2.1 La pantalla táctil</h2>
+<p>
+  La pantalla táctil funciona de manera similar a la pantalla de un teléfono inteligente: basta con tocar con el dedo sobre los botones, íconos o campos que aparecen en pantalla para activarlos. No se necesita ningún elemento adicional (lapicera, lápiz óptico, etc.).
+</p>
+<p>
+  La interfaz está diseñada para ser usada con guantes de trabajo finos. Se recomienda no presionar la pantalla con objetos duros o afilados para no rayarla.
+</p>
+
+<div class="nota">
+  <strong>Nota:</strong> Si la pantalla no responde al tacto, verificar que el dedo esté limpio y seco. Los guantes muy gruesos de goma pueden interferir con el sensor táctil.
+</div>
+
+<h2>2.2 Barra de estado superior</h2>
+<p>En la parte superior de la pantalla siempre se muestra una <strong>barra de estado</strong> con la siguiente información:</p>
+
+<table>
+  <tr>
+    <th>Elemento</th>
+    <th>Descripción</th>
+  </tr>
+  <tr>
+    <td><strong>Hora actual</strong></td>
+    <td>Muestra la hora del sistema en formato HH:MM:SS.</td>
+  </tr>
+  <tr>
+    <td><strong>Estado WiFi</strong></td>
+    <td>Ícono que indica si el equipo está conectado a la red WiFi de la planta.</td>
+  </tr>
+  <tr>
+    <td><strong>Estado de la SD</strong></td>
+    <td>Indica si la tarjeta de memoria está insertada y funcionando correctamente.</td>
+  </tr>
+  <tr>
+    <td><strong>Indicador de estado</strong></td>
+    <td>
+      <span class="estado-verde">Listo</span> — El sistema está en espera, sin producción activa.<br>
+      <span class="estado-rojo">Grabando</span> — Hay una producción en curso registrándose.<br>
+      <span class="estado-naranja">Alarma</span> — Se detectó una condición anormal (ver Capítulo 7).
+    </td>
+  </tr>
+</table>
+
+<div class="placeholder-img">
+  [ Insertar captura de la barra de estado superior con los íconos identificados ]
+</div>
+
+<h2>2.3 Menú de navegación inferior</h2>
+<p>
+  En la parte inferior de la pantalla hay cuatro pestañas que permiten navegar entre las secciones principales del sistema:
+</p>
+
+<table>
+  <tr>
+    <th>Pestaña</th>
+    <th>Función</th>
+  </tr>
+  <tr>
+    <td><strong>Extruir</strong></td>
+    <td>Pantalla principal de producción. Desde aquí se controla y monitorea la extrusión en tiempo real.</td>
+  </tr>
+  <tr>
+    <td><strong>Perfil</strong></td>
+    <td>Selección del perfil de caucho a producir. Se debe seleccionar antes de iniciar la producción.</td>
+  </tr>
+  <tr>
+    <td><strong>Históricos</strong></td>
+    <td>Acceso a los registros de producciones anteriores almacenados en la tarjeta SD.</td>
+  </tr>
+  <tr>
+    <td><strong>Configuración</strong></td>
+    <td>Ajuste de parámetros del sistema: fecha/hora, WiFi, parámetros de máquina y actualizaciones.</td>
+  </tr>
+</table>
+
+<div class="importante">
+  <strong>Importante:</strong> Las pestañas <em>Perfil</em> y <em>Configuración</em> se bloquean automáticamente mientras hay una producción en curso. Para acceder a ellas, primero se debe detener la producción.
+</div>
+
+<div class="placeholder-img">
+  [ Insertar captura del menú de navegación inferior con las cuatro pestañas identificadas ]
+</div>
+
+<hr class="page-break">
+
+<!-- ============================================================ -->
+<!-- CAPÍTULO 3 -->
+<!-- ============================================================ -->
+<h1>3. Pantalla "Extruir" – Producción</h1>
+
+<h2>3.1 ¿Qué se ve en esta pantalla?</h2>
+<p>
+  Esta es la pantalla principal de trabajo. Muestra toda la información necesaria para controlar y monitorear la producción en tiempo real.
+</p>
+
+<div class="placeholder-img">
+  [ Insertar captura de la pantalla "Extruir" con todos sus elementos identificados con números ]
+</div>
+
+<table>
+  <tr>
+    <th>#</th>
+    <th>Elemento</th>
+    <th>Descripción</th>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td><strong>Velocímetro</strong></td>
+    <td>Instrumento circular tipo reloj que muestra visualmente la velocidad actual de extrusión en metros por minuto (m/min). El rango va de 0 a 20 m/min.</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td><strong>Velocidad actual</strong></td>
+    <td>Número grande que indica la velocidad instantánea en m/min con mayor precisión.</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td><strong>Rango de velocidad esperada</strong></td>
+    <td>Banda de color en el velocímetro que indica la velocidad objetivo del perfil seleccionado.</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td><strong>Metros extruidos</strong></td>
+    <td>Total de metros de perfil producidos desde que se inició la grabación actual.</td>
+  </tr>
+  <tr>
+    <td>5</td>
+    <td><strong>Velocidad promedio</strong></td>
+    <td>Velocidad media calculada durante toda la producción en curso.</td>
+  </tr>
+  <tr>
+    <td>6</td>
+    <td><strong>Tiempo restante estimado</strong></td>
+    <td>Estimación del tiempo que falta para completar la cantidad de piezas programada.</td>
+  </tr>
+  <tr>
+    <td>7</td>
+    <td><strong>Hora estimada de finalización</strong></td>
+    <td>Hora del día a la que se estima terminar el lote según el ritmo actual.</td>
+  </tr>
+  <tr>
+    <td>8</td>
+    <td><strong>Perfil activo</strong></td>
+    <td>Nombre y código del perfil de caucho seleccionado actualmente para producir.</td>
+  </tr>
+  <tr>
+    <td>9</td>
+    <td><strong>Cantidad objetivo</strong></td>
+    <td>Número de piezas a producir en este lote (1 a 999 piezas). Se ajusta con los botones + y –.</td>
+  </tr>
+  <tr>
+    <td>10</td>
+    <td><strong>Longitud de corte</strong></td>
+    <td>Longitud en metros a la que se realizará cada corte automático. Se puede seleccionar entre las longitudes predefinidas del perfil o ingresar una longitud personalizada.</td>
+  </tr>
+  <tr>
+    <td>11</td>
+    <td><strong>Botón START / STOP</strong></td>
+    <td>Inicia o detiene la grabación y el conteo de la producción actual.</td>
+  </tr>
+</table>
+
+<h2>3.2 Cómo iniciar una producción</h2>
+
+<p>Seguir estos pasos en orden:</p>
+
+<ol>
+  <li><strong>Seleccionar el perfil:</strong> Ir a la pestaña <em>Perfil</em>, buscar y seleccionar el perfil de caucho que se va a producir. Volver a la pestaña <em>Extruir</em>. El nombre del perfil debe aparecer en la sección de "Perfil activo".</li>
+  <li><strong>Ajustar la cantidad de piezas:</strong> Usar los botones <strong>+</strong> y <strong>–</strong> para ingresar cuántas piezas se van a producir en este lote.</li>
+  <li><strong>Seleccionar la longitud de corte:</strong> Tocar el selector de longitud y elegir una de las longitudes predefinidas del perfil, o ingresar una medida personalizada.</li>
+  <li><strong>Presionar START:</strong> Tocar el botón de inicio (generalmente de color verde). El indicador de estado cambiará a <span class="estado-rojo">Grabando</span> y el sistema comenzará a registrar la producción.</li>
+</ol>
+
+<div class="consejo">
+  <strong>Consejo:</strong> Asegurarse de que la extrusora esté funcionando y el material ya esté fluyendo antes de presionar START, para que las métricas registradas sean precisas desde el primer momento.
+</div>
+
+<div class="placeholder-img">
+  [ Insertar captura de pantalla mostrando el botón START activo y el estado "Grabando" ]
+</div>
+
+<h2>3.3 Durante la producción</h2>
+
+<p>Mientras la producción está en curso:</p>
+<ul>
+  <li>El <strong>velocímetro</strong> se actualiza en tiempo real con la velocidad actual de la extrusora.</li>
+  <li>Los <strong>metros extruidos</strong> aumentan continuamente.</li>
+  <li>El sistema acciona automáticamente el <strong>relé de corte</strong> cada vez que se alcanza la longitud de corte programada.</li>
+  <li>Si se configuró la <strong>alarma de antelación</strong>, el buzzer emitirá un pitido corto algunos segundos antes de cada corte para alertar al operador.</li>
+  <li>Si la velocidad se aleja del rango esperado, se activará la <strong>alarma de velocidad</strong> (ver Capítulo 7).</li>
+  <li>Cuando se completan todas las piezas del lote, el sistema <strong>detiene automáticamente</strong> la grabación y genera el registro del turno.</li>
+</ul>
+
+<h2>3.4 Cómo detener la producción</h2>
+
+<p>
+  Para detener la producción antes de completar el lote, presionar el botón <strong>STOP</strong>. El sistema guardará el registro con los datos producidos hasta ese momento, indicando que la producción fue detenida manualmente.
+</p>
+
+<div class="importante">
+  <strong>Importante:</strong> Al detener la producción, el relé de corte también se desactiva. Verificar que la cortadora se haya detenido correctamente antes de manipular el material.
+</div>
+
+<hr class="page-break">
+
+<!-- ============================================================ -->
+<!-- CAPÍTULO 4 -->
+<!-- ============================================================ -->
+<h1>4. Pantalla "Perfil" – Selección de Perfiles</h1>
+
+<h2>4.1 ¿Qué es un perfil?</h2>
+<p>
+  Un <strong>perfil</strong> es la ficha técnica de cada tipo de caucho que se produce. Cada perfil contiene toda la información necesaria para que el sistema controle correctamente la producción de ese tipo específico de goma: longitudes de corte, velocidad esperada, tipo de matriz, cantidad de bocas de salida, densidad del material, etc.
+</p>
+<p>
+  Los perfiles son cargados en el sistema por el área técnica. El supervisor o el operador solo necesita <em>seleccionar</em> el perfil correcto antes de comenzar a producir.
+</p>
+
+<h2>4.2 Cómo buscar y seleccionar un perfil</h2>
+
+<ol>
+  <li>Tocar la pestaña <strong>Perfil</strong> en el menú inferior.</li>
+  <li>Aparecerá una lista con todos los perfiles disponibles.</li>
+  <li>Para buscar un perfil, escribir parte del <strong>código o nombre comercial</strong> en el campo de búsqueda. La lista se filtra automáticamente.</li>
+  <li>Tocar el perfil deseado en la lista para ver su información completa.</li>
+  <li>Confirmar la selección tocando el botón <strong>Seleccionar</strong>.</li>
+</ol>
+
+<div class="placeholder-img">
+  [ Insertar captura de pantalla de la lista de perfiles con el campo de búsqueda ]
+</div>
+
+<h2>4.3 Información del perfil</h2>
+
+<p>Al seleccionar un perfil, el sistema muestra los siguientes datos:</p>
+
+<table>
+  <tr>
+    <th>Dato</th>
+    <th>Descripción</th>
+  </tr>
+  <tr>
+    <td><strong>Código</strong></td>
+    <td>Identificador único del perfil en el sistema de la empresa.</td>
+  </tr>
+  <tr>
+    <td><strong>Nombre comercial</strong></td>
+    <td>Nombre descriptivo del tipo de perfil de caucho.</td>
+  </tr>
+  <tr>
+    <td><strong>Tipo de matriz</strong></td>
+    <td>Código de la matriz de extrusión que se debe usar para producir este perfil.</td>
+  </tr>
+  <tr>
+    <td><strong>Bocas de salida</strong></td>
+    <td>Cantidad de perfiles que salen simultáneamente de la extrusora.</td>
+  </tr>
+  <tr>
+    <td><strong>Área (mm²)</strong></td>
+    <td>Sección transversal del perfil, dato técnico del material.</td>
+  </tr>
+  <tr>
+    <td><strong>Longitudes de corte disponibles</strong></td>
+    <td>Hasta 5 longitudes estándar predefinidas para ese perfil, en metros.</td>
+  </tr>
+  <tr>
+    <td><strong>Velocidad de tornillo / VFD</strong></td>
+    <td>Parámetros de referencia para configurar la velocidad de la extrusora.</td>
+  </tr>
+  <tr>
+    <td><strong>Densidad teórica y real</strong></td>
+    <td>Peso por metro del material, usado para cálculos de producción.</td>
+  </tr>
+</table>
+
+<div class="nota">
+  <strong>Nota:</strong> Si el perfil que necesita producir no aparece en la lista, contactar al responsable técnico para que lo cargue en el sistema.
+</div>
+
+<hr class="page-break">
+
+<!-- ============================================================ -->
+<!-- CAPÍTULO 5 -->
+<!-- ============================================================ -->
+<h1>5. Pantalla "Históricos" – Registros de Producción</h1>
+
+<h2>5.1 ¿Qué son los históricos?</h2>
+<p>
+  Los <strong>históricos</strong> son los registros guardados automáticamente por el sistema al finalizar cada producción. Funcionan como un libro de guardia digital: cada vez que se detiene una grabación (ya sea porque se completó el lote o porque el operador la detuvo manualmente), el sistema genera un registro en la tarjeta SD con todos los datos de esa producción.
+</p>
+<p>
+  Estos registros quedan guardados indefinidamente en la tarjeta SD y pueden consultarse en cualquier momento desde esta pantalla.
+</p>
+
+<div class="importante">
+  <strong>Importante:</strong> Si se retira la tarjeta SD del equipo mientras está encendido, o si la tarjeta se llena, el sistema seguirá funcionando pero <strong>no guardará nuevos registros</strong>. El ícono de SD en la barra de estado indicará si hay algún problema.
+</div>
+
+<h2>5.2 Cómo navegar los registros</h2>
+
+<ol>
+  <li>Tocar la pestaña <strong>Históricos</strong> en el menú inferior.</li>
+  <li>Aparecerá un explorador de archivos organizado por <strong>carpetas por fecha</strong>.</li>
+  <li>Tocar una carpeta para ver los registros de ese período.</li>
+  <li>Tocar un archivo para ver su contenido directamente en la pantalla.</li>
+</ol>
+
+<div class="placeholder-img">
+  [ Insertar captura del explorador de archivos históricos ]
+</div>
+
+<h2>5.3 Datos registrados por turno</h2>
+
+<p>Cada registro de producción contiene la siguiente información:</p>
+
+<table>
+  <tr>
+    <th>Dato</th>
+    <th>Descripción</th>
+  </tr>
+  <tr>
+    <td><strong>Fecha y hora de inicio</strong></td>
+    <td>Momento exacto en que se presionó START.</td>
+  </tr>
+  <tr>
+    <td><strong>Fecha y hora de fin</strong></td>
+    <td>Momento exacto en que se detuvo la producción.</td>
+  </tr>
+  <tr>
+    <td><strong>Perfil utilizado</strong></td>
+    <td>Código del perfil de caucho producido.</td>
+  </tr>
+  <tr>
+    <td><strong>Total de metros extruidos</strong></td>
+    <td>Metros totales de perfil producidos durante esa sesión.</td>
+  </tr>
+  <tr>
+    <td><strong>Velocidad promedio</strong></td>
+    <td>Velocidad media de extrusión durante toda la sesión, en m/min.</td>
+  </tr>
+  <tr>
+    <td><strong>Cantidad de cortes realizados</strong></td>
+    <td>Número de piezas cortadas durante esa sesión.</td>
+  </tr>
+  <tr>
+    <td><strong>Motivo de finalización</strong></td>
+    <td>Indica si la producción terminó porque se completó el lote (automático) o fue detenida por el operador (manual).</td>
+  </tr>
+</table>
+
+<div class="consejo">
+  <strong>Consejo para supervisores:</strong> Revisar los históricos al inicio del turno permite comparar la producción real del turno anterior con la planificada y detectar desvíos de velocidad o bajo rendimiento.
+</div>
+
+<hr class="page-break">
+
+<!-- ============================================================ -->
+<!-- CAPÍTULO 6 -->
+<!-- ============================================================ -->
+<h1>6. Pantalla "Configuración"</h1>
+
+<p>
+  La pantalla de Configuración está dividida en cuatro secciones (sub-pestañas). A continuación se describe cada una.
+</p>
+
+<div class="placeholder-img">
+  [ Insertar captura de la pantalla de Configuración mostrando las 4 sub-pestañas ]
+</div>
+
+<h2>6.1 Fecha y Hora</h2>
+
+<p>
+  Permite ajustar la fecha y hora del sistema. Es importante que el reloj esté correctamente configurado, ya que todos los registros históricos se guardan con marca de tiempo.
+</p>
+
+<h3>Procedimiento para ajustar la fecha y hora:</h3>
+<ol>
+  <li>Tocar la pestaña <strong>Fecha/Hora</strong> dentro de Configuración.</li>
+  <li>Usar los <strong>rodillos deslizables</strong> (similar a una rueda) para ajustar cada valor: horas, minutos, segundos, día, mes, año.</li>
+  <li>Deslizar hacia arriba o hacia abajo sobre cada rodillo para cambiar el valor.</li>
+  <li>Confirmar tocando el botón <strong>Guardar</strong>.</li>
+</ol>
+
+<div class="nota">
+  <strong>Nota:</strong> El sistema cuenta con un reloj interno con batería propia (RTC) que mantiene la hora aunque el equipo esté apagado. Solo es necesario ajustar la hora si se cambió la batería del RTC o si el equipo estuvo desconectado por un período prolongado.
+</div>
+
+<h2>6.2 WiFi</h2>
+
+<p>
+  Permite conectar el sistema a la red WiFi de la planta para habilitar el acceso remoto por web (ver Capítulo 10).
+</p>
+
+<h3>Procedimiento para conectar a WiFi:</h3>
+<ol>
+  <li>Tocar la pestaña <strong>WiFi</strong> dentro de Configuración.</li>
+  <li>Tocar <strong>Escanear redes</strong> para ver las redes WiFi disponibles.</li>
+  <li>Seleccionar el nombre de la red de la planta (SSID).</li>
+  <li>Ingresar la <strong>contraseña</strong> de la red tocando el campo correspondiente.</li>
+  <li>Tocar <strong>Conectar</strong>. El estado cambiará a "Conectando..." y luego mostrará la <strong>dirección IP</strong> asignada si la conexión fue exitosa.</li>
+</ol>
+
+<table>
+  <tr>
+    <th>Estado WiFi</th>
+    <th>Significado</th>
+  </tr>
+  <tr>
+    <td>Sin credenciales</td>
+    <td>No se ingresó ninguna red. El WiFi está inactivo.</td>
+  </tr>
+  <tr>
+    <td>Conectando...</td>
+    <td>El equipo está intentando conectarse a la red.</td>
+  </tr>
+  <tr>
+    <td>Conectado (IP: xxx.xxx.x.xx)</td>
+    <td>Conexión exitosa. Se muestra la dirección IP para el acceso remoto.</td>
+  </tr>
+  <tr>
+    <td>Error: contraseña incorrecta</td>
+    <td>Verificar que la contraseña ingresada sea correcta.</td>
+  </tr>
+  <tr>
+    <td>Error: red no encontrada</td>
+    <td>La red seleccionada no está al alcance del equipo. Verificar el router.</td>
+  </tr>
+</table>
+
+<h2>6.3 Máquina</h2>
+
+<p>Esta sección contiene los parámetros operativos más importantes del sistema. Se recomienda que solo el supervisor los modifique.</p>
+
+<div class="placeholder-img">
+  [ Insertar captura de la sub-pestaña "Máquina" de Configuración ]
+</div>
+
+<h3>Apariencia</h3>
+<p>
+  Permite cambiar el tema visual entre modo <strong>oscuro</strong> (fondo negro, recomendado en ambientes con poca luz) y modo <strong>claro</strong> (fondo blanco, recomendado bajo luz directa).
+</p>
+
+<h3>Alarma de velocidad</h3>
+<table>
+  <tr>
+    <th>Parámetro</th>
+    <th>Descripción</th>
+    <th>Rango</th>
+  </tr>
+  <tr>
+    <td><strong>Activar/Desactivar</strong></td>
+    <td>Habilita o deshabilita la alarma de velocidad.</td>
+    <td>ON / OFF</td>
+  </tr>
+  <tr>
+    <td><strong>Umbral de desviación (%)</strong></td>
+    <td>Porcentaje máximo de desvío permitido respecto a la velocidad objetivo del perfil antes de que suene la alarma.</td>
+    <td>1% – 99%</td>
+  </tr>
+</table>
+<p>
+  <em>Ejemplo:</em> Si la velocidad objetivo del perfil es 8 m/min y el umbral es 10%, la alarma sonará si la velocidad baja de 7.2 m/min o sube de 8.8 m/min.
+</p>
+
+<h3>Alarma de antelación al corte</h3>
+<table>
+  <tr>
+    <th>Parámetro</th>
+    <th>Descripción</th>
+    <th>Rango</th>
+  </tr>
+  <tr>
+    <td><strong>Activar/Desactivar</strong></td>
+    <td>Habilita o deshabilita el aviso sonoro previo al corte.</td>
+    <td>ON / OFF</td>
+  </tr>
+  <tr>
+    <td><strong>Segundos de antelación</strong></td>
+    <td>Cuántos segundos antes del corte debe sonar el aviso.</td>
+    <td>1 – 30 seg</td>
+  </tr>
+</table>
+
+<h3>Relé de marcado/corte</h3>
+<table>
+  <tr>
+    <th>Parámetro</th>
+    <th>Descripción</th>
+  </tr>
+  <tr>
+    <td><strong>Activar/Desactivar</strong></td>
+    <td>Habilita o deshabilita la salida del relé que controla la cortadora o marcadora automática. Si la línea no tiene cortadora automática, este parámetro debe estar en OFF.</td>
+  </tr>
+</table>
+
+<h3>Contador de pintura (spray)</h3>
+<p>Ver Capítulo 9 para descripción completa.</p>
+
+<h3>Calibración de longitud</h3>
+<p>Ver Capítulo 8 para descripción completa.</p>
+
+<h2>6.4 Sistema (Actualizaciones de firmware)</h2>
+
+<p>
+  Esta sección permite actualizar el software interno del equipo de forma remota (<em>Over-The-Air</em>), sin necesidad de intervención técnica en campo.
+</p>
+
+<div class="placeholder-img">
+  [ Insertar captura de la sub-pestaña "Sistema" ]
+</div>
+
+<table>
+  <tr>
+    <th>Elemento</th>
+    <th>Descripción</th>
+  </tr>
+  <tr>
+    <td><strong>Versión instalada</strong></td>
+    <td>Muestra el número de versión del software actualmente en el equipo.</td>
+  </tr>
+  <tr>
+    <td><strong>Versión disponible</strong></td>
+    <td>Última versión disponible en el servidor de actualizaciones (requiere WiFi activo).</td>
+  </tr>
+  <tr>
+    <td><strong>Botón "Verificar actualizaciones"</strong></td>
+    <td>Consulta si hay una nueva versión disponible.</td>
+  </tr>
+  <tr>
+    <td><strong>Botón "Actualizar"</strong></td>
+    <td>Descarga e instala la nueva versión. El equipo se reinicia automáticamente al finalizar.</td>
+  </tr>
+  <tr>
+    <td><strong>Barra de progreso</strong></td>
+    <td>Muestra el avance de la descarga durante la actualización.</td>
+  </tr>
+</table>
+
+<div class="importante">
+  <strong>Importante:</strong> No apagar el equipo ni desconectar el WiFi durante una actualización. Si la actualización falla, el sistema vuelve automáticamente a la versión anterior. Las actualizaciones solo se pueden realizar si el equipo está conectado a WiFi.
+</div>
+
+<hr class="page-break">
+
+<!-- ============================================================ -->
+<!-- CAPÍTULO 7 -->
+<!-- ============================================================ -->
+<h1>7. Alarmas y Alertas</h1>
+
+<p>
+  DeepMove cuenta con un sistema de alertas que avisa al operador y al supervisor cuando ocurre alguna condición anormal o cuando se acerca un evento importante del proceso. Las alertas combinan señales <strong>visuales</strong> (cambio de color en la pantalla) y <strong>sonoras</strong> (buzzer).
+</p>
+
+<h2>7.1 Tipos de alarma</h2>
+
+<table>
+  <tr>
+    <th>Tipo de alarma</th>
+    <th>Señal sonora</th>
+    <th>Señal visual</th>
+    <th>Causa</th>
+  </tr>
+  <tr>
+    <td><strong>Alarma de velocidad</strong></td>
+    <td>3 pitidos de 500ms (repetido)</td>
+    <td>Indicador de estado en <span class="estado-naranja">Alarma</span></td>
+    <td>La velocidad real se desvió del rango aceptable para el perfil seleccionado.</td>
+  </tr>
+  <tr>
+    <td><strong>Aviso de corte próximo</strong></td>
+    <td>1 pitido de 500ms</td>
+    <td>Ninguna (solo sonido)</td>
+    <td>Faltan N segundos para el próximo corte automático.</td>
+  </tr>
+</table>
+
+<div class="placeholder-img">
+  [ Insertar captura de pantalla mostrando el indicador de "Alarma" activo ]
+</div>
+
+<h2>7.2 Qué hacer ante una alarma</h2>
+
+<h3>Ante una alarma de velocidad:</h3>
+<ol>
+  <li>Observar la velocidad en el velocímetro y determinar si la extrusora está yendo <strong>muy rápido</strong> o <strong>muy lento</strong>.</li>
+  <li>Verificar el estado de la extrusora: temperatura del cilindro, nivel de material, presión de extrusión.</li>
+  <li>Ajustar la velocidad del variador de frecuencia (VFD) de la extrusora según corresponda.</li>
+  <li>Una vez que la velocidad vuelve al rango aceptable, la alarma se desactiva automáticamente.</li>
+</ol>
+
+<h3>Ante el aviso de corte próximo:</h3>
+<p>
+  Este aviso no indica un problema: solo informa que en unos segundos se realizará el corte automático. Asegurarse de que no haya personas o materiales en la zona de la cortadora.
+</p>
+
+<div class="consejo">
+  <strong>Consejo:</strong> Si la alarma de velocidad suena con frecuencia durante una producción, revisar los parámetros del perfil con el área técnica, ya que puede indicar que los valores de velocidad de referencia no están correctamente cargados en el perfil.
+</div>
+
+<hr class="page-break">
+
+<!-- ============================================================ -->
+<!-- CAPÍTULO 8 -->
+<!-- ============================================================ -->
+<h1>8. Calibración de Longitud</h1>
+
+<h2>8.1 Cuándo calibrar</h2>
+<p>
+  El sistema mide la longitud del perfil extruido mediante un sensor que cuenta las vueltas de un rodillo encoder. Con el tiempo, factores como el desgaste del rodillo, cambios en la tensión del material o la sustitución del rodillo por otro de diferente diámetro pueden hacer que la medición acumulada difiera de la longitud real.
+</p>
+<p>Se recomienda realizar una calibración en los siguientes casos:</p>
+<ul>
+  <li>Cuando se reemplaza el rodillo encoder por uno de diferente diámetro.</li>
+  <li>Cuando se detecta una diferencia sistemática entre la longitud indicada en pantalla y la longitud medida físicamente con una cinta métrica.</li>
+  <li>Periódicamente (por ejemplo, una vez por mes) como parte del mantenimiento preventivo.</li>
+</ul>
+
+<h2>8.2 Procedimiento de calibración</h2>
+
+<ol>
+  <li>Extruir una longitud conocida de perfil (por ejemplo, exactamente <strong>10 metros</strong>) midiendo físicamente con una cinta métrica de precisión.</li>
+  <li>Anotar la longitud que el sistema mostró en pantalla para esa misma producción (<em>longitud teórica</em>).</li>
+  <li>Ir a <strong>Configuración → Máquina → Calibración de longitud</strong>.</li>
+  <li>Ingresar en el campo <strong>"Longitud teórica"</strong> el valor que indicó el sistema (ej: 10.2 m).</li>
+  <li>Ingresar en el campo <strong>"Longitud real"</strong> la longitud medida físicamente (ej: 10.0 m).</li>
+  <li>El sistema calculará automáticamente el <strong>factor de corrección</strong>.</li>
+  <li>Tocar <strong>Aplicar</strong> para confirmar.</li>
+</ol>
+
+<div class="importante">
+  <strong>Límite de corrección:</strong> El sistema solo acepta factores de corrección dentro del rango ±20% respecto al valor actual. Si la diferencia es mayor, verificar que el sensor y el rodillo estén correctamente instalados, ya que podría indicar un problema mecánico.
+</div>
+
+<div class="nota">
+  <strong>Nota:</strong> Se recomienda hacer la calibración con una longitud de referencia grande (10 metros o más) para minimizar el error de medición con la cinta métrica.
+</div>
+
+<hr class="page-break">
+
+<!-- ============================================================ -->
+<!-- CAPÍTULO 9 -->
+<!-- ============================================================ -->
+<h1>9. Contador de Pintura (Spray)</h1>
+
+<p>
+  Si la línea de extrusión cuenta con un sistema de marcado por spray (pintura en aerosol), DeepMove lleva un <strong>contador de disparos</strong> para saber cuándo reponer el cartucho o lata de pintura.
+</p>
+<p>
+  El contador se decrementa automáticamente en <strong>1 unidad por cada corte/marcado</strong> que realiza el relé del marcador.
+</p>
+
+<h3>Configuración del contador:</h3>
+
+<table>
+  <tr>
+    <th>Parámetro</th>
+    <th>Descripción</th>
+    <th>Rango</th>
+  </tr>
+  <tr>
+    <td><strong>Capacidad del spray</strong></td>
+    <td>Número total de disparos que tiene el cartucho de pintura.</td>
+    <td>1 – 9999 disparos</td>
+  </tr>
+  <tr>
+    <td><strong>Disparos restantes</strong></td>
+    <td>Contador que muestra cuántos disparos quedan antes de que se agote el spray.</td>
+    <td>Calculado automáticamente</td>
+  </tr>
+  <tr>
+    <td><strong>Botón Resetear</strong></td>
+    <td>Al reemplazar el cartucho de pintura, presionar este botón para reiniciar el contador al valor de capacidad máxima.</td>
+    <td>–</td>
+  </tr>
+</table>
+
+<div class="consejo">
+  <strong>Consejo:</strong> Resetear el contador cada vez que se reemplaza el cartucho de pintura. Si el contador llega a cero y no se resetea, el sistema no desactivará el relé del marcador, pero la indicación en pantalla dejará de ser confiable.
+</div>
+
+<div class="placeholder-img">
+  [ Insertar captura del contador de spray en la pantalla de Configuración ]
+</div>
+
+<hr class="page-break">
+
+<!-- ============================================================ -->
+<!-- CAPÍTULO 10 -->
+<!-- ============================================================ -->
+<h1>10. Acceso Remoto por Web</h1>
+
+<p>
+  Cuando DeepMove está conectado a la red WiFi de la planta, es posible <strong>monitorear la producción en tiempo real</strong> desde cualquier computadora o tablet conectada a la misma red, sin necesidad de instalar ningún programa adicional.
+</p>
+
+<h3>Cómo acceder:</h3>
+<ol>
+  <li>Verificar que el equipo DeepMove esté conectado a WiFi (ver sección 6.2). Anotar la <strong>dirección IP</strong> que aparece en la pantalla de configuración WiFi (ejemplo: 192.168.1.105).</li>
+  <li>Desde una computadora o tablet conectada a la <strong>misma red WiFi</strong>, abrir un navegador web (Chrome, Firefox, Edge, etc.).</li>
+  <li>En la barra de dirección del navegador, escribir la dirección IP del equipo: <br>
+    <code style="background:#f0f0f0; padding:3px 8px; border-radius:3px; font-family: Consolas, monospace;">http://192.168.1.105</code><br>
+    (reemplazar los números con la IP real del equipo).
+  </li>
+  <li>Se abrirá el <strong>panel de monitoreo web</strong> con los datos de producción en tiempo real.</li>
+</ol>
+
+<div class="nota">
+  <strong>Nota:</strong> La dirección IP del equipo puede cambiar si se reinicia el router. Si el acceso falla, verificar la IP actual en Configuración → WiFi en la pantalla del equipo.
+</div>
+
+<div class="importante">
+  <strong>Importante:</strong> El acceso web es de solo lectura: permite <em>ver</em> los datos de producción pero no permite <em>controlar</em> el equipo ni cambiar su configuración desde la computadora. El control siempre se realiza desde la pantalla táctil del equipo.
+</div>
+
+<div class="placeholder-img">
+  [ Insertar captura del dashboard web mostrando los datos de producción en tiempo real ]
+</div>
+
+<hr class="page-break">
+
+<!-- ============================================================ -->
+<!-- CAPÍTULO 11 -->
+<!-- ============================================================ -->
+<h1>11. Mantenimiento Básico y Solución de Problemas</h1>
+
+<h2>Mantenimiento preventivo recomendado</h2>
+
+<table>
+  <tr>
+    <th>Frecuencia</th>
+    <th>Tarea</th>
+  </tr>
+  <tr>
+    <td><strong>Diario</strong></td>
+    <td>Limpiar la pantalla táctil con un paño seco o levemente húmedo (sin solventes). Verificar que el ícono de SD esté activo.</td>
+  </tr>
+  <tr>
+    <td><strong>Semanal</strong></td>
+    <td>Verificar que los históricos se estén guardando correctamente abriendo los registros del día anterior.</td>
+  </tr>
+  <tr>
+    <td><strong>Mensual</strong></td>
+    <td>Realizar la calibración de longitud. Verificar la hora del sistema. Revisar el nivel del contador de spray si corresponde.</td>
+  </tr>
+  <tr>
+    <td><strong>Según necesidad</strong></td>
+    <td>Actualizar el firmware cuando haya una nueva versión disponible. Formatear la tarjeta SD si está muy llena (hacer respaldo antes).</td>
+  </tr>
+</table>
+
+<h2>Solución de problemas comunes</h2>
+
+<table>
+  <tr>
+    <th>Problema</th>
+    <th>Posible causa</th>
+    <th>Solución</th>
+  </tr>
+  <tr>
+    <td>La pantalla no responde al tacto</td>
+    <td>Contaminación en la pantalla o guantes muy gruesos.</td>
+    <td>Limpiar la pantalla con un paño limpio y seco. Probar sin guantes.</td>
+  </tr>
+  <tr>
+    <td>El velocímetro no se mueve durante la producción</td>
+    <td>El sensor inductivo no está detectando el rodillo encoder.</td>
+    <td>Verificar que el sensor esté correctamente posicionado y que el rodillo encoder esté girando. Llamar al técnico si persiste.</td>
+  </tr>
+  <tr>
+    <td>No se guardan históricos</td>
+    <td>Tarjeta SD no insertada, llena o dañada.</td>
+    <td>Verificar la tarjeta SD. El ícono en la barra de estado indicará el problema.</td>
+  </tr>
+  <tr>
+    <td>La cortadora no se activa en el momento del corte</td>
+    <td>El relé de marcado está desactivado en la configuración.</td>
+    <td>Ir a Configuración → Máquina → Relé de marcado y verificar que esté en ON.</td>
+  </tr>
+  <tr>
+    <td>No conecta a WiFi</td>
+    <td>Contraseña incorrecta, red fuera de alcance o router apagado.</td>
+    <td>Verificar la contraseña y que el router esté encendido. Intentar escanear redes nuevamente.</td>
+  </tr>
+  <tr>
+    <td>La hora del sistema está mal</td>
+    <td>Batería del RTC agotada o ajuste incorrecto.</td>
+    <td>Ajustar la hora en Configuración → Fecha/Hora. Si sigue cambiando al apagar, avisar al técnico para cambiar la batería del RTC.</td>
+  </tr>
+  <tr>
+    <td>La actualización de firmware falla</td>
+    <td>Conexión WiFi inestable o servidor no disponible.</td>
+    <td>Verificar la conexión WiFi. Reintentar en otro momento. El sistema vuelve a la versión anterior automáticamente.</td>
+  </tr>
+  <tr>
+    <td>La longitud medida no coincide con la real</td>
+    <td>El factor de calibración está desajustado.</td>
+    <td>Realizar el procedimiento de calibración descripto en el Capítulo 8.</td>
+  </tr>
+</table>
+
+<hr class="page-break">
+
+<!-- ============================================================ -->
+<!-- CAPÍTULO 12 -->
+<!-- ============================================================ -->
+<h1>12. Glosario de Términos</h1>
+
+<table>
+  <tr>
+    <th>Término</th>
+    <th>Significado</th>
+  </tr>
+  <tr>
+    <td><strong>Boca de salida</strong></td>
+    <td>Orificio de la matriz de extrusión por donde sale el perfil de caucho.</td>
+  </tr>
+  <tr>
+    <td><strong>Calibración</strong></td>
+    <td>Proceso de ajuste de la medición del sensor para que coincida con la realidad.</td>
+  </tr>
+  <tr>
+    <td><strong>Encoder</strong></td>
+    <td>Rodillo que gira en contacto con el perfil extruido y permite al sensor contar la longitud producida.</td>
+  </tr>
+  <tr>
+    <td><strong>Firmware</strong></td>
+    <td>Software interno del equipo (como el sistema operativo de un celular). Se puede actualizar remotamente.</td>
+  </tr>
+  <tr>
+    <td><strong>HMI</strong></td>
+    <td>Interfaz Hombre-Máquina (Human Machine Interface). Nombre técnico del sistema de pantalla táctil para operar la máquina.</td>
+  </tr>
+  <tr>
+    <td><strong>IP / Dirección IP</strong></td>
+    <td>Número de identificación del equipo en la red WiFi, necesario para acceder al panel web (ej: 192.168.1.105).</td>
+  </tr>
+  <tr>
+    <td><strong>OTA</strong></td>
+    <td>Over-The-Air. Actualización del firmware del equipo a través de la red WiFi, sin intervención presencial del técnico.</td>
+  </tr>
+  <tr>
+    <td><strong>Perfil</strong></td>
+    <td>Ficha técnica de un tipo de caucho específico que contiene todos los parámetros necesarios para su producción.</td>
+  </tr>
+  <tr>
+    <td><strong>Relé</strong></td>
+    <td>Componente electrónico que actúa como un interruptor controlado por el sistema. Se usa para activar la cortadora o marcadora.</td>
+  </tr>
+  <tr>
+    <td><strong>RTC</strong></td>
+    <td>Reloj de Tiempo Real (Real Time Clock). Módulo electrónico que mantiene la hora del sistema aunque el equipo esté apagado.</td>
+  </tr>
+  <tr>
+    <td><strong>Sensor inductivo</strong></td>
+    <td>Dispositivo que detecta objetos metálicos sin contacto. Se usa para detectar las marcas del rodillo encoder.</td>
+  </tr>
+  <tr>
+    <td><strong>SD / Tarjeta SD</strong></td>
+    <td>Tarjeta de memoria removible donde se almacenan los registros históricos de producción.</td>
+  </tr>
+  <tr>
+    <td><strong>VFD</strong></td>
+    <td>Variador de Frecuencia. Dispositivo que controla la velocidad del motor de la extrusora.</td>
+  </tr>
+  <tr>
+    <td><strong>WiFi</strong></td>
+    <td>Red inalámbrica de área local. Permite que el equipo se comunique con otras computadoras de la planta sin cables.</td>
+  </tr>
+</table>
+
+<br><br>
+<hr style="border: 1px solid #1F3864; margin-top: 40px;">
+<p style="text-align: center; color: #666; font-size: 10pt; margin-top: 10px;">
+  Manual de Supervisor de Planta – Sistema DeepMove &nbsp;|&nbsp; Rubber SRL &nbsp;|&nbsp; Versión 1.0 &nbsp;|&nbsp; Junio 2026<br>
+  Para soporte técnico contactar al área de ingeniería de Rubber SRL.
+</p>
+
+</body>
+</html>

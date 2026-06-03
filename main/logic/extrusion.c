@@ -19,8 +19,8 @@
 // Diámetro físico del disco sensado.
 // No participa del cálculo si el disco gira solidario 1:1 con la polea de cinta.
 #define SENSOR_DIAMETER_MM 200.0f
-#define BELT_DIAMETER_MM 300.0f
-#define HOLES_COUNT 22.0f
+#define BELT_DIAMETER_MM 400.0f
+#define HOLES_COUNT 20.0f
 #define SPEED_TIMEOUT_MS 1000
 #define MM_PER_PULSE ((3.14159265f * BELT_DIAMETER_MM) / HOLES_COUNT)
 

@@ -52,7 +52,7 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
         if (reconnect_enabled)
         {
             // Durante un escaneo el stack WiFi desconecta brevemente; ignorar el
-            // cambio de estado para no mostrar "Conectando..." siendo que ya estaba conectado.
+            // cambio de estado y no reconectar para no abortar el escaneo en curso.
             if (!s_scanning)
             {
                 // Reportar error solo tras WIFI_ERROR_MIN_ATTEMPTS fallos consecutivos
@@ -92,9 +92,9 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
                 {
                     s_wifi_state = WIFI_STATE_CONNECTING;
                 }
-            }
 
-            esp_wifi_connect();
+                esp_wifi_connect();
+            }
         }
         else
         {
