@@ -46,7 +46,7 @@ void production_finish(production_finish_reason_t reason)
         if (alarm_config_marking_relay_is_enabled())
         {
             relay_1_on();
-            lv_delay_ms(500);
+            lv_delay_ms(alarm_config_marking_relay_get_duration_ms());
             relay_1_off();
         }
     }

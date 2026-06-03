@@ -14,6 +14,7 @@
 #define KEY_PRECUT_ENABLED  "precut_en"
 #define KEY_PRECUT_SECONDS  "precut_sec"
 #define KEY_MARK_RELAY_EN   "mark_rel_en"
+#define KEY_MARK_RELAY_DUR  "mark_rel_dur"
 #define KEY_CAL_FACTOR      "cal_factor"
 #define KEY_SPRAY_MAX       "spray_max"
 #define KEY_SPRAY_REM       "spray_rem"
@@ -343,6 +344,33 @@ void storage_nvs_load_marking_relay_enabled(bool *enabled)
     nvs_get_i32(handle, KEY_MARK_RELAY_EN, &en);
     nvs_close(handle);
     if (enabled) *enabled = (bool)en;
+}
+
+// =========================
+// SAVE MARKING RELAY DURATION
+// =========================
+void storage_nvs_save_marking_relay_duration_ds(int deciseconds)
+{
+    nvs_handle_t handle;
+    if (nvs_open(NAMESPACE, NVS_READWRITE, &handle) != ESP_OK)
+        return;
+    nvs_set_i32(handle, KEY_MARK_RELAY_DUR, (int32_t)deciseconds);
+    nvs_commit(handle);
+    nvs_close(handle);
+}
+
+// =========================
+// LOAD MARKING RELAY DURATION
+// =========================
+void storage_nvs_load_marking_relay_duration_ds(int *deciseconds)
+{
+    nvs_handle_t handle;
+    if (nvs_open(NAMESPACE, NVS_READONLY, &handle) != ESP_OK)
+        return;
+    int32_t val = 5; // default 0.5 s
+    nvs_get_i32(handle, KEY_MARK_RELAY_DUR, &val);
+    nvs_close(handle);
+    if (deciseconds) *deciseconds = (int)val;
 }
 
 // =========================

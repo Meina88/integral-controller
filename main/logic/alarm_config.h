@@ -16,6 +16,9 @@ void alarm_config_pre_cut_set(bool enabled, int seconds);
 // Relay de marcacion (relay 1)
 bool alarm_config_marking_relay_is_enabled(void);
 void alarm_config_marking_relay_set(bool enabled);
+int  alarm_config_marking_relay_get_duration_ds(void);   // deciseconds (1–50 → 0.1–5.0 s)
+void alarm_config_marking_relay_set_duration_ds(int ds);
+int  alarm_config_marking_relay_get_duration_ms(void);   // milliseconds, for relay driver
 
 // ── Spray shots counter ───────────────────────────────────────────
 int  alarm_config_spray_shots_get_max(void);

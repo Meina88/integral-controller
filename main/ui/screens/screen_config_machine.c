@@ -4,6 +4,7 @@
 #include "ui/ui_manager.h"
 #include "logic/alarm_config.h"
 #include "logic/calibration.h"
+#include "logic/extrusion.h"
 #include "lvgl.h"
 #include <stdio.h>
 
@@ -28,6 +29,15 @@ static lv_obj_t *btn_relay_on;
 static lv_obj_t *btn_relay_off;
 static lv_obj_t *lbl_relay_on;
 static lv_obj_t *lbl_relay_off;
+static lv_obj_t *relay_dur_row;
+static lv_obj_t *label_relay_dur_val;
+static lv_obj_t *btn_relay_test;
+static lv_obj_t *lbl_relay_test;
+
+// ─── Relay test cooldown state ────────────────────────────────────
+static int         s_relay_dur_ds          = 5;   // loaded from alarm_config on build
+static int         s_test_count            = 0;
+static lv_timer_t *s_relay_cooldown_timer  = NULL;
 
 // ─── Calibration refs ─────────────────────────────────────────────
 static lv_obj_t *label_cal_factor_current;
@@ -61,6 +71,22 @@ static void update_alarm_buttons(bool enabled)
         lv_obj_clear_flag(threshold_row, LV_OBJ_FLAG_HIDDEN);
     else
         lv_obj_add_flag(threshold_row, LV_OBJ_FLAG_HIDDEN);
+}
+
+// =========================
+// SCREEN CLEANUP
+// =========================
+static void screen_config_machine_delete_cb(lv_event_t *e)
+{
+    relay_dur_row       = NULL;
+    label_relay_dur_val = NULL;
+    btn_relay_test      = NULL;
+    lbl_relay_test      = NULL;
+
+    if (s_relay_cooldown_timer) {
+        lv_timer_del(s_relay_cooldown_timer);
+        s_relay_cooldown_timer = NULL;
+    }
 }
 
 // =========================
@@ -173,6 +199,19 @@ static void update_relay_buttons(bool enabled)
     lv_obj_set_style_bg_color(btn_relay_off, !enabled ? th->blue : th->pressed, 0);
     lv_obj_set_style_text_color(lbl_relay_on,  enabled  ? lv_color_white() : th->subtle, 0);
     lv_obj_set_style_text_color(lbl_relay_off, !enabled ? lv_color_white() : th->subtle, 0);
+
+    if (lv_obj_is_valid(relay_dur_row)) {
+        if (enabled)
+            lv_obj_clear_flag(relay_dur_row, LV_OBJ_FLAG_HIDDEN);
+        else
+            lv_obj_add_flag(relay_dur_row, LV_OBJ_FLAG_HIDDEN);
+    }
+    if (lv_obj_is_valid(btn_relay_test)) {
+        if (enabled)
+            lv_obj_clear_flag(btn_relay_test, LV_OBJ_FLAG_HIDDEN);
+        else
+            lv_obj_add_flag(btn_relay_test, LV_OBJ_FLAG_HIDDEN);
+    }
 }
 
 static void relay_on_cb(lv_event_t *e)
@@ -185,6 +224,126 @@ static void relay_off_cb(lv_event_t *e)
 {
     alarm_config_marking_relay_set(false);
     update_relay_buttons(false);
+}
+
+static void relay_dur_minus_cb(lv_event_t *e)
+{
+    if (s_relay_dur_ds <= 1) return;
+    s_relay_dur_ds--;
+    alarm_config_marking_relay_set_duration_ds(s_relay_dur_ds);
+    char buf[16];
+    snprintf(buf, sizeof(buf), "%.1f s", s_relay_dur_ds / 10.0f);
+    lv_label_set_text(label_relay_dur_val, buf);
+}
+
+static void relay_dur_plus_cb(lv_event_t *e)
+{
+    if (s_relay_dur_ds >= 50) return;
+    s_relay_dur_ds++;
+    alarm_config_marking_relay_set_duration_ds(s_relay_dur_ds);
+    char buf[16];
+    snprintf(buf, sizeof(buf), "%.1f s", s_relay_dur_ds / 10.0f);
+    lv_label_set_text(label_relay_dur_val, buf);
+}
+
+static void relay_cooldown_timer_cb(lv_timer_t *t)
+{
+    (void)t;
+    s_test_count = 0;
+    s_relay_cooldown_timer = NULL;
+    if (lv_obj_is_valid(btn_relay_test) && lv_obj_is_valid(lbl_relay_test)) {
+        const ui_theme_t *th = ui_theme_get();
+        lv_obj_set_style_bg_color(btn_relay_test, th->blue, 0);
+        lv_obj_set_style_text_color(lbl_relay_test, lv_color_white(), 0);
+    }
+}
+
+static void relay_overheat_close_cb(lv_event_t *e)
+{
+    lv_obj_t *modal = (lv_obj_t *)lv_event_get_user_data(e);
+    if (lv_obj_is_valid(modal))
+        lv_obj_del(modal);
+}
+
+static void show_relay_overheat_modal(void)
+{
+    const ui_theme_t *th = ui_theme_get();
+
+    lv_obj_t *modal = lv_obj_create(lv_layer_top());
+    lv_obj_set_size(modal, LV_PCT(100), LV_PCT(100));
+    lv_obj_set_style_bg_color(modal, lv_color_black(), 0);
+    lv_obj_set_style_bg_opa(modal, LV_OPA_60, 0);
+    lv_obj_set_style_border_width(modal, 0, 0);
+    lv_obj_set_style_pad_all(modal, 0, 0);
+    lv_obj_clear_flag(modal, LV_OBJ_FLAG_SCROLLABLE);
+
+    lv_obj_t *card = lv_obj_create(modal);
+    lv_obj_set_size(card, 460, LV_SIZE_CONTENT);
+    lv_obj_center(card);
+    lv_obj_set_style_bg_color(card, th->surface, 0);
+    lv_obj_set_style_bg_opa(card, LV_OPA_COVER, 0);
+    lv_obj_set_style_border_width(card, 0, 0);
+    lv_obj_set_style_radius(card, 12, 0);
+    lv_obj_set_style_shadow_width(card, 0, 0);
+    lv_obj_set_layout(card, LV_LAYOUT_FLEX);
+    lv_obj_set_flex_flow(card, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(card, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_set_style_pad_all(card, 28, 0);
+    lv_obj_set_style_pad_gap(card, 16, 0);
+    lv_obj_clear_flag(card, LV_OBJ_FLAG_SCROLLABLE);
+
+    lv_obj_t *lbl_title = lv_label_create(card);
+    lv_label_set_text(lbl_title, "Atencion");
+    lv_obj_set_style_text_font(lbl_title, FONT_LARGE, 0);
+    lv_obj_set_style_text_color(lbl_title, th->text, 0);
+
+    lv_obj_t *lbl_msg = lv_label_create(card);
+    lv_label_set_text(lbl_msg,
+        "Riesgo de sobrecalentamiento del solenoide.\n"
+        "Por favor aguarde un minuto antes de continuar.");
+    lv_obj_set_style_text_font(lbl_msg, FONT_SMALL, 0);
+    lv_obj_set_style_text_color(lbl_msg, th->text, 0);
+    lv_label_set_long_mode(lbl_msg, LV_LABEL_LONG_WRAP);
+    lv_obj_set_width(lbl_msg, 400);
+    lv_obj_set_style_text_align(lbl_msg, LV_TEXT_ALIGN_CENTER, 0);
+
+    lv_obj_t *btn_ok = lv_btn_create(card);
+    lv_obj_set_size(btn_ok, 200, 52);
+    lv_obj_set_style_bg_color(btn_ok, th->blue, 0);
+    lv_obj_set_style_bg_opa(btn_ok, LV_OPA_COVER, 0);
+    lv_obj_set_style_border_width(btn_ok, 0, 0);
+    lv_obj_set_style_shadow_width(btn_ok, 0, 0);
+    lv_obj_set_style_radius(btn_ok, 8, 0);
+    lv_obj_add_event_cb(btn_ok, relay_overheat_close_cb, LV_EVENT_CLICKED, modal);
+
+    lv_obj_t *lbl_ok = lv_label_create(btn_ok);
+    lv_label_set_text(lbl_ok, "Entendido");
+    lv_obj_set_style_text_font(lbl_ok, FONT_MEDIUM, 0);
+    lv_obj_set_style_text_color(lbl_ok, lv_color_white(), 0);
+    lv_obj_center(lbl_ok);
+}
+
+static void relay_test_cb(lv_event_t *e)
+{
+    if (s_test_count >= 5) {
+        show_relay_overheat_modal();
+        return;
+    }
+
+    extrusion_relay_test();
+    s_test_count++;
+
+    if (s_test_count >= 5) {
+        if (s_relay_cooldown_timer == NULL) {
+            s_relay_cooldown_timer = lv_timer_create(relay_cooldown_timer_cb, 60000, NULL);
+            lv_timer_set_repeat_count(s_relay_cooldown_timer, 1);
+        }
+        if (lv_obj_is_valid(btn_relay_test) && lv_obj_is_valid(lbl_relay_test)) {
+            const ui_theme_t *th = ui_theme_get();
+            lv_obj_set_style_bg_color(btn_relay_test, th->pressed, 0);
+            lv_obj_set_style_text_color(lbl_relay_test, th->subtle, 0);
+        }
+    }
 }
 
 // =========================
@@ -766,6 +925,89 @@ lv_obj_t *screen_config_machine_create(lv_obj_t *parent)
     lv_obj_set_style_text_color(lbl_relay_off, !relay_en ? lv_color_white() : th->subtle, 0);
     lv_obj_center(lbl_relay_off);
 
+    // Fila de duración: [Duracion de activacion:]  [▼] [0.5 s] [▲]
+    s_relay_dur_ds = alarm_config_marking_relay_get_duration_ds();
+
+    relay_dur_row = lv_obj_create(root);
+    lv_obj_set_size(relay_dur_row, LV_PCT(100), 52);
+    lv_obj_set_flex_flow(relay_dur_row, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(relay_dur_row,
+                          LV_FLEX_ALIGN_SPACE_BETWEEN,
+                          LV_FLEX_ALIGN_CENTER,
+                          LV_FLEX_ALIGN_CENTER);
+    lv_obj_set_style_bg_opa(relay_dur_row, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_border_width(relay_dur_row, 0, 0);
+    lv_obj_set_style_shadow_width(relay_dur_row, 0, 0);
+    lv_obj_set_style_pad_all(relay_dur_row, 0, 0);
+    lv_obj_clear_flag(relay_dur_row, LV_OBJ_FLAG_SCROLLABLE);
+    if (!relay_en)
+        lv_obj_add_flag(relay_dur_row, LV_OBJ_FLAG_HIDDEN);
+
+    lv_obj_t *lbl_dur_text = lv_label_create(relay_dur_row);
+    lv_label_set_text(lbl_dur_text, "Duracion de activacion:");
+    lv_obj_set_style_text_font(lbl_dur_text, FONT_SMALL, 0);
+    lv_obj_set_style_text_color(lbl_dur_text, th->text, 0);
+
+    lv_obj_t *dur_ctrl = lv_obj_create(relay_dur_row);
+    lv_obj_set_size(dur_ctrl, LV_SIZE_CONTENT, 52);
+    lv_obj_set_flex_flow(dur_ctrl, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(dur_ctrl, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_set_style_pad_gap(dur_ctrl, 8, 0);
+    lv_obj_set_style_bg_opa(dur_ctrl, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_border_width(dur_ctrl, 0, 0);
+    lv_obj_set_style_shadow_width(dur_ctrl, 0, 0);
+    lv_obj_set_style_pad_all(dur_ctrl, 0, 0);
+    lv_obj_clear_flag(dur_ctrl, LV_OBJ_FLAG_SCROLLABLE);
+
+    lv_obj_t *btn_dur_m = lv_btn_create(dur_ctrl);
+    lv_obj_set_size(btn_dur_m, 48, 44);
+    lv_obj_set_style_shadow_width(btn_dur_m, 0, 0);
+    lv_obj_set_style_radius(btn_dur_m, 6, 0);
+    lv_obj_add_event_cb(btn_dur_m, relay_dur_minus_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(btn_dur_m, relay_dur_minus_cb, LV_EVENT_LONG_PRESSED_REPEAT, NULL);
+    lv_obj_t *lbl_dur_m = lv_label_create(btn_dur_m);
+    lv_label_set_text(lbl_dur_m, "▼");
+    lv_obj_set_style_text_font(lbl_dur_m, FONT_SMALL, 0);
+    lv_obj_center(lbl_dur_m);
+
+    label_relay_dur_val = lv_label_create(dur_ctrl);
+    char dur_buf[16];
+    snprintf(dur_buf, sizeof(dur_buf), "%.1f s", s_relay_dur_ds / 10.0f);
+    lv_label_set_text(label_relay_dur_val, dur_buf);
+    lv_obj_set_style_text_font(label_relay_dur_val, FONT_MEDIUM, 0);
+    lv_obj_set_style_text_color(label_relay_dur_val, th->text, 0);
+    lv_obj_set_width(label_relay_dur_val, 70);
+    lv_obj_set_style_text_align(label_relay_dur_val, LV_TEXT_ALIGN_CENTER, 0);
+
+    lv_obj_t *btn_dur_p = lv_btn_create(dur_ctrl);
+    lv_obj_set_size(btn_dur_p, 48, 44);
+    lv_obj_set_style_shadow_width(btn_dur_p, 0, 0);
+    lv_obj_set_style_radius(btn_dur_p, 6, 0);
+    lv_obj_add_event_cb(btn_dur_p, relay_dur_plus_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(btn_dur_p, relay_dur_plus_cb, LV_EVENT_LONG_PRESSED_REPEAT, NULL);
+    lv_obj_t *lbl_dur_p = lv_label_create(btn_dur_p);
+    lv_label_set_text(lbl_dur_p, "▲");
+    lv_obj_set_style_text_font(lbl_dur_p, FONT_SMALL, 0);
+    lv_obj_center(lbl_dur_p);
+
+    // Botón Test
+    btn_relay_test = lv_btn_create(root);
+    lv_obj_set_size(btn_relay_test, LV_PCT(100), 52);
+    lv_obj_set_style_bg_color(btn_relay_test, th->blue, 0);
+    lv_obj_set_style_bg_opa(btn_relay_test, LV_OPA_COVER, 0);
+    lv_obj_set_style_border_width(btn_relay_test, 0, 0);
+    lv_obj_set_style_shadow_width(btn_relay_test, 0, 0);
+    lv_obj_set_style_radius(btn_relay_test, 8, 0);
+    lv_obj_add_event_cb(btn_relay_test, relay_test_cb, LV_EVENT_CLICKED, NULL);
+    if (!relay_en)
+        lv_obj_add_flag(btn_relay_test, LV_OBJ_FLAG_HIDDEN);
+
+    lbl_relay_test = lv_label_create(btn_relay_test);
+    lv_label_set_text(lbl_relay_test, "Test");
+    lv_obj_set_style_text_font(lbl_relay_test, FONT_MEDIUM, 0);
+    lv_obj_set_style_text_color(lbl_relay_test, lv_color_white(), 0);
+    lv_obj_center(lbl_relay_test);
+
     // ── Separador ─────────────────────────────────────────────────
     lv_obj_t *sep3 = lv_obj_create(root);
     lv_obj_set_size(sep3, LV_PCT(100), 1);
@@ -1033,6 +1275,8 @@ lv_obj_t *screen_config_machine_create(lv_obj_t *parent)
     lv_obj_set_style_text_font(lbl_cal_apply, FONT_MEDIUM, 0);
     lv_obj_set_style_text_color(lbl_cal_apply, lv_color_white(), 0);
     lv_obj_center(lbl_cal_apply);
+
+    lv_obj_add_event_cb(root, screen_config_machine_delete_cb, LV_EVENT_DELETE, NULL);
 
     return root;
 }

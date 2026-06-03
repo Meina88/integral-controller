@@ -116,6 +116,7 @@ void recording_start(void)
 
     if (alarm_config_marking_relay_is_enabled())
     {
+        relay_timeout_ms = alarm_config_marking_relay_get_duration_ms();
         relay_1_on();
         relay_active = true;
         relay_fired_since_check = true;
@@ -255,6 +256,7 @@ void extrusion_process_tick(void)
 
                     if (alarm_config_marking_relay_is_enabled())
                     {
+                        relay_timeout_ms = alarm_config_marking_relay_get_duration_ms();
                         relay_1_on();
                         relay_active = true;
                         relay_fired_since_check = true;
@@ -294,7 +296,7 @@ void extrusion_process_tick(void)
     {
         relay_1_off();
         relay_active = false;
-        relay_timeout_ms = 500;
+        relay_timeout_ms = alarm_config_marking_relay_get_duration_ms();
     }
 
     // =========================
@@ -340,7 +342,7 @@ void extrusion_process_tick(void)
 
 void extrusion_relay_test(void)
 {
-    relay_timeout_ms      = 1000;
+    relay_timeout_ms      = alarm_config_marking_relay_get_duration_ms();
     relay_1_on();
     relay_active          = true;
     relay_fired_since_check = true;
