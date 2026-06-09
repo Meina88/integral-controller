@@ -16,21 +16,18 @@
 #include "ui/components/numpad.h"
 #include "ui/ui_manager.h"
 
-#define GAUGE_SIZE 210
-#define SPEED_MAX 20
+#define GAUGE_SIZE  210
+#define SPEED_MAX     5
+#define SPEED_SCALE  10   // décimas de m/min: rango interno = 0…50
 
 static lv_obj_t *root;
 
 // ─── Velocímetro ──────────────────────────────────────────────
 static lv_obj_t *scale_speed;
 static lv_obj_t *needle_current;
-static lv_scale_section_t *section_target;
-static lv_scale_section_t *section_redzone;
+static lv_obj_t *needle_target;
 static lv_style_t style_needle;
-static lv_style_t style_section_target_arc;
-static lv_style_t style_section_target_tick;
-static lv_style_t style_section_red_arc;
-static lv_style_t style_section_red_tick;
+static lv_style_t style_needle_target;
 
 // ─── Velocidad (texto) ────────────────────────────────────────
 static lv_obj_t *label_speed;
@@ -358,34 +355,23 @@ lv_obj_t *screen_extruir_create(lv_obj_t *parent)
     lv_style_set_line_color(&style_needle, lv_palette_main(LV_PALETTE_RED));
     lv_style_set_line_rounded(&style_needle, true);
 
-    lv_style_init(&style_section_target_arc);
-    lv_style_set_arc_color(&style_section_target_arc, lv_color_hex(0xFF8C00));
-    lv_style_set_arc_width(&style_section_target_arc, 8);
-
-    lv_style_init(&style_section_target_tick);
-    lv_style_set_line_color(&style_section_target_tick, lv_color_hex(0xFF8C00));
-    lv_style_set_line_width(&style_section_target_tick, 3);
-    lv_style_set_text_color(&style_section_target_tick, lv_color_hex(0xFF8C00));
-
-    lv_style_init(&style_section_red_arc);
-    lv_style_set_arc_color(&style_section_red_arc, lv_palette_main(LV_PALETTE_RED));
-    lv_style_set_arc_width(&style_section_red_arc, 8);
-
-    lv_style_init(&style_section_red_tick);
-    lv_style_set_line_color(&style_section_red_tick, lv_palette_main(LV_PALETTE_RED));
-    lv_style_set_line_width(&style_section_red_tick, 3);
-    lv_style_set_text_color(&style_section_red_tick, lv_palette_main(LV_PALETTE_RED));
+    lv_style_init(&style_needle_target);
+    lv_style_set_line_width(&style_needle_target, 3);
+    lv_style_set_line_color(&style_needle_target, lv_color_hex(0xFF8C00));
+    lv_style_set_line_rounded(&style_needle_target, true);
 
     // ─── Escala (velocímetro) ─────────────────────────────────────
     scale_speed = lv_scale_create(left_col);
     lv_obj_set_size(scale_speed, GAUGE_SIZE, GAUGE_SIZE);
     lv_scale_set_mode(scale_speed, LV_SCALE_MODE_ROUND_INNER);
-    lv_scale_set_range(scale_speed, 0, SPEED_MAX);
+    lv_scale_set_range(scale_speed, 0, SPEED_MAX * SPEED_SCALE);
     lv_scale_set_angle_range(scale_speed, 270);
     lv_scale_set_rotation(scale_speed, 135);
-    lv_scale_set_total_tick_count(scale_speed, 41);
-    lv_scale_set_major_tick_every(scale_speed, 10);
+    lv_scale_set_total_tick_count(scale_speed, SPEED_MAX * SPEED_SCALE + 1);
+    lv_scale_set_major_tick_every(scale_speed, SPEED_SCALE);
     lv_scale_set_label_show(scale_speed, true);
+    static const char * const speed_labels[] = {"0","1","2","3","4","5",""};
+    lv_scale_set_text_src(scale_speed, (const char **)speed_labels);
     lv_obj_set_style_length(scale_speed, 5, LV_PART_ITEMS);
     lv_obj_set_style_length(scale_speed, 12, LV_PART_INDICATOR);
 
@@ -394,17 +380,9 @@ lv_obj_t *screen_extruir_create(lv_obj_t *parent)
     lv_obj_set_style_line_color(scale_speed, th->muted, LV_PART_ITEMS);
     lv_obj_set_style_text_color(scale_speed, th->text, LV_PART_INDICATOR);
 
-    section_redzone = lv_scale_add_section(scale_speed);
-    lv_scale_section_set_range(section_redzone, SPEED_MAX - 2, SPEED_MAX);
-    lv_scale_set_section_style_main(scale_speed, section_redzone, &style_section_red_arc);
-    lv_scale_set_section_style_indicator(scale_speed, section_redzone, &style_section_red_tick);
-    lv_scale_set_section_style_items(scale_speed, section_redzone, &style_section_red_tick);
-
-    section_target = lv_scale_add_section(scale_speed);
-    lv_scale_section_set_range(section_target, 0, 0);
-    lv_scale_set_section_style_main(scale_speed, section_target, &style_section_target_arc);
-    lv_scale_set_section_style_indicator(scale_speed, section_target, &style_section_target_tick);
-    lv_scale_set_section_style_items(scale_speed, section_target, &style_section_target_tick);
+    needle_target = lv_line_create(scale_speed);
+    lv_obj_add_style(needle_target, &style_needle_target, 0);
+    lv_scale_set_line_needle_value(scale_speed, needle_target, 85, 0);
 
     needle_current = lv_line_create(scale_speed);
     lv_obj_add_style(needle_current, &style_needle, 0);
@@ -586,7 +564,7 @@ void screen_extruir_refresh_profile(void)
         extrusion_set_cut_distance_m(0);
 
         lv_label_set_text(label_target_speed, "Objetivo: --");
-        lv_scale_section_set_range(section_target, 0, 0);
+        lv_scale_set_line_needle_value(scale_speed, needle_target, 85, 0);
 
         if (!recording_ui)
         {
@@ -611,10 +589,8 @@ void screen_extruir_refresh_profile(void)
     update_qty_label();
     extrusion_set_cut_distance_m(current_profile.default_cut);
 
-    int32_t tgt = (int32_t)(current_profile.belt_speed + 0.5f);
-    lv_scale_section_set_range(section_target,
-                               LV_MAX(0, tgt - 1),
-                               LV_MIN(SPEED_MAX, tgt + 1));
+    int32_t tgt = (int32_t)(current_profile.belt_speed * SPEED_SCALE + 0.5f);
+    lv_scale_set_line_needle_value(scale_speed, needle_target, 85, tgt);
 
     char speed_buf[64];
     snprintf(speed_buf, sizeof(speed_buf),
@@ -681,7 +657,7 @@ void screen_extruir_update(void)
     lv_label_set_text(label_speed, buf);
 
     lv_scale_set_line_needle_value(scale_speed, needle_current, 95,
-                                   (int32_t)(display_speed + 0.5f));
+                                   (int32_t)(display_speed * SPEED_SCALE + 0.5f));
 
     // ─── Longitud extruida (progreso de la tirada actual) ─────────
     // Se reinicia solo al llegar a cut_dist gracias al módulo

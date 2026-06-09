@@ -103,56 +103,6 @@ bool sdcard_is_ready(void)
     return sd_ok;
 }
 
-// =========================
-// TEST ESCRITURA / LECTURA
-// =========================
-void sdcard_test(void)
-{
-    if (!sd_ok)
-    {
-        printf("SD no disponible\n");
-        return;
-    }
-
-    const char *path = "/sdcard/test_write.txt";
-
-    printf("Escribiendo archivo: %s\n", path);
-
-    FILE *f = fopen(path, "w");
-    if (!f)
-    {
-        printf("ERROR: no se pudo abrir archivo para escritura\n");
-        return;
-    }
-
-    fprintf(f, "Hola desde ESP32-S3\n");
-    fprintf(f, "Prueba de escritura OK\n");
-
-    fclose(f);
-
-    printf("Archivo escrito correctamente\n");
-
-    // =========================
-    // VERIFICACIÓN
-    // =========================
-    f = fopen(path, "r");
-    if (!f)
-    {
-        printf("ERROR: no se pudo abrir archivo para lectura\n");
-        return;
-    }
-
-    char buffer[128];
-
-    printf("Contenido del archivo:\n");
-
-    while (fgets(buffer, sizeof(buffer), f))
-    {
-        printf("%s", buffer);
-    }
-
-    fclose(f);
-}
 
 #include <sys/stat.h>
 
