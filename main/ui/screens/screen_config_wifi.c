@@ -201,7 +201,7 @@ static void refresh_status(void)
         text_color  = C_RED;
         break;
     case WIFI_STATE_NO_AP:
-        status_text = "Red no encontrada";
+        status_text = "Sin conexión";
         dot_color   = C_RED;
         text_color  = C_RED;
         break;
@@ -433,14 +433,19 @@ lv_obj_t *screen_config_wifi_create(lv_obj_t *parent)
     lv_obj_set_flex_flow(right, LV_FLEX_FLOW_COLUMN);
     lv_obj_clear_flag(right, LV_OBJ_FLAG_SCROLLABLE);
 
-    storage_nvs_load_wifi(ssid_buffer, sizeof(ssid_buffer),
-                          pass_buffer, sizeof(pass_buffer));
+    ssid_buffer[0] = '\0';
+    pass_buffer[0] = '\0';
 
-    ta_ssid = make_field(right, "Red (SSID)", false);
-    lv_textarea_set_text(ta_ssid, ssid_buffer);
+    ta_ssid     = make_field(right, "Red (SSID)", false);
+    ta_password = make_field(right, "Contraseña", true);
 
-    ta_password = make_field(right, "Contrasena", true);
-    lv_textarea_set_text(ta_password, pass_buffer);
+    if (wifi_get_state() == WIFI_STATE_CONNECTED)
+    {
+        storage_nvs_load_wifi(ssid_buffer, sizeof(ssid_buffer),
+                              pass_buffer, sizeof(pass_buffer));
+        lv_textarea_set_text(ta_ssid, ssid_buffer);
+        lv_textarea_set_text(ta_password, pass_buffer);
+    }
 
     btn_connect = lv_btn_create(right);
     lv_obj_set_width(btn_connect, LV_PCT(100));

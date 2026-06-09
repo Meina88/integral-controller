@@ -69,7 +69,7 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
                     case WIFI_REASON_HANDSHAKE_TIMEOUT:
                         s_wifi_state = WIFI_STATE_AUTH_FAIL;
                         snprintf(wifi_last_error, sizeof(wifi_last_error),
-                                 "Contrasena incorrecta");
+                                 "Contraseña incorrecta");
                         break;
 
                     case WIFI_REASON_NO_AP_FOUND:
@@ -111,6 +111,15 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
         esp_wifi_clear_ap_list();
         s_scan_done = true;
         ESP_LOGI(TAG, "WiFi scan complete: %d networks", scan_count);
+
+        // Reanudar la conexión suspendida por el scan
+        if (reconnect_enabled && strlen(wifi_ssid) > 0 && !wifi_connected)
+        {
+            connect_attempt           = 0;
+            connection_error_reported = false;
+            s_wifi_state              = WIFI_STATE_CONNECTING;
+            esp_wifi_connect();
+        }
     }
     else if (event_base == IP_EVENT &&
              event_id == IP_EVENT_STA_GOT_IP)
@@ -303,12 +312,17 @@ const char *wifi_get_ssid(void)
 // =========================
 void wifi_start_scan(void)
 {
-    wifi_scan_config_t scan_config = {
-        .show_hidden = false};
-
     scan_count  = 0;
     s_scan_done = false;
-    s_scanning  = true;
+    s_scanning  = true; // Debe estar en true antes de llamar a disconnect
+
+    // Si hay una conexión pendiente (red no encontrada / en curso), cancelarla
+    // para liberar el stack WiFi y permitir el scan. WIFI_EVENT_SCAN_DONE
+    // reanuda la conexión al terminar.
+    if (!wifi_connected && reconnect_enabled && strlen(wifi_ssid) > 0)
+        esp_wifi_disconnect();
+
+    wifi_scan_config_t scan_config = {.show_hidden = false};
 
     esp_err_t err =
         esp_wifi_scan_start(&scan_config, false);
@@ -320,7 +334,13 @@ void wifi_start_scan(void)
                  esp_err_to_name(err));
         s_scanning  = false;
         s_scan_done = true;
-        return;
+
+        // Restaurar intento de conexión si el scan no pudo iniciarse
+        if (reconnect_enabled && strlen(wifi_ssid) > 0 && !wifi_connected)
+        {
+            s_wifi_state = WIFI_STATE_CONNECTING;
+            esp_wifi_connect();
+        }
     }
 }
 

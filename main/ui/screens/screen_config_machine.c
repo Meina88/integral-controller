@@ -565,8 +565,8 @@ lv_obj_t *screen_config_machine_create(lv_obj_t *parent)
     lv_obj_set_style_bg_color(root, th->bg, 0);
     lv_obj_set_style_bg_opa(root, LV_OPA_COVER, 0);
     lv_obj_set_style_border_width(root, 0, 0);
-    lv_obj_set_style_pad_all(root, 20, 0);
-    lv_obj_set_style_pad_gap(root, 12, 0);
+    lv_obj_set_style_pad_all(root, 24, 0);
+    lv_obj_set_style_pad_gap(root, 14, 0);
     lv_obj_set_layout(root, LV_LAYOUT_FLEX);
     lv_obj_set_flex_flow(root, LV_FLEX_FLOW_COLUMN);
 

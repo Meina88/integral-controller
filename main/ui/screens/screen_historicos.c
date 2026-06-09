@@ -111,7 +111,7 @@ static void refresh_list(void)
     {
         lv_obj_t *btn = lv_btn_create(list);
         lv_obj_set_width(btn, LV_PCT(100));
-        lv_obj_set_height(btn, 40);
+        lv_obj_set_height(btn, 46);
         lv_obj_set_style_bg_color(btn, th->surface, 0);
         lv_obj_set_style_bg_opa(btn, LV_OPA_COVER, 0);
         lv_obj_set_style_bg_color(btn, th->pressed, LV_STATE_PRESSED);
@@ -138,7 +138,7 @@ static void refresh_list(void)
 
         lv_obj_t *btn = lv_btn_create(list);
         lv_obj_set_width(btn, LV_PCT(100));
-        lv_obj_set_height(btn, 40);
+        lv_obj_set_height(btn, 46);
         lv_obj_set_style_bg_color(btn, th->surface, 0);
         lv_obj_set_style_bg_opa(btn, LV_OPA_COVER, 0);
         lv_obj_set_style_bg_color(btn, th->pressed, LV_STATE_PRESSED);
@@ -175,22 +175,22 @@ lv_obj_t *screen_historicos_create(lv_obj_t *parent)
     lv_obj_set_style_bg_opa(root, LV_OPA_COVER, 0);
     lv_obj_set_style_border_width(root, 0, 0);
     lv_obj_set_style_radius(root, 0, 0);
-    lv_obj_set_style_pad_all(root, 8, 0);
-    lv_obj_set_style_pad_gap(root, 8, 0);
+    lv_obj_set_style_pad_all(root, 12, 0);
+    lv_obj_set_style_pad_gap(root, 10, 0);
     lv_obj_set_flex_flow(root, LV_FLEX_FLOW_ROW);
     lv_obj_clear_flag(root, LV_OBJ_FLAG_SCROLLABLE);
 
     // LISTA
     list = lv_obj_create(root);
-    lv_obj_set_width(list, 200);
+    lv_obj_set_width(list, 220);
     lv_obj_set_height(list, LV_PCT(100));
     lv_obj_set_style_bg_color(list, th->surface, 0);
     lv_obj_set_style_bg_opa(list, LV_OPA_COVER, 0);
     lv_obj_set_style_border_color(list, th->border, 0);
     lv_obj_set_style_border_width(list, 1, 0);
-    lv_obj_set_style_radius(list, 8, 0);
-    lv_obj_set_style_pad_all(list, 6, 0);
-    lv_obj_set_style_pad_gap(list, 4, 0);
+    lv_obj_set_style_radius(list, 10, 0);
+    lv_obj_set_style_pad_all(list, 8, 0);
+    lv_obj_set_style_pad_gap(list, 6, 0);
     lv_obj_set_layout(list, LV_LAYOUT_FLEX);
     lv_obj_set_flex_flow(list, LV_FLEX_FLOW_COLUMN);
 
@@ -203,7 +203,8 @@ lv_obj_t *screen_historicos_create(lv_obj_t *parent)
     lv_obj_set_style_bg_opa(text_area, LV_OPA_COVER, 0);
     lv_obj_set_style_border_color(text_area, th->border, 0);
     lv_obj_set_style_border_width(text_area, 1, 0);
-    lv_obj_set_style_radius(text_area, 8, 0);
+    lv_obj_set_style_radius(text_area, 10, 0);
+    lv_obj_set_style_pad_all(text_area, 12, 0);
     lv_obj_set_style_text_font(text_area, FONT_SMALL, 0);
     lv_obj_set_style_text_color(text_area, th->text, 0);
 

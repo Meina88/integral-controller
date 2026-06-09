@@ -16,7 +16,7 @@
 #include "ui/components/numpad.h"
 #include "ui/ui_manager.h"
 
-#define GAUGE_SIZE 220
+#define GAUGE_SIZE 210
 #define SPEED_MAX 20
 
 static lv_obj_t *root;
@@ -191,7 +191,7 @@ static void btn_event_cb(lv_event_t *e)
 
         recording_ui = true;
         lv_label_set_text(label_btn, "Detener");
-        lv_obj_set_style_bg_color(btn_record, lv_palette_main(LV_PALETTE_RED), 0);
+        lv_obj_set_style_bg_color(btn_record, ui_theme_get()->red, 0);
     }
     else
     {
@@ -203,7 +203,7 @@ static void btn_event_cb(lv_event_t *e)
         s_alarm_active = false;
         update_qty_label();
         lv_label_set_text(label_btn, "Grabar");
-        lv_obj_set_style_bg_color(btn_record, lv_palette_main(LV_PALETTE_GREEN), 0);
+        lv_obj_set_style_bg_color(btn_record, ui_theme_get()->green, 0);
     }
 }
 
@@ -333,7 +333,7 @@ lv_obj_t *screen_extruir_create(lv_obj_t *parent)
 
     // ── LEFT COLUMN ───────────────────────────────────────────────
     lv_obj_t *left_col = lv_obj_create(root);
-    lv_obj_set_size(left_col, 300, LV_PCT(100));
+    lv_obj_set_size(left_col, 268, LV_PCT(100));
     lv_obj_set_flex_flow(left_col, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(left_col,
                           LV_FLEX_ALIGN_CENTER,
@@ -342,8 +342,8 @@ lv_obj_t *screen_extruir_create(lv_obj_t *parent)
 
     lv_obj_set_style_pad_top(left_col, 12, 0);
     lv_obj_set_style_pad_bottom(left_col, 12, 0);
-    lv_obj_set_style_pad_left(left_col, 50, 0);
-    lv_obj_set_style_pad_right(left_col, 12, 0);
+    lv_obj_set_style_pad_left(left_col, 16, 0);
+    lv_obj_set_style_pad_right(left_col, 16, 0);
 
     lv_obj_set_style_pad_gap(left_col, 8, 0);
     lv_obj_set_style_bg_opa(left_col, LV_OPA_TRANSP, 0);
@@ -424,8 +424,12 @@ lv_obj_t *screen_extruir_create(lv_obj_t *parent)
 
     // ─── Botón Grabar ─────────────────────────────────────────────
     btn_record = lv_btn_create(left_col);
-    lv_obj_set_size(btn_record, 220, 52);
-    lv_obj_set_style_bg_color(btn_record, lv_palette_main(LV_PALETTE_GREEN), 0);
+    lv_obj_set_size(btn_record, LV_PCT(100), 52);
+    lv_obj_set_style_bg_color(btn_record, th->green, 0);
+    lv_obj_set_style_bg_opa(btn_record, LV_OPA_COVER, 0);
+    lv_obj_set_style_shadow_width(btn_record, 0, 0);
+    lv_obj_set_style_border_width(btn_record, 0, 0);
+    lv_obj_set_style_radius(btn_record, 10, 0);
     lv_obj_add_event_cb(btn_record, btn_event_cb, LV_EVENT_CLICKED, NULL);
 
     label_btn = lv_label_create(btn_record);
@@ -435,7 +439,9 @@ lv_obj_t *screen_extruir_create(lv_obj_t *parent)
 
     // ── RIGHT COLUMN ──────────────────────────────────────────────
     lv_obj_t *right_col = lv_obj_create(root);
-    lv_obj_set_size(right_col, 380, LV_PCT(100));
+    lv_obj_set_width(right_col, LV_PCT(100));
+    lv_obj_set_height(right_col, LV_PCT(100));
+    lv_obj_set_flex_grow(right_col, 1);
     lv_obj_set_flex_flow(right_col, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(right_col,
                           LV_FLEX_ALIGN_START,
@@ -475,7 +481,7 @@ lv_obj_t *screen_extruir_create(lv_obj_t *parent)
     lv_obj_set_size(qty_row, LV_PCT(100), 60);
     lv_obj_set_flex_flow(qty_row, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(qty_row,
-                          LV_FLEX_ALIGN_SPACE_BETWEEN,
+                          LV_FLEX_ALIGN_START,
                           LV_FLEX_ALIGN_CENTER,
                           LV_FLEX_ALIGN_START);
     lv_obj_set_style_pad_all(qty_row, 0, 0);
@@ -487,11 +493,12 @@ lv_obj_t *screen_extruir_create(lv_obj_t *parent)
     label_qty = lv_label_create(qty_row);
     lv_obj_set_style_text_font(label_qty, FONT_LARGE, 0);
     lv_obj_set_style_text_color(label_qty, th->text, 0);
+    lv_obj_set_flex_grow(label_qty, 1);
     lv_label_set_text(label_qty, "--");
 
     // contenedor de botones lado a lado
     lv_obj_t *btns_row = lv_obj_create(qty_row);
-    lv_obj_set_size(btns_row, 140, 56);
+    lv_obj_set_size(btns_row, LV_SIZE_CONTENT, 56);
     lv_obj_set_flex_flow(btns_row, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(btns_row,
                           LV_FLEX_ALIGN_CENTER,
@@ -505,19 +512,31 @@ lv_obj_t *screen_extruir_create(lv_obj_t *parent)
     lv_obj_clear_flag(btns_row, LV_OBJ_FLAG_SCROLLABLE);
 
     btn_qty_minus = lv_btn_create(btns_row);
-    lv_obj_set_size(btn_qty_minus, 64, 56);
+    lv_obj_set_size(btn_qty_minus, 60, 52);
+    lv_obj_set_style_bg_color(btn_qty_minus, th->blue, 0);
+    lv_obj_set_style_bg_opa(btn_qty_minus, LV_OPA_COVER, 0);
+    lv_obj_set_style_shadow_width(btn_qty_minus, 0, 0);
+    lv_obj_set_style_border_width(btn_qty_minus, 0, 0);
+    lv_obj_set_style_radius(btn_qty_minus, 8, 0);
     lv_obj_add_event_cb(btn_qty_minus, qty_minus_event_cb, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(btn_qty_minus, qty_minus_event_cb, LV_EVENT_LONG_PRESSED_REPEAT, NULL);
     lv_obj_t *lbl_down = lv_label_create(btn_qty_minus);
     lv_label_set_text(lbl_down, "▼");
+    lv_obj_set_style_text_color(lbl_down, lv_color_white(), 0);
     lv_obj_center(lbl_down);
 
     btn_qty_plus = lv_btn_create(btns_row);
-    lv_obj_set_size(btn_qty_plus, 64, 56);
+    lv_obj_set_size(btn_qty_plus, 60, 52);
+    lv_obj_set_style_bg_color(btn_qty_plus, th->blue, 0);
+    lv_obj_set_style_bg_opa(btn_qty_plus, LV_OPA_COVER, 0);
+    lv_obj_set_style_shadow_width(btn_qty_plus, 0, 0);
+    lv_obj_set_style_border_width(btn_qty_plus, 0, 0);
+    lv_obj_set_style_radius(btn_qty_plus, 8, 0);
     lv_obj_add_event_cb(btn_qty_plus, qty_plus_event_cb, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(btn_qty_plus, qty_plus_event_cb, LV_EVENT_LONG_PRESSED_REPEAT, NULL);
     lv_obj_t *lbl_up = lv_label_create(btn_qty_plus);
     lv_label_set_text(lbl_up, "▲");
+    lv_obj_set_style_text_color(lbl_up, lv_color_white(), 0);
     lv_obj_center(lbl_up);
 
     extrusion_set_target_count(target_qty_ui);
@@ -526,13 +545,13 @@ lv_obj_t *screen_extruir_create(lv_obj_t *parent)
     lv_obj_t *info_card = lv_obj_create(right_col);
     lv_obj_set_size(info_card, LV_PCT(100), LV_SIZE_CONTENT);
     lv_obj_set_flex_flow(info_card, LV_FLEX_FLOW_COLUMN);
-    lv_obj_set_style_pad_all(info_card, 12, 0);
-    lv_obj_set_style_pad_gap(info_card, 10, 0);
-    lv_obj_set_style_bg_color(info_card, th->surface, 0);
+    lv_obj_set_style_pad_all(info_card, 14, 0);
+    lv_obj_set_style_pad_gap(info_card, 12, 0);
+    lv_obj_set_style_bg_color(info_card, th->surface2, 0);
     lv_obj_set_style_bg_opa(info_card, LV_OPA_COVER, 0);
     lv_obj_set_style_border_color(info_card, th->border, 0);
     lv_obj_set_style_border_width(info_card, 1, 0);
-    lv_obj_set_style_radius(info_card, 8, 0);
+    lv_obj_set_style_radius(info_card, 10, 0);
     lv_obj_set_style_shadow_width(info_card, 0, 0);
     lv_obj_clear_flag(info_card, LV_OBJ_FLAG_SCROLLABLE);
 
@@ -546,7 +565,7 @@ lv_obj_t *screen_extruir_create(lv_obj_t *parent)
     if (recording_ui)
     {
         lv_label_set_text(label_btn, "Detener");
-        lv_obj_set_style_bg_color(btn_record, lv_palette_main(LV_PALETTE_RED), 0);
+        lv_obj_set_style_bg_color(btn_record, ui_theme_get()->red, 0);
         set_cut_buttons_enabled(false);
         set_qty_buttons_enabled(false);
     }
@@ -583,7 +602,7 @@ void screen_extruir_refresh_profile(void)
     if (!recording_ui)
     {
         lv_label_set_text(label_btn, "Grabar");
-        lv_obj_set_style_bg_color(btn_record, lv_palette_main(LV_PALETTE_GREEN), 0);
+        lv_obj_set_style_bg_color(btn_record, ui_theme_get()->green, 0);
     }
 
     if (!profile_get_by_code(profile_code, &current_profile))
@@ -774,7 +793,7 @@ void screen_extruir_update(void)
         s_alarm_active = false;
         update_qty_label();
         lv_label_set_text(label_btn, "Grabar");
-        lv_obj_set_style_bg_color(btn_record, lv_palette_main(LV_PALETTE_GREEN), 0);
+        lv_obj_set_style_bg_color(btn_record, ui_theme_get()->green, 0);
     }
 }
 

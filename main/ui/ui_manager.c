@@ -16,15 +16,15 @@
 #include "comms/wifi/wifi_manager.h"
 
 // ─── Paleta ────────────────────────────────────────────────────
-#define C_BG_DARK      lv_color_hex(0x0D1117)  // fondo sidebar / statusbar
-#define C_SEPARATOR    lv_color_hex(0x1E293B)  // líneas separadoras
-#define C_TAB_ACTIVE   lv_color_hex(0x1D4ED8)  // fondo pestaña activa
+#define C_BG_DARK      lv_color_hex(0x080E18)  // fondo sidebar / statusbar (más profundo)
+#define C_SEPARATOR    lv_color_hex(0x1A2D45)  // líneas separadoras
+#define C_TAB_ACTIVE   lv_color_hex(0x2563EB)  // fondo pestaña activa
 #define C_TAB_ACCENT   lv_color_hex(0x93C5FD)  // borde derecho pestaña activa
-#define C_TAB_TEXT_OFF lv_color_hex(0x6B7280)  // texto pestaña inactiva
+#define C_TAB_TEXT_OFF lv_color_hex(0x94A3B8)  // texto pestaña inactiva (WCAG AA)
 #define C_STATUS_OK    lv_color_hex(0x16A34A)  // badge verde "Listo"
 #define C_STATUS_REC   lv_color_hex(0xDC2626)  // badge rojo "Grabando"
 #define C_STATUS_ALARM lv_color_hex(0xD97706)  // badge ambar "Alarma"
-#define C_TIME_TEXT    lv_color_hex(0xD1D5DB)  // texto hora (gris suave)
+#define C_TIME_TEXT    lv_color_hex(0xE2E8F0)  // texto hora (más legible)
 
 typedef enum { STATUS_READY, STATUS_RECORDING, STATUS_ALARM } status_t;
 
@@ -380,7 +380,7 @@ void ui_start(void)
     // SIDEBAR (pestañas)
     // =========================
     sidebar = lv_obj_create(main_area);
-    lv_obj_set_width(sidebar, 120);
+    lv_obj_set_width(sidebar, 132);
     lv_obj_set_height(sidebar, LV_PCT(100));
     lv_obj_set_style_bg_color(sidebar, C_BG_DARK, 0);
     lv_obj_set_style_bg_opa(sidebar, LV_OPA_COVER, 0);
@@ -423,12 +423,15 @@ void ui_start(void)
         lv_obj_set_style_bg_color(btn, C_BG_DARK, 0);
         lv_obj_set_style_bg_opa(btn, LV_OPA_COVER, 0);
         lv_obj_set_style_border_width(btn, 0, 0);
+        // hover / press suave
+        lv_obj_set_style_bg_color(btn, lv_color_hex(0x1A2D45), LV_STATE_PRESSED);
+        lv_obj_set_style_bg_opa(btn, LV_OPA_COVER, LV_STATE_PRESSED);
 
         // estilo activo (LV_STATE_CHECKED)
         lv_obj_set_style_bg_color(btn, C_TAB_ACTIVE, LV_STATE_CHECKED);
         lv_obj_set_style_bg_opa(btn, LV_OPA_COVER, LV_STATE_CHECKED);
         lv_obj_set_style_border_side(btn, LV_BORDER_SIDE_RIGHT, LV_STATE_CHECKED);
-        lv_obj_set_style_border_width(btn, 4, LV_STATE_CHECKED);
+        lv_obj_set_style_border_width(btn, 3, LV_STATE_CHECKED);
         lv_obj_set_style_border_color(btn, C_TAB_ACCENT, LV_STATE_CHECKED);
 
         lv_obj_add_event_cb(btn, callbacks[i], LV_EVENT_CLICKED, NULL);
