@@ -452,7 +452,7 @@ lv_obj_t *screen_extruir_create(lv_obj_t *parent)
     lv_obj_clear_flag(cut_container, LV_OBJ_FLAG_SCROLLABLE);
 
     // ─── Sección Cantidad objetivo ────────────────────────────────
-    make_section_label(right_col, "Cantidad:");
+    make_section_label(right_col, "Tiradas:");
 
     // Fila: [número grande]  [▲][▼]  (botones lado a lado)
     lv_obj_t *qty_row = lv_obj_create(right_col);
