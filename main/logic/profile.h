@@ -2,6 +2,7 @@
 #include <stdbool.h>
 
 #define MAX_CUT_OPTIONS 5
+#define PROFILE_CODE_MAX_LEN 15
 
 typedef struct
 {
@@ -42,6 +43,8 @@ bool profile_get_by_code(const char *code, profile_t *out);
 int profile_search(const char *filter, char results[][32], int max);
 bool profile_exists(const char *code);
 bool profile_delete(const char *code);
+bool profile_code_is_valid(const char *code);
+void profile_sanitize_storage(void);
 
 // ⚠️ desactivar temporalmente
 // bool profile_update(const profile_t *p);

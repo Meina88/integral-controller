@@ -25,6 +25,7 @@
 #include "logic/alarm.h"
 #include "logic/alarm_config.h"
 #include "logic/calibration.h"
+#include "logic/profile.h"
 
 #include "services/production_log.h"
 
@@ -106,6 +107,7 @@ void app_main(void)
         printf("SD montada correctamente\n");
 
         production_log_init();
+        profile_sanitize_storage();
     }
     else
     {

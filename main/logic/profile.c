@@ -17,8 +17,37 @@ static void remove_json_extension(char *name)
         *dot = '\0';
 }
 
+// Un "code" termina siendo un nombre de archivo en /sdcard/profiles/, así que
+// solo se permiten caracteres seguros para eso: sin espacios, "/", "\" ni "..".
+bool profile_code_is_valid(const char *code)
+{
+    if (!code || !code[0])
+        return false;
+
+    size_t len = strlen(code);
+    if (len > PROFILE_CODE_MAX_LEN)
+        return false;
+
+    if (strcmp(code, ".") == 0 || strcmp(code, "..") == 0)
+        return false;
+
+    for (size_t i = 0; i < len; i++)
+    {
+        char c = code[i];
+        bool ok = (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
+                  (c >= '0' && c <= '9') || c == '.' || c == '-' || c == '_';
+        if (!ok)
+            return false;
+    }
+
+    return true;
+}
+
 bool profile_get_by_code(const char *code, profile_t *out)
 {
+    if (!profile_code_is_valid(code))
+        return false;
+
     char path[128];
     char json[PROFILE_JSON_SIZE];
 
@@ -223,6 +252,9 @@ int profile_search(const char *filter, char results[][32], int max)
 
 bool profile_exists(const char *code)
 {
+    if (!profile_code_is_valid(code))
+        return false;
+
     char path[128];
     snprintf(path, sizeof(path), "%s/%s.json", PROFILE_DIR, code);
 
@@ -245,6 +277,9 @@ bool profile_duplicate(const char *source_code, const char *new_code)
 
 bool profile_delete(const char *code)
 {
+    if (!profile_code_is_valid(code))
+        return false;
+
     const char *active = active_profile_get();
 
     if (active && strcmp(active, code) == 0)
@@ -263,4 +298,78 @@ bool profile_delete(const char *code)
     }
 
     return false;
+}
+
+// Reemplaza cada caracter fuera de [A-Za-z0-9._-] por '_' y trunca a
+// PROFILE_CODE_MAX_LEN, para reparar códigos guardados antes de que
+// profile_code_is_valid() existiera (ver bug de perfiles con espacios/"/").
+static void sanitize_code(const char *src, char *dst, size_t dst_size)
+{
+    size_t j = 0;
+    for (size_t i = 0; src[i] != '\0' && j < dst_size - 1 && j < PROFILE_CODE_MAX_LEN; i++)
+    {
+        char c = src[i];
+        bool ok = (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
+                  (c >= '0' && c <= '9') || c == '.' || c == '-' || c == '_';
+        dst[j++] = ok ? c : '_';
+    }
+    dst[j] = '\0';
+
+    if (dst[0] == '\0' || strcmp(dst, ".") == 0 || strcmp(dst, "..") == 0)
+        strncpy(dst, "perfil", dst_size - 1);
+}
+
+// Repara en el arranque perfiles guardados en la SD con nombres de archivo
+// inválidos (ej: "Manguera%20Riego%201%2F2.json"), renombrándolos a un
+// código seguro para que vuelvan a ser editables/borrables desde la UI.
+void profile_sanitize_storage(void)
+{
+    char (*files)[64] = malloc(MAX_FILES * sizeof(*files));
+    if (!files)
+        return;
+
+    int count = sd_list_files_in_dir(PROFILE_DIR, files, MAX_FILES);
+
+    for (int i = 0; i < count; i++)
+    {
+        if (!strstr(files[i], ".json"))
+            continue;
+
+        char code[32];
+        strncpy(code, files[i], sizeof(code) - 1);
+        code[sizeof(code) - 1] = '\0';
+        remove_json_extension(code);
+
+        if (profile_code_is_valid(code))
+            continue;
+
+        char clean[PROFILE_CODE_MAX_LEN + 1];
+        sanitize_code(code, clean, sizeof(clean));
+
+        char newcode[PROFILE_CODE_MAX_LEN + 8];
+        strncpy(newcode, clean, sizeof(newcode) - 1);
+        newcode[sizeof(newcode) - 1] = '\0';
+
+        for (int suffix = 2; profile_exists(newcode) && suffix < 50; suffix++)
+            snprintf(newcode, sizeof(newcode), "%.*s_%d", PROFILE_CODE_MAX_LEN - 3, clean, suffix);
+
+        char oldpath[128], newpath[128];
+        snprintf(oldpath, sizeof(oldpath), "%s/%s.json", PROFILE_DIR, code);
+        snprintf(newpath, sizeof(newpath), "%s/%s.json", PROFILE_DIR, newcode);
+
+        if (rename(oldpath, newpath) != 0)
+        {
+            printf("No se pudo reparar perfil corrupto '%s'\n", code);
+            continue;
+        }
+
+        printf("Perfil corrupto reparado: '%s' -> '%s'\n", code, newcode);
+
+        char oldimg[128], newimg[128];
+        snprintf(oldimg, sizeof(oldimg), "%s/%s.png", PROFILE_DIR, code);
+        snprintf(newimg, sizeof(newimg), "%s/%s.png", PROFILE_DIR, newcode);
+        rename(oldimg, newimg);
+    }
+
+    free(files);
 }

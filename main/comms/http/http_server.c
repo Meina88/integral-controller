@@ -266,7 +266,7 @@ static const char HTML_BODY[] =
 "            <div style='flex:3;min-width:0'>"
 "              <div class='fsec'>General</div>"
 "              <div class='fg'>"
-"                <div class='fgs'><label>Codigo (ID)</label><input id='f_code' placeholder='ej: 1000.5000'/></div>"
+"                <div class='fgs'><label>Codigo (ID)</label><input id='f_code' placeholder='ej: 1000.5000' maxlength='15' oninput=\"this.value=this.value.replace(/[^A-Za-z0-9._-]/g,'')\"/></div>"
 "                <div class='fgs'><label>Nombre comercial</label><input id='f_name' placeholder='ej: Manguera 10mm'/></div>"
 "              </div>"
 "              <div class='fsec'>Geometria</div>"
@@ -821,6 +821,7 @@ static const char HTML_JS[] =
 "async function saveProf(){"
 "  const code=document.getElementById('f_code').value.trim();"
 "  if(!code){alert('El codigo es requerido');return;}"
+"  if(!/^[A-Za-z0-9._-]{1,15}$/.test(code)){alert('Codigo invalido: solo letras, numeros, punto, guion y guion bajo (max 15 caracteres)');return;}"
 "  try{"
 "    const r=await fetch('/api/profile?code='+encodeURIComponent(code),{method:'POST',body:buildJSON(code),headers:{'Content-Type':'application/json'}});"
 "    if(r.ok){"
@@ -1034,6 +1035,9 @@ static esp_err_t profile_get_handler(httpd_req_t *req)
     if (httpd_query_key_value(query, "code", code, sizeof(code)) != ESP_OK)
         return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Falta code");
 
+    if (!profile_code_is_valid(code))
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Codigo invalido");
+
     snprintf(filepath, sizeof(filepath), "/sdcard/profiles/%s.json", code);
 
     FILE *f = fopen(filepath, "r");
@@ -1066,6 +1070,9 @@ static esp_err_t profile_save_handler(httpd_req_t *req)
 
     if (httpd_query_key_value(query, "code", code, sizeof(code)) != ESP_OK)
         return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Falta code");
+
+    if (!profile_code_is_valid(code))
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Codigo invalido");
 
     snprintf(filepath, sizeof(filepath), "/sdcard/profiles/%s.json", code);
 
@@ -1105,6 +1112,9 @@ static esp_err_t profile_delete_handler(httpd_req_t *req)
 
     if (httpd_query_key_value(query, "code", code, sizeof(code)) != ESP_OK)
         return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Falta code");
+
+    if (!profile_code_is_valid(code))
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Codigo invalido");
 
     if (!profile_delete(code))
         return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "No se pudo eliminar");
@@ -1226,6 +1236,9 @@ static esp_err_t profile_image_get_handler(httpd_req_t *req)
     if (httpd_query_key_value(query, "code", code, sizeof(code)) != ESP_OK)
         return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Falta code");
 
+    if (!profile_code_is_valid(code))
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Codigo invalido");
+
     snprintf(filepath, sizeof(filepath), "/sdcard/profiles/%s.png", code);
 
     FILE *f = fopen(filepath, "rb");
@@ -1253,6 +1266,9 @@ static esp_err_t profile_image_upload_handler(httpd_req_t *req)
         return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Falta query");
     if (httpd_query_key_value(query, "code", code, sizeof(code)) != ESP_OK)
         return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Falta code");
+
+    if (!profile_code_is_valid(code))
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Codigo invalido");
 
     int total = req->content_len;
     if (total <= 0 || total > 512 * 1024)
@@ -1295,6 +1311,9 @@ static esp_err_t profile_image_delete_handler(httpd_req_t *req)
         return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Falta query");
     if (httpd_query_key_value(query, "code", code, sizeof(code)) != ESP_OK)
         return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Falta code");
+
+    if (!profile_code_is_valid(code))
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Codigo invalido");
 
     snprintf(filepath, sizeof(filepath), "/sdcard/profiles/%s.png", code);
 

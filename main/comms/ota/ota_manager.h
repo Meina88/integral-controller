@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-#define FW_VERSION "1.1.0"
+#define FW_VERSION "1.1.1"
 #define OTA_MANIFEST_URL "https://github.com/Meina88/integral-controller/releases/latest/download/manifest.json"
 
 typedef enum {
